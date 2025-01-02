@@ -1,0 +1,140 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model IncidentType{
+  id  String  @id  @default(uuid())
+  name  String
+  createdBy String
+  updatedBy String
+  incident Incident[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime  @updatedAt
+  isActive  Boolean @default(true)
+}
+
+
+model IncidentCause{
+  id   String @id @default(uuid())
+  name  String
+  createdBy String
+  updatedBy String
+  incident Incident[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime  @updatedAt
+  isActive  Boolean @default(true)
+}
+
+
+model Equipement{
+  id  String  @id @default(uuid())
+  name  String
+  incidents Incident[]
+  createdBy String
+  updatedBy String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime  @updatedAt
+  isActive  Boolean @default(true) 
+}
+
+
+model Consommable{
+  id  String  @id   @default(uuid())
+  name  String
+  incident Incident[]
+  createdBy String
+  updatedBy String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime  @updatedAt
+  isActive  Boolean @default(true) 
+}
+
+model Supplier{
+  id  String  @id  @default(uuid())
+  name  String
+  createdBy String
+  updatedBy String
+  maintenance Maintenance[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime  @updatedAt
+  isActive  Boolean @default(true)
+}
+
+model MaintenanceType{
+  id  String  @id  @default(uuid())
+  name  String
+  createdBy String
+  updatedBy String
+  maintenace Maintenance[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime  @updatedAt
+  isActive  Boolean @default(true) 
+}
+
+model Incident{
+  id   String @id @default(uuid())
+  incidentId  String
+  incident  IncidentType @relation(fields: [incidentId], references: [id])
+  equipementId String
+  equipement  Equipement @relation(fields: [equipementId], references: [id])
+  siteId String
+  shiftId String
+  consomableId String
+  consommable Consommable @relation(fields: [consomableId], references: [id])
+  incidentCauseId String
+  incidentCauses IncidentCause @relation(fields: [incidentCauseId], references: [id]) 
+  userId  String
+  description String?
+  createdBy String
+  updatedBy String
+  status  INCIDENT_STATUS @default(PENDING)
+  
+  creationDate DateTime @default(now())
+  closedDate   DateTime
+  isActive  Boolean   @default(true)
+}
+
+model Maintenance{
+  id  String  @id  @default(uuid())
+  maintenanceId String
+  maintenance MaintenanceType @relation(fields: [maintenanceId], references: [id])
+  siteId  String
+  status  MAINTENANCE_STATUS @default(PENDING)
+  description String?
+  supplierId String
+  suppliers Supplier @relation(fields: [supplierId], references: [id])
+  userId  String
+  executionDate DateTime
+  closedDate  DateTime
+  createdBy String
+  updatedBy String
+
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  isActive  Boolean @default(true) 
+}
+
+enum INCIDENT_STATUS{
+  PENDING
+  CLOSED
+  UNDER_MAINTENANCE
+}
+
+enum MAINTENANCE_STATUS{
+  PENDING
+  CLOSED
+  UNDER_MAINTENANCE
+}
