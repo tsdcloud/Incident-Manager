@@ -24,13 +24,13 @@ export const createIncident = [
 
 
 export const updateIncident = [
-    body("incidentId").notEmpty().withMessage("incidentId should not be empty"),
-    body("equipementId").notEmpty().withMessage("equipementId should not be empty"),
-    body("siteId").notEmpty().withMessage("siteId should not be empty"),
-    body("shiftId").notEmpty().withMessage("shiftId should not be empty"),
-    body("consomableId").notEmpty().withMessage("consomableId should not be empty"),
-    body("incidentCauseId").notEmpty().withMessage("incidentCauseId should not be empty"),
-    body("userId").notEmpty().withMessage("userId should not be empty"),
+    body("incidentId").optional().notEmpty().withMessage("incidentId should not be empty"),
+    body("equipementId").optional().notEmpty().withMessage("equipementId should not be empty"),
+    body("siteId").optional().notEmpty().withMessage("siteId should not be empty"),
+    body("shiftId").optional().notEmpty().withMessage("shiftId should not be empty"),
+    body("consomableId").optional().notEmpty().withMessage("consomableId should not be empty"),
+    body("incidentCauseId").optional().notEmpty().withMessage("incidentCauseId should not be empty"),
+    body("userId").optional().notEmpty().withMessage("userId should not be empty"),
     body("description").optional().notEmpty().withMessage("description should not be empty"),
     (req, res, next) =>{
         const error = validationResult(req);

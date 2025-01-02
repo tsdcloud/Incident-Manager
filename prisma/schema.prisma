@@ -12,7 +12,7 @@ model IncidentType{
   id  String  @id  @default(uuid())
   name  String
   createdBy String
-  updatedBy String
+  updatedBy String?
   incident Incident[]
 
   createdAt DateTime @default(now())
@@ -25,7 +25,7 @@ model IncidentCause{
   id   String @id @default(uuid())
   name  String
   createdBy String
-  updatedBy String
+  updatedBy String?
   incident Incident[]
 
   createdAt DateTime @default(now())
@@ -39,7 +39,7 @@ model Equipement{
   name  String
   incidents Incident[]
   createdBy String
-  updatedBy String
+  updatedBy String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime  @updatedAt
@@ -52,7 +52,7 @@ model Consommable{
   name  String
   incident Incident[]
   createdBy String
-  updatedBy String
+  updatedBy String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime  @updatedAt
@@ -63,7 +63,7 @@ model Supplier{
   id  String  @id  @default(uuid())
   name  String
   createdBy String
-  updatedBy String
+  updatedBy String?
   maintenance Maintenance[]
 
   createdAt DateTime @default(now())
@@ -75,7 +75,7 @@ model MaintenanceType{
   id  String  @id  @default(uuid())
   name  String
   createdBy String
-  updatedBy String
+  updatedBy String?
   maintenace Maintenance[]
 
   createdAt DateTime @default(now())
@@ -98,7 +98,7 @@ model Incident{
   userId  String
   description String?
   createdBy String
-  updatedBy String
+  updatedBy String?
   status  INCIDENT_STATUS @default(PENDING)
   
   creationDate DateTime @default(now())
@@ -119,7 +119,7 @@ model Maintenance{
   executionDate DateTime
   closedDate  DateTime
   createdBy String
-  updatedBy String
+  updatedBy String?
 
 
   createdAt DateTime  @default(now())
