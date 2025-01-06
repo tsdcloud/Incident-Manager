@@ -21,7 +21,7 @@ export const createConsommable = [
 export const updateConsommable = [
     body("name").optional().notEmpty().withMessage("Invalid name"),
     body("createdBy").optional().notEmpty().withMessage("Invalid user"),
-    body("updatedBy").notEmpty().withMessage("Invalid user"),
+    body("updatedBy").optional().notEmpty().withMessage("Invalid user"),
     (req, res, next) =>{
         const error = validationResult(req);
         if(!error.isEmpty()){

@@ -1,5 +1,11 @@
 import {prisma} from '../config.js';
+import {consommableAbilities} from '../utils/abilities.utils.js';
 const consommableClient = prisma.consommable;
+
+
+const LIMIT = 1;
+const ORDER ="asc";
+const SORT_BY = "name";
 
 /**
  * Create a consommable
@@ -24,11 +30,22 @@ export const createConsommableService = async (body)=>{
  * @returns 
  */
 export const getAllConsommableService = async(body) =>{
+    const page = 1;
+    const skip = (page - 1) * LIMIT;
+
     try {
         let consommables = await consommableClient.findMany({
-            where:{isActive:true}
+            // where:{isActive:true},
+            skip: parseInt(skip),
+            take: parseInt(LIMIT)
         });
-        return consommables;
+        const total = await consommableClient.count();
+        return {
+            page: parseInt(page),
+            totalPages: Math.ceil(total / LIMIT),
+            total,
+            data: consommables,
+        };
     } catch (error) {
         console.log(error);
         throw new Error(`${error}`)
@@ -45,6 +62,7 @@ export const getConsommableByIdService = async(id) =>{
         let consommable = await consommableClient.findFirst({
             where:{id, isActive: true},
         });
+        if (!consommable) throw new Error(`No consommable found.`)
         return consommable;
     } catch (error) {
         console.log(error);
@@ -58,11 +76,21 @@ export const getConsommableByIdService = async(id) =>{
  * @returns 
  */
 export const getConsommableByParams = async (request) =>{
+    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, ...queries } = request; 
+    const skip = (page - 1) * limit;
     try {
         let consommable = await consommableClient.findMany({
-            where:request
+            where:queries,
+            skip: parseInt(skip),
+            take: parseInt(limit)
         });
-        return consommable;
+        const total = await consommableClient.count();
+        return {
+            page: parseInt(page),
+            totalPages: Math.ceil(total / limit),
+            total,
+            data: consommable,
+        };
     } catch (error) {
         console.log(error);
         throw new Error(`${error}`);
@@ -95,8 +123,9 @@ export const updateConsommableService = async (id, body) =>{
  */
 export const deleteConsommableServices = async (id) =>{
     try {
-        let consommable = await consommableClient.delete({
-            where: {id}
+        let consommable = await consommableClient.update({
+            where: {id},
+            data:{isActive:false}
         });
         return consommable
     } catch (error) {

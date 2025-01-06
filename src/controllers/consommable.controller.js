@@ -59,20 +59,22 @@ export const getConsommableByIdController = async (req, res) => {
  * @returns 
  */
 export const getAllConsommableController = async(req, res) => {
-    console.log(req.query);
-    // if(req.query){
-    //     try {
-    //         let  budget = await getBudgetByParams(req.query);
-    //         res
-    //         .send(budget)
-    //         .status(HTTP_STATUS.OK.statusCode);
-    //         return;
-    //     } catch (error) {
-    //       console.log(error);
-    //       res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);
-    //       return;
-    //     }
-    // }
+    
+    if(Object.keys(req.query).length !== 0 && req.query.constructor === Object){
+        console.log(req.query != {})
+        try {
+            let  consommables = await getConsommableByParams(req.query);
+            res
+            .send(consommables)
+            .status(HTTP_STATUS.OK.statusCode);
+            return;
+        } catch (error) {
+          console.log(error);
+          res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);
+          return;
+        }
+    }
+
     try {
         let consommables = await getAllConsommableService(req.body);
         res
