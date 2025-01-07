@@ -1,6 +1,10 @@
 import {prisma} from '../config.js';
 const equipementClient = prisma.equipement;
 
+const LIMIT = 100;
+const ORDER ="asc";
+const SORT_BY = "name";
+
 /**
  * Create qn equipement
  * @param body 
@@ -24,11 +28,25 @@ export const createEquipementService = async (body)=>{
  * @returns 
  */
 export const getAllEquipmentService = async(body) =>{
+    const page = 1;
+    const skip = (page - 1) * LIMIT;
+
     try {
-        let equipement = await equipementClient.findMany({
-            where:{isActive:true}
+        let equipements = await equipementClient.findMany({
+            // where:{isActive:true},
+            skip: parseInt(skip),
+            take: parseInt(LIMIT),
+            orderBy:{
+                createdAt:'desc'
+            }
         });
-        return equipement;
+        const total = await equipementClient.count();
+        return {
+            page: parseInt(page),
+            totalPages: Math.ceil(total / LIMIT),
+            total,
+            data: equipements,
+        };
     } catch (error) {
         console.log(error);
         throw new Error(`${error}`)
@@ -58,11 +76,24 @@ export const getEquipementByIdService = async(id) =>{
  * @returns 
  */
 export const getEquipementByParams = async (request) =>{
+    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, ...queries } = request; 
+    const skip = (page - 1) * limit;
     try {
         let equipement = await equipementClient.findMany({
-            where:request
+            where:queries,
+            skip: parseInt(skip),
+            take: parseInt(limit),
+            orderBy:{
+                createdAt:'desc'
+            }
         });
-        return equipement;
+        const total = await equipementClient.count();
+        return {
+            page: parseInt(page),
+            totalPages: Math.ceil(total / limit),
+            total,
+            data: equipement,
+        };
     } catch (error) {
         console.log(error);
         throw new Error(`${error}`);

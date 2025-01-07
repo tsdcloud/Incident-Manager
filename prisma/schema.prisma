@@ -49,7 +49,7 @@ model Equipement{
 
 model Consommable{
   id  String  @id   @default(uuid())
-  name  String
+  name  String @unique
   incident Incident[]
   createdBy String
   updatedBy String?
@@ -136,5 +136,4 @@ enum INCIDENT_STATUS{
 enum MAINTENANCE_STATUS{
   PENDING
   CLOSED
-  UNDER_MAINTENANCE
 }

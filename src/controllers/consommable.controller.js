@@ -61,7 +61,6 @@ export const getConsommableByIdController = async (req, res) => {
 export const getAllConsommableController = async(req, res) => {
     
     if(Object.keys(req.query).length !== 0 && req.query.constructor === Object){
-        console.log(req.query != {})
         try {
             let  consommables = await getConsommableByParams(req.query);
             res
@@ -121,7 +120,7 @@ export const deleteConsommableController = async (req, res) => {
         let consommable = await deleteConsommableServices(req.params.id);
         res
         .send(consommable)
-        .status(HTTP_STATUS.OK.statusCode);
+        .status(HTTP_STATUS.NO_CONTENT.statusCode);
         return;
     } catch (error) {
         console.log(error);

@@ -8,10 +8,9 @@ export const createEquipement = [
     (req, res, next) =>{
         const error = validationResult(req);
         if(!error.isEmpty()){
-            res
-            .send(error.array())
+            return res
             .status(HTTP_STATUS.BAD_REQUEST.statusCode)
-            return;
+            .send(error.array());
         } 
         next();
     }

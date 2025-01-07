@@ -1,4 +1,4 @@
-import { createEquipementService, deleteEquipmentService, getAllEquipmentService, getEquipementByIdService, getEquipementByParams, updateEquipementService } from "../services/equipement.service.js";
+import { createEquipementService, deleteEquipmentService, getAllEquipmentService, getEquipementByIdService, getEquipementByParams, updateEquipementService } from "../services/equipment.service.js";
 import HTTP_STATUS from "../utils/http.utils.js";
 
 
@@ -116,7 +116,7 @@ export const updateEquipementController = async (req, res) => {
  */
 export const deleteEquipementController = async (req, res) => {
     try {
-        let equipement = await deleteEquipementController(req.params.id);
+        let equipement = await deleteEquipmentService(req.params.id);
         res
         .send(equipement)
         .status(HTTP_STATUS.OK.statusCode);

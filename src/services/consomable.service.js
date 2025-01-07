@@ -3,7 +3,7 @@ import {consommableAbilities} from '../utils/abilities.utils.js';
 const consommableClient = prisma.consommable;
 
 
-const LIMIT = 1;
+const LIMIT = 100;
 const ORDER ="asc";
 const SORT_BY = "name";
 
@@ -37,7 +37,10 @@ export const getAllConsommableService = async(body) =>{
         let consommables = await consommableClient.findMany({
             // where:{isActive:true},
             skip: parseInt(skip),
-            take: parseInt(LIMIT)
+            take: parseInt(LIMIT),
+            orderBy:{
+                createdAt:'desc'
+            }
         });
         const total = await consommableClient.count();
         return {
@@ -82,7 +85,10 @@ export const getConsommableByParams = async (request) =>{
         let consommable = await consommableClient.findMany({
             where:queries,
             skip: parseInt(skip),
-            take: parseInt(limit)
+            take: parseInt(limit),
+            orderBy:{
+                createdAt:'desc'
+            }
         });
         const total = await consommableClient.count();
         return {
@@ -123,9 +129,12 @@ export const updateConsommableService = async (id, body) =>{
  */
 export const deleteConsommableServices = async (id) =>{
     try {
-        let consommable = await consommableClient.update({
-            where: {id},
-            data:{isActive:false}
+        // let consommable = await consommableClient.update({
+        //     where: {id},
+        //     data:{isActive:false}
+        // });
+        let consommable = await consommableClient.delete({
+            where: {id}
         });
         return consommable
     } catch (error) {

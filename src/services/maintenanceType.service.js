@@ -1,5 +1,9 @@
 import {prisma} from '../config.js';
-const maintenanceType = prisma.maintenanceType;
+const maintenanceTypeClient = prisma.maintenanceType;
+
+const LIMIT = 100;
+const ORDER ="asc";
+const SORT_BY = "name";
 
 /**
  * Create a maintenance
@@ -8,7 +12,7 @@ const maintenanceType = prisma.maintenanceType;
  */
 export const createMaintenanceTypeService = async (body)=>{
     try {
-        let type = await maintenanceType.create({
+        let type = await maintenanceTypeClient.create({
             data:body
         });
         return type;
@@ -24,11 +28,25 @@ export const createMaintenanceTypeService = async (body)=>{
  * @returns 
  */
 export const getAllMaintenanceTypeService = async(body) =>{
+    const page = 1;
+    const skip = (page - 1) * LIMIT;
+
     try {
-        let types = await maintenanceType.findMany({
-            where:{isActive:true}
+        let maintenanceTypes = await maintenanceTypeClient.findMany({
+            // where:{isActive:true},
+            skip: parseInt(skip),
+            take: parseInt(LIMIT),
+            orderBy:{
+                createdAt:'desc'
+            }
         });
-        return types;
+        const total = await maintenanceTypeClient.count();
+        return {
+            page: parseInt(page),
+            totalPages: Math.ceil(total / LIMIT),
+            total,
+            data: maintenanceTypes,
+        };
     } catch (error) {
         console.log(error);
         throw new Error(`${error}`)
@@ -42,7 +60,7 @@ export const getAllMaintenanceTypeService = async(body) =>{
  */
 export const getMaintenanceTypeByIdService = async(id) =>{
     try {
-        let type = await maintenanceType.findFirst({
+        let type = await maintenanceTypeClient.findFirst({
             where:{id, isActive: true},
         });
         return type;
@@ -58,11 +76,24 @@ export const getMaintenanceTypeByIdService = async(id) =>{
  * @returns 
  */
 export const getMaintenanceTypeByParams = async (request) =>{
+    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, ...queries } = request; 
+    const skip = (page - 1) * limit;
     try {
-        let type = await maintenanceType.findMany({
-            where:request
+        let types = await maintenanceTypeClient.findMany({
+            where:queries,
+            skip: parseInt(skip),
+            take: parseInt(limit),
+            orderBy:{
+                createdAt:'desc'
+            }
         });
-        return type;
+        const total = await maintenanceTypeClient.count();
+        return {
+            page: parseInt(page),
+            totalPages: Math.ceil(total / limit),
+            total,
+            data: types,
+        };
     } catch (error) {
         console.log(error);
         throw new Error(`${error}`);
@@ -77,7 +108,7 @@ export const getMaintenanceTypeByParams = async (request) =>{
  */
 export const updateMaintenanceTypeService = async (id, body) =>{
     try {
-        let type = await maintenanceType.update({
+        let type = await maintenanceTypeClient.update({
             where:{id},
             data:body
         });
@@ -95,7 +126,7 @@ export const updateMaintenanceTypeService = async (id, body) =>{
  */
 export const deleteMaintenanceTypeService = async (id) =>{
     try {
-        let type = await maintenanceType.delete({
+        let type = await maintenanceTypeClient.delete({
             where: {id}
         });
         return type

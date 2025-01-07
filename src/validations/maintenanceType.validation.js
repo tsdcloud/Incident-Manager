@@ -9,8 +9,8 @@ export const createMaintenanceType = [
         const error = validationResult(req);
         if(!error.isEmpty()){
             res
-            .send(error.array())
             .status(HTTP_STATUS.BAD_REQUEST.statusCode)
+            .send(error.array())
             return;
         } 
         next();
@@ -26,8 +26,8 @@ export const updateMaintenanceType = [
         const error = validationResult(req);
         if(!error.isEmpty()){
             res
-            .send(error.array())
             .status(HTTP_STATUS.BAD_REQUEST.statusCode)
+            .send(error.array())
             return;
         } 
         next();
