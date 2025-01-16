@@ -59,20 +59,20 @@ export const getIncidentCauseByIdController = async (req, res) => {
  * @returns 
  */
 export const getAllIncidentCauseController = async(req, res) => {
-    console.log(req.query);
-    // if(req.query){
-    //     try {
-    //         let  budget = await getBudgetByParams(req.query);
-    //         res
-    //         .send(budget)
-    //         .status(HTTP_STATUS.OK.statusCode);
-    //         return;
-    //     } catch (error) {
-    //       console.log(error);
-    //       res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);
-    //       return;
-    //     }
-    // }
+    if(Object.keys(req.query).length !== 0 && req.query.constructor === Object){
+        try {
+            let  consommables = await getIncidentCauseByParams(req.query);
+            res
+            .send(consommables)
+            .status(HTTP_STATUS.OK.statusCode);
+            return;
+        } catch (error) {
+          console.log(error);
+          res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);
+          return;
+        }
+    }
+
     try {
         let incidentCauses = await getAllIncidentCauseService(req.body);
         res
@@ -116,7 +116,7 @@ export const updateIncidentCauseController = async (req, res) => {
  */
 export const deleteIncidentCauseController = async (req, res) => {
     try {
-        let incidentCause = await deleteIncidentCauseController(req.params.id);
+        let incidentCause = await deleteIncidentCauseService(req.params.id);
         res
         .send(incidentCause)
         .status(HTTP_STATUS.OK.statusCode);

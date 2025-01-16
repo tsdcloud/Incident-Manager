@@ -1,6 +1,10 @@
 import {prisma} from '../config.js';
 const incidentCauses = prisma.incidentCause;
 
+const LIMIT = 100;
+const ORDER ="desc";
+const SORT_BY = "createdAt";
+
 /**
  * Create an incident causes
  * @param body 
@@ -24,14 +28,28 @@ export const createIncidentCauseService = async (body)=>{
  * @returns 
  */
 export const getAllIncidentCauseService = async(body) =>{
+    const page = 1; 
+    const limit = LIMIT
+    const skip = (page - 1) * limit;
     try {
         let causes = await incidentCauses.findMany({
-            where:{isActive:true}
+            // where:queries,
+            skip: parseInt(skip),
+            take: parseInt(limit),
+            orderBy:{
+                createdAt: 'desc'
+            }
         });
-        return causes;
+        const total = await incidentCauses.count();
+        return {
+            page: parseInt(page),
+            totalPages: Math.ceil(total / limit),
+            total,
+            data: causes,
+        };
     } catch (error) {
         console.log(error);
-        throw new Error(`${error}`)
+        throw new Error(`${error}`);
     }
 }
 
@@ -58,11 +76,24 @@ export const getIncidentCauseByIdService = async(id) =>{
  * @returns 
  */
 export const getIncidentCauseByParams = async (request) =>{
+    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, ...queries } = request; 
+    const skip = (page - 1) * limit;
     try {
-        let cause = await incidentCauses.findMany({
-            where:request
+        let causes = await incidentCauses.findMany({
+            where:queries,
+            skip: parseInt(skip),
+            take: parseInt(limit),
+            orderBy:{
+                createdAt: ORDER
+            }
         });
-        return cause;
+        const total = await incidentCauses.count();
+        return {
+            page: parseInt(page),
+            totalPages: Math.ceil(total / limit),
+            total,
+            data: causes,
+        };
     } catch (error) {
         console.log(error);
         throw new Error(`${error}`);

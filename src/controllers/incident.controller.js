@@ -59,7 +59,6 @@ export const getIncidentByIdController = async (req, res) => {
  * @returns 
  */
 export const getAllIncidentController = async(req, res) => {
-    console.log(req.query);
     // if(req.query){
     //     try {
     //         let  budget = await getBudgetByParams(req.query);

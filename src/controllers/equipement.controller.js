@@ -59,20 +59,19 @@ export const getEquipementByIdController = async (req, res) => {
  * @returns 
  */
 export const getAllEquipementController = async(req, res) => {
-    console.log(req.query);
-    // if(req.query){
-    //     try {
-    //         let  budget = await getBudgetByParams(req.query);
-    //         res
-    //         .send(budget)
-    //         .status(HTTP_STATUS.OK.statusCode);
-    //         return;
-    //     } catch (error) {
-    //       console.log(error);
-    //       res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);
-    //       return;
-    //     }
-    // }
+    if(Object.keys(req.query).length !== 0 && req.query.constructor === Object){
+        try {
+            let  consommables = await getEquipementByParams(req.query);
+            res
+            .send(consommables)
+            .status(HTTP_STATUS.OK.statusCode);
+            return;
+        } catch (error) {
+          console.log(error);
+          res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);
+          return;
+        }
+    }
     try {
         let equipments = await getAllEquipmentService(req.body);
         res

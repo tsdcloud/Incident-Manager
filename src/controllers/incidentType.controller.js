@@ -59,25 +59,24 @@ export const getIncidentTypeByIdController = async (req, res) => {
  * @returns 
  */
 export const getAllIncidentTypeController = async(req, res) => {
-    console.log(req.query);
-    // if(req.query){
-    //     try {
-    //         let  budget = await getBudgetByParams(req.query);
-    //         res
-    //         .send(budget)
-    //         .status(HTTP_STATUS.OK.statusCode);
-    //         return;
-    //     } catch (error) {
-    //       console.log(error);
-    //       res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);
-    //       return;
-    //     }
-    // }
+    if(Object.keys(req.query).length !== 0 && req.query.constructor === Object){
+        try {
+            let  incidentTypes = await getIncidentTypeByParams(req.query);
+            res
+            .status(HTTP_STATUS.OK.statusCode)
+            .send(incidentTypes)
+            return;
+        } catch (error) {
+          console.log(error);
+          res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);
+          return;
+        }
+    }
     try {
         let incidentTypes = await getAllIncidentTypeService(req.body);
         res
+        .status(HTTP_STATUS.OK.statusCode)
         .send(incidentTypes)
-        .status(HTTP_STATUS.OK.statusCode);
         return;
     } catch (error) {
         console.log(error);
@@ -97,8 +96,8 @@ export const updateIncidentTypeController = async (req, res) => {
     try {
         let incidentType = await updateIncidentTypeService(req.params.id, req.body);
         res
+        .status(HTTP_STATUS.OK.statusCode)
         .send(incidentType)
-        .status(HTTP_STATUS.OK.statusCode);
         return;
     } catch (error) {
         console.log(error);
@@ -118,8 +117,8 @@ export const deleteIncidentTypeController = async (req, res) => {
     try {
         let incidentType = await deleteIncidentTypeService(req.params.id);
         res
+        .status(HTTP_STATUS.OK.statusCode)
         .send(incidentType)
-        .status(HTTP_STATUS.OK.statusCode);
         return;
     } catch (error) {
         console.log(error);

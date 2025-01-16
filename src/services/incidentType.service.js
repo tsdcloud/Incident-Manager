@@ -1,6 +1,10 @@
 import {prisma} from '../config.js';
 const incidentType = prisma.incidentType;
 
+const LIMIT = 100;
+const ORDER ="desc";
+const SORT_BY = "createdAt";
+
 /**
  * Create an incident causes
  * @param body 
@@ -24,14 +28,27 @@ export const createIncidentTypeService = async (body)=>{
  * @returns 
  */
 export const getAllIncidentTypeService = async(body) =>{
+    const page = 1; 
+    const limit = LIMIT
+    const skip = (page - 1) * limit;
     try {
         let types = await incidentType.findMany({
-            where:{isActive:true}
+            skip: parseInt(skip),
+            take: parseInt(limit),
+            orderBy:{
+                createdAt: 'desc'
+            }
         });
-        return types;
+        const total = await incidentType.count();
+        return {
+            page: parseInt(page),
+            totalPages: Math.ceil(total / limit),
+            total,
+            data: types,
+        };
     } catch (error) {
         console.log(error);
-        throw new Error(`${error}`)
+        throw new Error(`${error}`);
     }
 }
 
@@ -58,11 +75,24 @@ export const getIncidentTypeByIdService = async(id) =>{
  * @returns 
  */
 export const getIncidentTypeByParams = async (request) =>{
+    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, ...queries } = request; 
+    const skip = (page - 1) * limit;
     try {
-        let type = await incidentType.findMany({
-            where:request
+        let types = await incidentType.findMany({
+            where:queries,
+            skip: parseInt(skip),
+            take: parseInt(limit),
+            orderBy:{
+                createdAt: ORDER
+            }
         });
-        return type;
+        const total = await incidentType.count();
+        return {
+            page: parseInt(page),
+            totalPages: Math.ceil(total / limit),
+            total,
+            data: types,
+        };
     } catch (error) {
         console.log(error);
         throw new Error(`${error}`);
