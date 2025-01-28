@@ -10,6 +10,7 @@ datasource db {
 
 model IncidentType{
   id  String  @id  @default(uuid())
+  numRef      String  @unique
   name  String
   createdBy String
   updatedBy String?
@@ -23,6 +24,7 @@ model IncidentType{
 
 model IncidentCause{
   id   String @id @default(uuid())
+  numRef      String  @unique
   name  String
   createdBy String
   updatedBy String?
@@ -36,8 +38,11 @@ model IncidentCause{
 
 model Equipement{
   id  String  @id @default(uuid())
+  numRef      String  @unique
   name  String
   incidents Incident[]
+  siteId      String
+  maintenance Maintenance[]
   createdBy String
   updatedBy String?
 
@@ -49,6 +54,7 @@ model Equipement{
 
 model Consommable{
   id  String  @id   @default(uuid())
+  numRef      String  @unique
   name  String @unique
   incident Incident[]
   createdBy String
@@ -59,22 +65,13 @@ model Consommable{
   isActive  Boolean @default(true) 
 }
 
-model Supplier{
-  id  String  @id  @default(uuid())
-  name  String
-  createdBy String
-  updatedBy String?
-  maintenance Maintenance[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime  @updatedAt
-  isActive  Boolean @default(true)
-}
-
 model MaintenanceType{
   id  String  @id  @default(uuid())
+  numRef      String @unique
   name  String
   createdBy String
+  hasIncident   Boolean @default(false)
+  hasProjectionDate   Boolean @default(true)
   updatedBy String?
   maintenace Maintenance[]
 
@@ -85,14 +82,16 @@ model MaintenanceType{
 
 model Incident{
   id   String @id @default(uuid())
+  numRef      String  @unique
   incidentId  String
   incident  IncidentType @relation(fields: [incidentId], references: [id])
   equipementId String
   equipement  Equipement @relation(fields: [equipementId], references: [id])
   siteId String
   shiftId String
-  consomableId String
-  consommable Consommable @relation(fields: [consomableId], references: [id])
+  consomableId String?
+  consommable Consommable? @relation(fields: [consomableId], references: [id])
+  maintenance Maintenance?
   incidentCauseId String
   incidentCauses IncidentCause @relation(fields: [incidentCauseId], references: [id]) 
   userId  String
@@ -102,22 +101,28 @@ model Incident{
   status  INCIDENT_STATUS @default(PENDING)
   
   creationDate DateTime @default(now())
-  closedDate   DateTime
+  closedDate   DateTime?
   isActive  Boolean   @default(true)
 }
 
 model Maintenance{
   id  String  @id  @default(uuid())
+  numRef      String  @unique
   maintenanceId String
   maintenance MaintenanceType @relation(fields: [maintenanceId], references: [id])
+  incidentId  String?  @unique
+  incident    Incident?        @relation(fields: [incidentId], references: [id])
+  equipementId         String
+  equipement           Equipement       @relation(fields: [equipementId], references: [id])
   siteId  String
   status  MAINTENANCE_STATUS @default(PENDING)
+  projectedDate   DateTime?
+  nextMaintenance DateTime?
+  effectifDate DateTime?
   description String?
-  supplierId String
-  suppliers Supplier @relation(fields: [supplierId], references: [id])
-  userId  String
-  executionDate DateTime
-  closedDate  DateTime
+  supplierId String?
+  userId  String?
+  closedDate  DateTime?
   createdBy String
   updatedBy String?
 

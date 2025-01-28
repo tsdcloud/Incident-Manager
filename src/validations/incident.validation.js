@@ -6,10 +6,9 @@ export const createIncident = [
     body("equipementId").notEmpty().withMessage("equipementId is required"),
     body("siteId").notEmpty().withMessage("siteId is required"),
     body("shiftId").notEmpty().withMessage("shiftId is required"),
-    body("consomableId").notEmpty().withMessage("consomableId is required"),
+    body("consomableId").optional().notEmpty().withMessage("consomableId is required"),
     body("incidentCauseId").notEmpty().withMessage("incidentCauseId is required"),
     body("userId").notEmpty().withMessage("userId is required"),
-    body("description").optional().notEmpty().withMessage("description should not be empty"),
     (req, res, next) =>{
         const error = validationResult(req);
         if(!error.isEmpty()){
@@ -31,7 +30,6 @@ export const updateIncident = [
     body("consomableId").optional().notEmpty().withMessage("consomableId should not be empty"),
     body("incidentCauseId").optional().notEmpty().withMessage("incidentCauseId should not be empty"),
     body("userId").optional().notEmpty().withMessage("userId should not be empty"),
-    body("description").optional().notEmpty().withMessage("description should not be empty"),
     (req, res, next) =>{
         const error = validationResult(req);
         if(!error.isEmpty()){

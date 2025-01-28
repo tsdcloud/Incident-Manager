@@ -30,8 +30,6 @@ export const createMaintenanceTypeController = async (req, res) => {
  */
 export const getMaintenanceTypeByIdController = async (req, res) => {
     let { id } = req.params;
-    console.log(id);
-
     if(!id){
         res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);
         return;
@@ -59,20 +57,19 @@ export const getMaintenanceTypeByIdController = async (req, res) => {
  * @returns 
  */
 export const getAllMaintenanceTypeController = async(req, res) => {
-    console.log(req.query);
-    // if(req.query){
-    //     try {
-    //         let  budget = await getBudgetByParams(req.query);
-    //         res
-    //         .send(budget)
-    //         .status(HTTP_STATUS.OK.statusCode);
-    //         return;
-    //     } catch (error) {
-    //       console.log(error);
-    //       res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);
-    //       return;
-    //     }
-    // }
+    if(Object.keys(req.query).length !== 0 && req.query.constructor === Object){
+        try {
+            let  types = await getMaintenanceTypeByParams(req.query);
+            res
+            .status(HTTP_STATUS.OK.statusCode)
+            .send(types);
+            return;
+        } catch (error) {
+          console.log(error);
+          res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);
+          return;
+        }
+    }
     try {
         let types = await getAllMaintenanceTypeService(req.body);
         res

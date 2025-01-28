@@ -12,8 +12,19 @@ const SORT_BY = "name";
  */
 export const createEquipementService = async (body)=>{
     try {
+        const lastEquipment = await equipementClient.findFirst({
+            orderBy: { createdAt: 'desc' },
+            select: { numRef: true }
+        });
+
+        const date = new Date();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const yy = String(date.getFullYear()).slice(-2);
+        const prefix = `${mm}${yy}`;
+        const nextNum = lastEquipment ? parseInt(lastEquipment.numRef.slice(-4)) + 1 : 1;
+        const numRef = `${prefix}${String(nextNum).padStart(4, '0')}`;
         let equipement = await equipementClient.create({
-            data:body
+            data:{...body, numRef}
         });
         return equipement;
     } catch (error) {
@@ -33,7 +44,7 @@ export const getAllEquipmentService = async(body) =>{
 
     try {
         let equipements = await equipementClient.findMany({
-            // where:{isActive:true},
+            where:{isActive:true},
             skip: parseInt(skip),
             take: parseInt(LIMIT),
             orderBy:{
@@ -76,11 +87,17 @@ export const getEquipementByIdService = async(id) =>{
  * @returns 
  */
 export const getEquipementByParams = async (request) =>{
-    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, ...queries } = request; 
+    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, ...queries } = request; 
     const skip = (page - 1) * limit;
     try {
         let equipement = await equipementClient.findMany({
-            where:queries,
+            where:!search ? queries : {
+                OR:[
+                    {name:{contains:search}},
+                    {numRef:{contains:search}}
+                ],
+                isActive:true
+            },
             skip: parseInt(skip),
             take: parseInt(limit),
             orderBy:{
@@ -88,7 +105,7 @@ export const getEquipementByParams = async (request) =>{
             }
         });
         const total = await equipementClient.count();
-        return {
+        return search ? {data: equipement} :{
             page: parseInt(page),
             totalPages: Math.ceil(total / limit),
             total,
@@ -126,8 +143,11 @@ export const updateEquipementService = async (id, body) =>{
  */
 export const deleteEquipmentService = async (id) =>{
     try {
-        let equipement = await equipementClient.delete({
-            where: {id}
+        let equipement = await equipementClient.update({
+            where: {id},
+            data:{
+                isActive:false
+            }
         });
         return equipement
     } catch (error) {

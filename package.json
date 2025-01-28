@@ -5,8 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "nodemon": "nodemon src/index.js",
-    "server:dev": "node src/index.js"
+    "servver": "node src/index.js",
+    "server:dev": "nodemon src/index.js"
   },
   "keywords": [
     "incident",

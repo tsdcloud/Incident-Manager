@@ -52,6 +52,7 @@ export const getConsommableByIdController = async (req, res) => {
 }
 
 
+
 /**
  * 
  * @param req 

@@ -8,6 +8,17 @@ const supplierClient = prisma.supplier;
  */
 export const createSupplierService = async (body)=>{
     try {
+        const lastConsommable = await consommableClient.findFirst({
+            orderBy: { createdAt: 'desc' },
+            select: { numRef: true }
+        });
+
+        const date = new Date();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const yy = String(date.getFullYear()).slice(-2);
+        const prefix = `${mm}${yy}`;
+        const nextNum = lastConsommable ? parseInt(lastConsommable.numRef.slice(-4)) + 1 : 1;
+        const numRef = `${prefix}${String(nextNum).padStart(4, '0')}`;
         let supplier = await supplierClient.create({
             data:body
         });

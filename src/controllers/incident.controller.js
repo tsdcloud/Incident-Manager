@@ -115,7 +115,7 @@ export const updateIncidentController = async (req, res) => {
  */
 export const deleteIncidentController = async (req, res) => {
     try {
-        let incident = await deleteIncidentController(req.params.id);
+        let incident = await deleteIncidentService(req.params.id);
         res
         .send(incident)
         .status(HTTP_STATUS.OK.statusCode);

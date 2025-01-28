@@ -12,8 +12,19 @@ const SORT_BY = "name";
  */
 export const createMaintenanceTypeService = async (body)=>{
     try {
+        const lastMaintenanceType = await maintenanceTypeClient.findFirst({
+            orderBy: { createdAt: 'desc' },
+            select: { numRef: true }
+        });
+
+        const date = new Date();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const yy = String(date.getFullYear()).slice(-2);
+        const prefix = `${mm}${yy}`;
+        const nextNum = lastMaintenanceType ? parseInt(lastMaintenanceType.numRef.slice(-4)) + 1 : 1;
+        const numRef = `${prefix}${String(nextNum).padStart(4, '0')}`;
         let type = await maintenanceTypeClient.create({
-            data:body
+            data:{...body, numRef}
         });
         return type;
     } catch (error) {
@@ -33,7 +44,7 @@ export const getAllMaintenanceTypeService = async(body) =>{
 
     try {
         let maintenanceTypes = await maintenanceTypeClient.findMany({
-            // where:{isActive:true},
+            where:{isActive:true},
             skip: parseInt(skip),
             take: parseInt(LIMIT),
             orderBy:{
@@ -76,11 +87,18 @@ export const getMaintenanceTypeByIdService = async(id) =>{
  * @returns 
  */
 export const getMaintenanceTypeByParams = async (request) =>{
-    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, ...queries } = request; 
+    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search,  hasIncident, ...queries } = request; 
     const skip = (page - 1) * limit;
+    const hasIncidentBoolean = hasIncident === 'true'
     try {
         let types = await maintenanceTypeClient.findMany({
-            where:queries,
+            where:!search ? {...queries, hasIncident: hasIncidentBoolean} : {
+                OR:[
+                    {name:{contains:search}},
+                    {numRef:{contains:search}}
+                ],
+                isActive:true
+            },
             skip: parseInt(skip),
             take: parseInt(limit),
             orderBy:{
@@ -88,7 +106,7 @@ export const getMaintenanceTypeByParams = async (request) =>{
             }
         });
         const total = await maintenanceTypeClient.count();
-        return {
+        return search ? {data: types} :{
             page: parseInt(page),
             totalPages: Math.ceil(total / limit),
             total,
@@ -126,8 +144,9 @@ export const updateMaintenanceTypeService = async (id, body) =>{
  */
 export const deleteMaintenanceTypeService = async (id) =>{
     try {
-        let type = await maintenanceTypeClient.delete({
-            where: {id}
+        let type = await maintenanceTypeClient.update({
+            where: {id},
+            data:{isActive:false}
         });
         return type
     } catch (error) {

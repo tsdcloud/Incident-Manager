@@ -1,6 +1,11 @@
 import {prisma} from '../config.js';
 const incidentClient = prisma.incident;
 
+const LIMIT = 100;
+const ORDER ="asc";
+const SORT_BY = "name";
+
+
 /**
  * Create an incident
  * @param body 
@@ -8,8 +13,19 @@ const incidentClient = prisma.incident;
  */
 export const createIncidentService = async (body)=>{
     try {
+        const lastIncident = await incidentClient.findFirst({
+            orderBy: { creationDate: 'desc' },
+            select: { numRef: true }
+        });
+
+        const date = new Date();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const yy = String(date.getFullYear()).slice(-2);
+        const prefix = `${mm}${yy}`;
+        const nextNum = lastIncident ? parseInt(lastIncident.numRef.slice(-4)) + 1 : 1;
+        const numRef = `${prefix}${String(nextNum).padStart(4, '0')}`;
         let incident = await incidentClient.create({
-            data:body
+            data:{ ...body, numRef }
         });
         return incident;
     } catch (error) {
@@ -24,11 +40,31 @@ export const createIncidentService = async (body)=>{
  * @returns 
  */
 export const getAllIncidentService = async(body) =>{
+    const page = 1;
+    const skip = (page - 1) * LIMIT;
+
     try {
-        let incident = await incidentClient.findMany({
-            where:{isActive:true}
+        let incidents = await incidentClient.findMany({
+            where:{isActive:true},
+            skip: parseInt(skip),
+            take: parseInt(LIMIT),
+            include:{
+                consommable:true,
+                equipement:true,
+                incidentCauses:true,
+                incident:true,
+            },
+            orderBy:{
+                creationDate:'desc'
+            }
         });
-        return incident;
+        const total = await incidentClient.count();
+        return {
+            page: parseInt(page),
+            totalPages: Math.ceil(total / LIMIT),
+            total,
+            data: incidents,
+        };
     } catch (error) {
         console.log(error);
         throw new Error(`${error}`)
@@ -58,11 +94,29 @@ export const getIncidentByIdService = async(id) =>{
  * @returns 
  */
 export const getIncidentByParams = async (request) =>{
+    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, ...queries } = request; 
+    const skip = (page - 1) * limit;
     try {
-        let incident = await incidentClient.findMany({
-            where:request
+        let incidents = await incidentClient.findMany({
+            where:!search ? queries : {
+                numRef:{
+                    contains:search
+                },
+                isActive:true
+            },
+            skip: parseInt(skip),
+            take: parseInt(limit),
+            orderBy:{
+                createdAt:'desc'
+            }
         });
-        return incident;
+        const total = await incidentClient.count();
+        return search ? {data: incidents} :{
+            page: parseInt(page),
+            totalPages: Math.ceil(total / limit),
+            total,
+            data: incidents,
+        };
     } catch (error) {
         console.log(error);
         throw new Error(`${error}`);
@@ -77,6 +131,10 @@ export const getIncidentByParams = async (request) =>{
  */
 export const updateIncidentService = async (id, body) =>{
     try {
+        let date =  new Date();
+        if(body?.status === "CLOSED"){
+            body.closedDate = date;
+        }
         let incident = await incidentClient.update({
             where:{id},
             data:body

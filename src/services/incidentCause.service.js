@@ -12,8 +12,19 @@ const SORT_BY = "createdAt";
  */
 export const createIncidentCauseService = async (body)=>{
     try {
+        const lastIncidentCause = await incidentCauses.findFirst({
+            orderBy: { createdAt: 'desc' },
+            select: { numRef: true }
+        });
+
+        const date = new Date();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const yy = String(date.getFullYear()).slice(-2);
+        const prefix = `${mm}${yy}`;
+        const nextNum = lastIncidentCause ? parseInt(lastIncidentCause.numRef.slice(-4)) + 1 : 1;
+        const numRef = `${prefix}${String(nextNum).padStart(4, '0')}`;
         let cause = await incidentCauses.create({
-            data:body
+            data:{...body, numRef}
         });
         return cause;
     } catch (error) {
@@ -33,7 +44,7 @@ export const getAllIncidentCauseService = async(body) =>{
     const skip = (page - 1) * limit;
     try {
         let causes = await incidentCauses.findMany({
-            // where:queries,
+            where:{isActive:true},
             skip: parseInt(skip),
             take: parseInt(limit),
             orderBy:{
@@ -76,19 +87,26 @@ export const getIncidentCauseByIdService = async(id) =>{
  * @returns 
  */
 export const getIncidentCauseByParams = async (request) =>{
-    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, ...queries } = request; 
+    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, ...queries } = request; 
     const skip = (page - 1) * limit;
+    console.log(search);
     try {
         let causes = await incidentCauses.findMany({
-            where:queries,
+            where:!search ? queries : {
+                OR:[
+                    {name:{contains:search}},
+                    {numRef:{contains:search}}
+                ],
+                isActive:true
+            },
             skip: parseInt(skip),
             take: parseInt(limit),
             orderBy:{
-                createdAt: ORDER
+                createdAt:'desc'
             }
         });
         const total = await incidentCauses.count();
-        return {
+        return search ? {data: causes} :{
             page: parseInt(page),
             totalPages: Math.ceil(total / limit),
             total,
@@ -126,8 +144,9 @@ export const updateIncidentCauseService = async (id, body) =>{
  */
 export const deleteIncidentCauseService = async (id) =>{
     try {
-        let cause = await incidentCauses.delete({
-            where: {id}
+        let cause = await incidentCauses.update({
+            where: {id},
+            data:{isActive:false}
         });
         return cause
     } catch (error) {

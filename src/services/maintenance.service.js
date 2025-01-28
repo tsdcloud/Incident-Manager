@@ -1,5 +1,11 @@
 import {prisma} from '../config.js';
-const maintenance = prisma.maintenance;
+const maintenanceClient = prisma.maintenance;
+
+
+const LIMIT = 100;
+const ORDER ="asc";
+const SORT_BY = "name";
+
 
 /**
  * Create a maintenance
@@ -8,8 +14,26 @@ const maintenance = prisma.maintenance;
  */
 export const createMaintenanceService = async (body)=>{
     try {
-        let maintenance = await maintenance.create({
-            data:body
+        const lastMaintenance = await maintenanceClient.findFirst({
+            orderBy: { createdAt: 'desc' },
+            select: { numRef: true }
+        });
+
+        const date = new Date();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const yy = String(date.getFullYear()).slice(-2);
+        const prefix = `${mm}${yy}`;
+        const nextNum = lastMaintenance ? parseInt(lastMaintenance.numRef.slice(-4)) + 1 : 1;
+        const numRef = `${prefix}${String(nextNum).padStart(4, '0')}`;
+        let {maintenanceId, incidentId, equipement, ...data} = body
+        let maintenance = await maintenanceClient.create({
+            data:{
+                ...data, 
+                numRef,
+                maintenance: { connect: { id: maintenanceId } },
+                ...(incidentId ? { incident: { connect: { id: incidentId } } } : {}),
+                equipement: { connect: { id: equipement } },
+            }
         });
         return maintenance;
     } catch (error) {
@@ -24,11 +48,31 @@ export const createMaintenanceService = async (body)=>{
  * @returns 
  */
 export const getAllMaintenanceService = async(body) =>{
+    const page = 1;
+    const skip = (page - 1) * LIMIT;
+
     try {
-        let maintenances = await maintenance.findMany({
-            where:{isActive:true}
+        let maintenance = await maintenanceClient.findMany({
+            where:{isActive:true},
+            skip: parseInt(skip),
+            take: parseInt(LIMIT),
+            include:{
+                incident:true,
+                maintenance:true,
+                incident:true,
+                equipement:true
+            },
+            orderBy:{
+                createdAt:'desc'
+            }
         });
-        return maintenances;
+        const total = await maintenanceClient.count();
+        return {
+            page: parseInt(page),
+            totalPages: Math.ceil(total / LIMIT),
+            total,
+            data: maintenance,
+        };
     } catch (error) {
         console.log(error);
         throw new Error(`${error}`)
@@ -42,7 +86,7 @@ export const getAllMaintenanceService = async(body) =>{
  */
 export const getMaintenanceByIdService = async(id) =>{
     try {
-        let maintenance = await maintenance.findFirst({
+        let maintenance = await maintenanceClient.findFirst({
             where:{id, isActive: true},
         });
         return maintenance;
@@ -58,11 +102,30 @@ export const getMaintenanceByIdService = async(id) =>{
  * @returns 
  */
 export const getMaintenanceByParams = async (request) =>{
+    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, ...queries } = request; 
+    const skip = (page - 1) * limit;
     try {
-        let maintenance = await maintenance.findMany({
-            where:request
+        let maintenances = await maintenanceClient.findMany({
+            where:!search ? queries : {
+                OR: [
+                    {numRef: { contains: search }},
+                    {name: { contains: search }}
+                ],
+                isActive:true
+            },
+            skip: parseInt(skip),
+            take: parseInt(limit),
+            orderBy:{
+                createdAt:'desc'
+            }
         });
-        return maintenance;
+        const total = await maintenanceClient.count();
+        return search ? {data: maintenances} :{
+            page: parseInt(page),
+            totalPages: Math.ceil(total / limit),
+            total,
+            data: maintenances,
+        };
     } catch (error) {
         console.log(error);
         throw new Error(`${error}`);
@@ -77,10 +140,22 @@ export const getMaintenanceByParams = async (request) =>{
  */
 export const updateMaintenanceService = async (id, body) =>{
     try {
-        let maintenance = await maintenance.update({
+        let date =  new Date();
+        if(body?.status === "CLOSED"){
+            body.closedDate = date;
+            console.log(body, id);
+        }
+        let maintenance = await maintenanceClient.update({
             where:{id},
             data:body
         });
+        console.log(maintenance);
+        if(maintenance?.incidentId){
+            await prisma.incident.update({
+                where:{id: maintenance?.incidentId},
+                data:{closedDate: date}
+            });
+        }
         return maintenance;
     } catch (error) {
         console.log(error)
@@ -95,8 +170,11 @@ export const updateMaintenanceService = async (id, body) =>{
  */
 export const deleteMaintenanceService = async (id) =>{
     try {
-        let maintenance = await maintenance.delete({
-            where: {id}
+        let maintenance = await maintenanceClient.update({
+            where: {id},
+            data:{
+                isActive:false
+            }
         });
         return maintenance
     } catch (error) {
