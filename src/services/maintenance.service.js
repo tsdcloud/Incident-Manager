@@ -182,3 +182,29 @@ export const deleteMaintenanceService = async (id) =>{
         throw new Error(`${error}`);
     }
 }
+
+export const generateExcelService = async (params) =>{
+    let {start, end} = params;
+    try{
+        let incidents = await maintenanceClient.findMany({
+            where:(start && end)?{
+                isActive:true,
+                createdAt:{
+                    gte: new Date(start),
+                    lte: new Date(end)
+                },
+            }:{
+                isActive:true,
+                ...params
+            },
+            include:{
+                incident:true,
+                equipement:true,
+                maintenance:true,
+            }
+        });
+        return incidents
+    }catch(error){
+        throw new Error(error);
+    }
+}

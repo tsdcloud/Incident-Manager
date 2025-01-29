@@ -162,3 +162,37 @@ export const deleteIncidentService = async (id) =>{
         throw new Error(`${error}`);
     }
 }
+
+
+/**
+ * 
+ * @param params
+ * @returns
+ */
+export const generateExcelService = async (params) =>{
+    let {start, end} = params;
+    try{
+        let incidents = await incidentClient.findMany({
+            where:(start && end)?{
+                isActive:true,
+                createdAt:{
+                    gte: new Date(start),
+                    lte: new Date(end)
+                },
+            }:{
+                isActive:true,
+                ...params
+            },
+            include:{
+                incident:true,
+                equipement:true,
+                consommable:true,
+                maintenance:true,
+                incidentCauses:true,
+            }
+        });
+        return incidents
+    }catch(error){
+        throw new Error(error);
+    }
+}

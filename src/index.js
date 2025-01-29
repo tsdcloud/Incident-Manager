@@ -1,8 +1,11 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
-import cors from 'cors'
-import helmet from 'helmet'
+import cors from 'cors';
+import helmet from 'helmet';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
+import path from 'path';
 import { PORT } from './config.js';
 import HTTP_STATUS from './utils/http.utils.js';
 import consommable from './routes/consommable.route.js'
@@ -13,6 +16,10 @@ import incidentType from './routes/incidentType.route.js'
 import maintenance from './routes/maintenance.route.js'
 import maintenanceType from './routes/maintenanceType.route.js'
 import supplier from './routes/supplier.route.js'
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors());
@@ -26,6 +33,28 @@ app.use(bodyParser.json());
 //     console.log(req.path, "--", req.method);
 //     next();
 // })
+
+app.get("/api/exports/:file", (req, res)=>{
+    try{
+        const fileName = req.params.file;
+        const filePath = path.join(__dirname, '..', 'exports', fileName);
+        console.log(filePath)
+    
+        if (fs.existsSync(filePath)) {
+            res.download(filePath, err => {
+                if (err) {
+                    console.error('File download error:', err);
+                    res.status(HTTP_STATUS.BAD_REQUEST.statusCode).send('File download error.');
+                }
+            });
+        } else {
+            res.status(HTTP_STATUS.NOT_FOUND.statusCode).send('File not found.');
+        }
+    }catch(error){
+        console.log(error);
+        res.sendStatus(HTTP_STATUS.BAD_REQUEST.statusCode)
+    }
+});
 
 app.use("/api/consommables", consommable);
 app.use("/api/equipements", equipement);

@@ -1,5 +1,15 @@
-import { createMaintenanceService, deleteMaintenanceService, getAllMaintenanceService, getMaintenanceByIdService, getMaintenanceByParams, updateMaintenanceService } from "../services/maintenance.service.js";
+import { ENTITY_API } from "../config.js";
+import { createMaintenanceService, deleteMaintenanceService, getAllMaintenanceService, getMaintenanceByIdService, generateExcelService, updateMaintenanceService } from "../services/maintenance.service.js";
 import HTTP_STATUS from "../utils/http.utils.js";
+import { fetchData } from "../utils/fetch.utils.js";
+import path from 'path';
+import fs from 'fs'
+import { fileURLToPath } from 'url';
+import ExcelJS from 'exceljs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 
 /**
@@ -126,5 +136,79 @@ export const deleteMaintenanceController = async (req, res) => {
         res
         .sendStatus(HTTP_STATUS.BAD_REQUEST.statusCode);
         return;
+    }
+}
+
+
+export const generateExcelFileController = async (req, res) =>{
+    let {action} = req.params;
+
+    const exportsDir = path.join(__dirname, '../../', 'exports');
+    if (!fs.existsSync(exportsDir)) {
+        fs.mkdirSync(exportsDir);
+    }
+
+    if(!action){
+        try {
+            let maintenances = await generateExcelService(req.params);
+            
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Rapport maintenance');
+            
+            worksheet.columns = [
+                { header: 'NumRef', key: 'numRef', width: 15 },
+                { header: 'Date de creation', key: 'creationDate', width: 20 },
+                { header: 'Type de maintenance', key: 'maintenance', width: 50 },
+                { header: 'Incident', key: 'incident', width: 50 },
+                { header: 'Equipement', key: 'equipement', width: 15 },
+                { header: 'Site', key: 'site', width: 20 },
+                { header: 'Date previsionel', key: 'projectedDate', width: 20 },
+                { header: 'Prochaine maintenance', key: 'nextMaintenance', width: 20 },
+                { header: 'description', key: 'description', width: 50 },
+                { header: 'Maintenancier', key: 'supplierId', width: 20 },
+                { header: 'Chef de guerite', key: 'userId', width: 20 },
+                { header: 'Date de cloture', key: 'closedDate', width: 20 },
+                { header: 'Créé par', key: 'createdBy', width: 20 },
+                { header: 'Édité par', key: 'updatedBy', width: 20 },
+                { header: 'Status', key: 'status', width: 20 },
+            ];
+    
+            let employees = await fetchData(`${ENTITY_API}/employees/`);
+            let sites = await fetchData(`${ENTITY_API}/sites/`);
+            let shifts = await fetchData(`${ENTITY_API}/shifts/`);
+            
+            maintenances.forEach(maintenance => {
+                worksheet.addRow({
+                    numRef: maintenance.numRef,
+                    creationDate: maintenance.createdAt,
+                    maintenance: maintenance.incident?.name || "N/A",
+                    incident: maintenance.incident?.name || "N/A",
+                    equipement: maintenance.equipement?.name || "N/A",
+                    site: sites?.data.find(site=>site?.id === maintenance.siteId)?.name || maintenance.siteId,
+                    userId: employees?.data.find(employee=>employee?.id === maintenance.userId)?.name || maintenance.userId,
+                    supplierId: employees?.data.find(employee=>employee?.id === maintenance.supplierId)?.name || maintenance.supplierId,
+                    projectedDate:maintenance.projectedDate,
+                    nextMaintenance:maintenance.nextMaintenance,
+                    closedDate:maintenance.closedDate,
+                    effectifDate:maintenance.effectifDate,
+                    description: maintenance.description,
+                    createdBy: employees?.data.find(employee=>employee?.id === maintenance.userId)?.name || maintenance.createdBy,
+                    updatedBy: employees?.data.find(employee=>employee?.id === maintenance.userId)?.name || maintenance.updatedBy,
+                    status: maintenance.status,
+                });
+            });
+    
+    
+            const filePath = path.join(exportsDir, `maintenances_report.xlsx`);
+            await workbook.xlsx.writeFile(filePath);
+            const downloadLink = `${req.protocol}://${req.get('host')}/api/exports/maintenances_report.xlsx`; 
+    
+            res.status(HTTP_STATUS.OK.statusCode).json({ message: 'File created successfully', downloadLink });
+            
+        } catch (error) {
+            console.log(error);
+            res
+            .sendStatus(HTTP_STATUS.BAD_REQUEST.statusCode)
+        }
     }
 }
