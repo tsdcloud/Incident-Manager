@@ -125,7 +125,7 @@ export const deleteIncidentController = async (req, res) => {
 }
 
 export const generateExcelFileController = async (req, res) =>{
-    let {action} = req.params;
+    let {action} = req.query;
 
     const exportsDir = path.join(__dirname, '../../', 'exports');
     if (!fs.existsSync(exportsDir)) {
@@ -134,7 +134,8 @@ export const generateExcelFileController = async (req, res) =>{
 
     if(!action){
         try {
-            let incidents = await generateExcelService(req.params);
+            console.log(req.query);
+            let incidents = await generateExcelService(req.query);
             
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Rapport Incidents');

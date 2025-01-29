@@ -183,28 +183,52 @@ export const deleteMaintenanceService = async (id) =>{
     }
 }
 
-export const generateExcelService = async (params) =>{
-    let {start, end} = params;
-    try{
-        let incidents = await maintenanceClient.findMany({
-            where:(start && end)?{
-                isActive:true,
-                createdAt:{
-                    gte: new Date(start),
-                    lte: new Date(end)
+export const generateExcelService = async (query) =>{
+    let { start, end, value, criteria, condition } = query;
+    try {
+        let maintenance;
+
+        if (condition === "NOT") {
+            maintenance = await maintenanceClient.findMany({
+                where: {
+                    [criteria]: {
+                        not: value,
+                    },
+                    ...(start && end ? {
+                        creationDate: {
+                            gte: start,
+                            lte: end,
+                        },
+                    } : {}),
                 },
-            }:{
-                isActive:true,
-                ...params
-            },
-            include:{
-                incident:true,
-                equipement:true,
-                maintenance:true,
-            }
-        });
-        return incidents
-    }catch(error){
+                include:{
+                    equipement:true,
+                    incident:true,
+                    maintenance:true
+                }
+            });
+        } else {
+            console.log(query)
+            maintenance = await maintenanceClient.findMany({
+                where: {
+                    [criteria]: value,
+                    ...(start && end ? {
+                        creationDate: {
+                            gte: start,
+                            lte: end,
+                        },
+                    } : {}),
+                },
+                include:{
+                    equipement:true,
+                    incident:true,
+                    maintenance:true
+                }
+            });
+        }
+
+        return maintenance;
+    } catch (error) {
         throw new Error(error);
     }
 }

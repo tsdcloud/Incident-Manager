@@ -169,30 +169,53 @@ export const deleteIncidentService = async (id) =>{
  * @param params
  * @returns
  */
-export const generateExcelService = async (params) =>{
-    let {start, end} = params;
-    try{
-        let incidents = await incidentClient.findMany({
-            where:(start && end)?{
-                isActive:true,
-                createdAt:{
-                    gte: new Date(start),
-                    lte: new Date(end)
+export const generateExcelService = async (query) => {
+    let { start, end, value, criteria, condition } = query;
+    try {
+        let incidents;
+
+        if (condition === "NOT") {
+            incidents = await incidentClient.findMany({
+                where: {
+                    [criteria]: {
+                        not: value,
+                    },
+                    ...(start && end ? {
+                        creationDate: {
+                            gte: start,
+                            lte: end,
+                        },
+                    } : {}),
                 },
-            }:{
-                isActive:true,
-                ...params
-            },
-            include:{
-                incident:true,
-                equipement:true,
-                consommable:true,
-                maintenance:true,
-                incidentCauses:true,
-            }
-        });
-        return incidents
-    }catch(error){
+                include:{
+                    equipement:true,
+                    incident:true,
+                    maintenance:true,
+                    incidentCauses:true
+                }
+            });
+        } else {
+            incidents = await incidentClient.findMany({
+                where: {
+                    [criteria]: value,
+                    ...(start && end ? {
+                        creationDate: {
+                            gte: start,
+                            lte: end,
+                        },
+                    } : {}),
+                },
+                include:{
+                    equipement:true,
+                    incident:true,
+                    maintenance:true,
+                    incidentCauses:true
+                }
+            });
+        }
+
+        return incidents;
+    } catch (error) {
         throw new Error(error);
     }
 }
