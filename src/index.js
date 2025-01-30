@@ -14,6 +14,7 @@ import incident from './routes/incident.route.js'
 import incidentCause from './routes/incidentCause.route.js'
 import incidentType from './routes/incidentType.route.js'
 import maintenance from './routes/maintenance.route.js'
+import offBridge from './routes/offBridge.route.js'
 import maintenanceType from './routes/maintenanceType.route.js'
 import supplier from './routes/supplier.route.js'
 
@@ -60,6 +61,7 @@ app.use("/api/consommables", consommable);
 app.use("/api/equipements", equipement);
 app.use("/api/incidents", incident);
 app.use("/api/incident-causes", incidentCause);
+app.use("/api/off-bridges", offBridge);
 app.use("/api/incident-types", incidentType);
 app.use("/api/maintenances", maintenance);
 app.use("/api/maintenance-types", maintenanceType);

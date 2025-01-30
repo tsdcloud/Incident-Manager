@@ -29,6 +29,7 @@ model IncidentCause{
   createdBy String
   updatedBy String?
   incident Incident[]
+  offBridge OffBridge[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime  @updatedAt
@@ -105,6 +106,33 @@ model Incident{
   isActive  Boolean   @default(true)
 }
 
+model OffBridge{
+  id           String         @id      @default(uuid())
+  numRef              String  @unique
+  incidentCauseId     String
+  incidentCauses      IncidentCause    @relation(fields: [incidentCauseId], references: [id])
+  operation           OPERATION_TYPE?
+  declarationType     DECLARATION_TYPE?
+  siteId       String
+  tier         String
+  container1   String?
+  container2   String?
+  plomb1       String?
+  plomb2       String?
+  loader       String
+  product      String
+  transporter  String
+  vehicle      String
+  blNumber     String?
+  driver       String
+  trailer      String
+  createdBy    String
+  
+  createdAt DateTime @default(now())
+  updateAt   DateTime @updatedAt  
+  isActive  Boolean   @default(true)
+}
+
 model Maintenance{
   id  String  @id  @default(uuid())
   numRef      String  @unique
@@ -141,4 +169,19 @@ enum INCIDENT_STATUS{
 enum MAINTENANCE_STATUS{
   PENDING
   CLOSED
+}
+
+enum OPERATION_TYPE{
+  IMPORT
+  EXPORT
+  TRANSIT
+  OTHERS
+}
+
+enum DECLARATION_TYPE{
+  CONTAINER
+  BULK
+  CONVENTIONAL_WOOD_LOG
+  HEAVY_BULK
+  CONVENTIONAL_LUMBER
 }

@@ -30,7 +30,6 @@ export const createIncidentCauseController = async (req, res) => {
  */
 export const getIncidentCauseByIdController = async (req, res) => {
     let { id } = req.params;
-    console.log(id);
 
     if(!id){
         res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);

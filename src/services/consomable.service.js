@@ -147,13 +147,13 @@ export const updateConsommableService = async (id, body) =>{
  */
 export const deleteConsommableServices = async (id) =>{
     try {
-        // let consommable = await consommableClient.update({
-        //     where: {id},
-        //     data:{isActive:false}
-        // });
-        let consommable = await consommableClient.delete({
-            where: {id}
+        let consommable = await consommableClient.update({
+            where: {id},
+            data:{isActive:false}
         });
+        // let consommable = await consommableClient.delete({
+        //     where: {id}
+        // });
         return consommable
     } catch (error) {
         console.log(error);

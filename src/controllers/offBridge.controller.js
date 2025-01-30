@@ -1,5 +1,13 @@
 import { ENTITY_API } from "../config.js";
-import { createIncidentService, deleteIncidentService, generateExcelService, getAllIncidentService, getIncidentByIdService, getIncidentByParams, updateIncidentService } from "../services/incident.service.js";
+import { 
+    createOffBridgeService, 
+    deleteOffBridgeService, 
+    generateExcelService, 
+    getAllOffBridgeService, 
+    getOffBridgeByIdService, 
+    getOffBridgeByParams, 
+    updateOffBridgeService 
+} from "../services/offBridge.service.js";
 import { fetchData } from "../utils/fetch.utils.js";
 import HTTP_STATUS from "../utils/http.utils.js";
 import path from 'path';
@@ -17,12 +25,12 @@ const __dirname = path.dirname(__filename);
  * @param res 
  * @returns 
  */
-export const createIncidentController = async (req, res) => {
+export const createOffBridgeController = async (req, res) => {
     try {
-        let incident = await createIncidentService(req.body);
+        let offBridge = await createOffBridgeService(req.body);
         res
         .status(HTTP_STATUS.CREATED.statusCode)
-        .send(incident);
+        .send(offBridge);
         return;
     } catch (error) {
         console.log(error);
@@ -37,7 +45,7 @@ export const createIncidentController = async (req, res) => {
  * @param res 
  * @returns 
  */
-export const getIncidentByIdController = async (req, res) => {
+export const getOffBridgeByIdController = async (req, res) => {
     let { id } = req.params;
 
     if(!id){
@@ -46,9 +54,9 @@ export const getIncidentByIdController = async (req, res) => {
     }
 
     try {
-        let incident = await getIncidentByIdService(id);
+        let offBridge = await getOffBridgeByIdService(id);
         res
-        .send(incident)
+        .send(offBridge)
         .status(HTTP_STATUS.OK.statusCode);
         return;
     } catch (error) {
@@ -66,11 +74,11 @@ export const getIncidentByIdController = async (req, res) => {
  * @param res 
  * @returns 
  */
-export const getAllIncidentController = async(req, res) => {
+export const getAllOffBridgeController = async(req, res) => {
     try {
-        let incidents = await getAllIncidentService(req.body);
+        let offBridges = await getAllOffBridgeService(req.body);
         res
-        .send(incidents)
+        .send(offBridges)
         .status(HTTP_STATUS.OK.statusCode);
         return;
     } catch (error) {
@@ -87,11 +95,11 @@ export const getAllIncidentController = async(req, res) => {
  * @param req 
  * @param res 
  */
-export const updateIncidentController = async (req, res) => {
+export const updateOffBridgeController = async (req, res) => {
     try {
-        let incident = await updateIncidentService(req.params.id, req.body);
+        let offBridge = await updateOffBridgeService(req.params.id, req.body);
         res
-        .send(incident)
+        .send(offBridge)
         .status(HTTP_STATUS.OK.statusCode);
         return;
     } catch (error) {
@@ -108,9 +116,9 @@ export const updateIncidentController = async (req, res) => {
  * @param req 
  * @param res 
  */
-export const deleteIncidentController = async (req, res) => {
+export const deleteOffBridgeController = async (req, res) => {
     try {
-        let incident = await deleteIncidentService(req.params.id);
+        let incident = await deleteOffBridgeService(req.params.id);
         res
         .send(incident)
         .status(HTTP_STATUS.OK.statusCode);

@@ -1,0 +1,15 @@
+-- AlterTable
+ALTER TABLE `incident` ADD COLUMN `blNumber` VARCHAR(191) NULL,
+    ADD COLUMN `container1` VARCHAR(191) NULL,
+    ADD COLUMN `contsiner2` VARCHAR(191) NULL,
+    ADD COLUMN `driver` VARCHAR(191) NULL,
+    ADD COLUMN `loader` VARCHAR(191) NULL,
+    ADD COLUMN `operations` VARCHAR(191) NULL,
+    ADD COLUMN `plomb1` VARCHAR(191) NULL,
+    ADD COLUMN `plomb2` VARCHAR(191) NULL,
+    ADD COLUMN `product` VARCHAR(191) NULL,
+    ADD COLUMN `tier` VARCHAR(191) NULL,
+    ADD COLUMN `trailer` VARCHAR(191) NULL,
+    ADD COLUMN `transporter` VARCHAR(191) NULL,
+    ADD COLUMN `vehicle` VARCHAR(191) NULL,
+    ADD COLUMN `weighbridge` VARCHAR(191) NULL;
