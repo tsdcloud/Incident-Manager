@@ -67,6 +67,19 @@ export const getIncidentByIdController = async (req, res) => {
  * @returns 
  */
 export const getAllIncidentController = async(req, res) => {
+    if(Object.keys(req.query).length !== 0 && req.query.constructor === Object){
+        try {
+            let  incidents = await getIncidentByParams(req.query);
+            res
+            .send(incidents)
+            .status(HTTP_STATUS.OK.statusCode);
+            return;
+        } catch (error) {
+          console.log(error);
+          res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);
+          return;
+        }
+    }
     try {
         let incidents = await getAllIncidentService(req.body);
         res

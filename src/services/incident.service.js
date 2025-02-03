@@ -98,19 +98,34 @@ export const getIncidentByParams = async (request) =>{
     const skip = (page - 1) * limit;
     try {
         let incidents = await incidentClient.findMany({
-            where:!search ? queries : {
-                numRef:{
-                    contains:search
-                },
-                isActive:true
+            where:!search ? queries : 
+            {
+                OR:[
+                    {
+                        numRef:{
+                            contains:search
+                        },
+                        isActive:true
+                    },
+                    {
+                        incident:{
+                            name:{contains:search}
+                        },
+                        isActive:true
+                    },
+                ]
+            },
+            include:{
+                incident:true
             },
             skip: parseInt(skip),
             take: parseInt(limit),
             orderBy:{
-                createdAt:'desc'
+                creationDate:'desc'
             }
         });
         const total = await incidentClient.count();
+        
         return search ? {data: incidents} :{
             page: parseInt(page),
             totalPages: Math.ceil(total / limit),

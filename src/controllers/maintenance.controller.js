@@ -1,5 +1,12 @@
 import { ENTITY_API } from "../config.js";
-import { createMaintenanceService, deleteMaintenanceService, getAllMaintenanceService, getMaintenanceByIdService, generateExcelService, updateMaintenanceService } from "../services/maintenance.service.js";
+import { 
+    createMaintenanceService, 
+    deleteMaintenanceService, 
+    getAllMaintenanceService, 
+    getMaintenanceByIdService,
+    getMaintenanceByParams, 
+    generateExcelService, 
+    updateMaintenanceService } from "../services/maintenance.service.js";
 import HTTP_STATUS from "../utils/http.utils.js";
 import { fetchData } from "../utils/fetch.utils.js";
 import path from 'path';
@@ -69,20 +76,19 @@ export const getMaintenanceByIdController = async (req, res) => {
  * @returns 
  */
 export const getAllMaintenanceController = async(req, res) => {
-    console.log(req.query);
-    // if(req.query){
-    //     try {
-    //         let  budget = await getBudgetByParams(req.query);
-    //         res
-    //         .send(budget)
-    //         .status(HTTP_STATUS.OK.statusCode);
-    //         return;
-    //     } catch (error) {
-    //       console.log(error);
-    //       res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);
-    //       return;
-    //     }
-    // }
+    if(Object.keys(req.query).length !== 0 && req.query.constructor === Object){
+        try {
+            let  maintenances = await getMaintenanceByParams(req.query);
+            res
+            .send(maintenances)
+            .status(HTTP_STATUS.OK.statusCode);
+            return;
+        } catch (error) {
+          console.log(error);
+          res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);
+          return;
+        }
+    }
     try {
         let maintenances = await getAllMaintenanceService(req.body);
         res

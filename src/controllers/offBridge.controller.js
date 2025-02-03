@@ -75,6 +75,19 @@ export const getOffBridgeByIdController = async (req, res) => {
  * @returns 
  */
 export const getAllOffBridgeController = async(req, res) => {
+    if(Object.keys(req.query).length !== 0 && req.query.constructor === Object){
+        try {
+            let  offBridges = await getOffBridgeByParams(req.query);
+            res
+            .send(offBridges)
+            .status(HTTP_STATUS.OK.statusCode);
+            return;
+        } catch (error) {
+          console.log(error);
+          res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);
+          return;
+        }
+    }
     try {
         let offBridges = await getAllOffBridgeService(req.body);
         res
@@ -141,52 +154,61 @@ export const generateExcelFileController = async (req, res) =>{
 
     if(!action){
         try {
-            console.log(req.query);
-            let incidents = await generateExcelService(req.query);
+            let offBridges = await generateExcelService(req.query);
             
             const workbook = new ExcelJS.Workbook();
-            const worksheet = workbook.addWorksheet('Rapport Incidents');
+            const worksheet = workbook.addWorksheet('Rapport Hors pont');
             
             worksheet.columns = [
                 { header: 'NumRef', key: 'numRef', width: 15 },
-                { header: 'Date de creation', key: 'creationDate', width: 20 },
-                { header: 'Type d\'incident', key: 'incidentType', width: 50 },
-                { header: 'Cause d\'incident', key: 'incidentCause', width: 50 },
-                { header: 'Equipement', key: 'equipement', width: 15 },
-                { header: 'Site', key: 'site', width: 20 },
-                { header: 'Shift', key: 'shift', width: 20 },
-                { header: 'Chef de guerite', key: 'userId', width: 20 },
-                { header: 'description', key: 'description', width: 50 },
-                { header: 'Créé par', key: 'createdBy', width: 20 },
-                { header: 'Édité par', key: 'updatedBy', width: 20 },
-                { header: 'Status', key: 'status', width: 20 },
+                { header: 'Date de creation', key: 'createdAt', width: 20 },
+                { header: 'Cause de l\'incident', key: 'incidentCause', width: 20 },
+                { header: 'Site', key: 'siteId', width: 20 },
+                { header: 'Tier', key: 'tier', width: 20 },
+                { header: 'Conteneur 1', key: 'container1', width: 20 },
+                { header: 'Conteneur 2', key: 'container2', width: 20 },
+                { header: 'Plomb 1', key: 'plomb1', width: 20 },
+                { header: 'Plomb 2', key: 'plomb2', width: 20 },
+                { header: 'Chargeur', key: 'loader', width: 20 },
+                { header: 'Produit', key: 'product', width: 20 },
+                { header: 'Transporteur', key: 'transporter', width: 20 },
+                { header: 'Vehicule', key: 'vehicle', width: 20 },
+                { header: 'Numero BL', key: 'blNumber', width: 20 },
+                { header: 'Chauffeur', key: 'driver', width: 20 },
+                { header: 'Remorque', key: 'trailer', width: 20 },
+                { header: 'Initier par', key: 'createdBy', width: 20 }
             ];
     
             let employees = await fetchData(`${ENTITY_API}/employees/`);
             let sites = await fetchData(`${ENTITY_API}/sites/`);
-            let shifts = await fetchData(`${ENTITY_API}/shifts/`);
             
-            incidents.forEach(incident => {
+            offBridges.forEach(offBridge => {
                 worksheet.addRow({
-                    numRef: incident.numRef,
-                    creationDate: incident.creationDate,
-                    incidentType: incident.incident.name,
-                    incidentCause: incident.incidentCauses.name,
-                    equipement: incident.equipement.name,
-                    site: sites?.data.find(site=>site?.id === incident.siteId)?.name || incident.siteId,
-                    shift: shifts?.data.find(shift=>shift?.id === incident.shiftId)?.name || incident.shiftId,
-                    userId: employees?.data.find(employee=>employee?.id === incident.userId)?.name || incident.userId,
-                    description: incident.description,
-                    createdBy: employees?.data.find(employee=>employee?.id === incident.userId)?.name || incident.createdBy,
-                    updatedBy: employees?.data.find(employee=>employee?.id === incident.userId)?.name || incident.updatedBy,
-                    status: incident.status,
+                    numRef: offBridge.numRef,
+                    createdAt: offBridge.creationDate,
+                    incidentCause: offBridge.incidentCauses.name,
+                    siteId: sites?.data.find(site=>site?.id === offBridge.siteId)?.name || offBridge.siteId,
+                    tier: offBridge.tier,
+                    container1: offBridge.container1,
+                    container2: offBridge.container2,
+                    plomb1: offBridge.plomb1,
+                    plomb2: offBridge.plomb2,
+                    loader: offBridge.loader,
+                    product: offBridge.product,
+                    transporter: offBridge.transporter,
+                    vehicle: offBridge.vehicle,
+                    blNumber: offBridge.blNumber,
+                    driver: offBridge.driver,
+                    trailer: offBridge.trailer,
+                    description: offBridge.description,
+                    createdBy: employees?.data.find(employee=>employee?.id === offBridge.createdBy)?.name || offBridge.createdBy,
                 });
             });
     
     
-            const filePath = path.join(exportsDir, `incidents_report.xlsx`);
+            const filePath = path.join(exportsDir, `off-bridges_report.xlsx`);
             await workbook.xlsx.writeFile(filePath);
-            const downloadLink = `${req.protocol}://${req.get('host')}/api/exports/incidents_report.xlsx`; 
+            const downloadLink = `${req.protocol}://${req.get('host')}/api/exports/off-bridges_report.xlsx`; 
     
             res.status(HTTP_STATUS.OK.statusCode).json({ message: 'File created successfully', downloadLink });
             
