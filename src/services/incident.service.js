@@ -146,13 +146,16 @@ export const getIncidentByParams = async (request) =>{
  */
 export const updateIncidentService = async (id, body) =>{
     try {
+        let {createdBy, ...data} = body;
         let date =  new Date();
         if(body?.status === "CLOSED"){
-            body.closedDate = date;
+            data.closedDate = date;
+            data.closedBy = body.createdBy
         }
+        console.log(data);
         let incident = await incidentClient.update({
             where:{id},
-            data:body
+            data:{...data}
         });
         return incident;
     } catch (error) {

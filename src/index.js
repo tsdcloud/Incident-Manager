@@ -17,6 +17,8 @@ import maintenance from './routes/maintenance.route.js'
 import offBridge from './routes/offBridge.route.js'
 import maintenanceType from './routes/maintenanceType.route.js'
 import supplier from './routes/supplier.route.js'
+import { verifyUserExist } from './middlewares/verifyToken.middleware.js';
+import {rateLimitAndTimeout} from './middlewares/ratelimiter.middleware.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -28,13 +30,10 @@ app.use(helmet())
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(morgan("common"));
-app.use(bodyParser.json());
+app.use(rateLimitAndTimeout);
 
-// app.use("*", (req, res, next) =>{
-//     console.log(req.path, "--", req.method);
-//     next();
-// })
 
+app.use(verifyUserExist);
 app.get("/api/exports/:file", (req, res)=>{
     try{
         const fileName = req.params.file;

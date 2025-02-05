@@ -3,7 +3,7 @@ import HTTP_STATUS from "../utils/http.utils.js";
 
 export const createEquipement = [
     body("name").notEmpty().withMessage("Invalid name"),
-    body("siteId").notEmpty().withMessage("Invalid siteId"),
+    body("siteId").optional().notEmpty().withMessage("Invalid siteId"),
     body("createdBy").notEmpty().withMessage("Invalid user"),
     body("updatedBy").optional().notEmpty().withMessage("Invalid user"),
     (req, res, next) =>{

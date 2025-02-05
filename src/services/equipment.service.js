@@ -1,4 +1,7 @@
 import {prisma} from '../config.js';
+import ExcelJs from 'exceljs';
+import { generateRefNum } from '../utils/utils.js';
+
 const equipementClient = prisma.equipement;
 
 const LIMIT = 100;
@@ -6,7 +9,7 @@ const ORDER ="asc";
 const SORT_BY = "name";
 
 /**
- * Create qn equipement
+ * Create an equipement
  * @param body 
  * @returns 
  */
@@ -15,14 +18,8 @@ export const createEquipementService = async (body)=>{
         const lastEquipment = await equipementClient.findFirst({
             orderBy: { createdAt: 'desc' },
             select: { numRef: true }
-        });
-
-        const date = new Date();
-        const mm = String(date.getMonth() + 1).padStart(2, '0');
-        const yy = String(date.getFullYear()).slice(-2);
-        const prefix = `${mm}${yy}`;
-        const nextNum = lastEquipment ? parseInt(lastEquipment.numRef.slice(-4)) + 1 : 1;
-        const numRef = `${prefix}${String(nextNum).padStart(4, '0')}`;
+        });       
+        const numRef = generateRefNum(lastEquipment);
         let equipement = await equipementClient.create({
             data:{...body, numRef}
         });
@@ -153,5 +150,50 @@ export const deleteEquipmentService = async (id) =>{
     } catch (error) {
         console.log(error);
         throw new Error(`${error}`);
+    }
+}
+
+/**
+ * handle equipements data import
+ * @param {*} filePath 
+ */
+export const importEquipementService = async (filePath) =>{
+    try {
+        const workbook = new ExcelJs.Workbook();
+        await workbook.xlsx.readFile(filePath);
+
+        const worksheet = workbook.getWorksheet(1);
+        const rows = [];
+
+        worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+            if (rowNumber > 1) {
+              const rowData = row.values.slice(1);
+              console.log(rowData[2]);
+              rows.push({
+                name: rowData[2],
+              });
+            }
+        });
+
+        for (const row of rows){
+            const lastEquipment = await equipementClient.findFirst({
+                orderBy: { createdAt: 'desc' },
+                select: { numRef: true }
+            });
+            let numRef = generateRefNum(lastEquipment);
+            const equipement = await equipementClient.upsert({
+                where: {
+                  name: row.name,
+                },
+                update: {
+                  name: row.name,
+                },
+                create: {name:row.name, numRef},
+            })
+        }
+        console.log("Upload completed")
+    } catch (error) {
+        console.error(error)
+        throw new Error(`${error}`)
     }
 }

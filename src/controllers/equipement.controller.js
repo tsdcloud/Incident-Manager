@@ -1,4 +1,4 @@
-import { createEquipementService, deleteEquipmentService, getAllEquipmentService, getEquipementByIdService, getEquipementByParams, updateEquipementService } from "../services/equipment.service.js";
+import { createEquipementService, deleteEquipmentService, getAllEquipmentService, getEquipementByIdService, getEquipementByParams, importEquipementService, updateEquipementService } from "../services/equipment.service.js";
 import HTTP_STATUS from "../utils/http.utils.js";
 
 
@@ -38,7 +38,7 @@ export const getEquipementByIdController = async (req, res) => {
     }
 
     try {
-        let equipement = await getConsommableByIdService(id);
+        let equipement = await getEquipementByIdService(id);
         res
         .send(equipement)
         .status(HTTP_STATUS.OK.statusCode);
@@ -125,5 +125,20 @@ export const deleteEquipementController = async (req, res) => {
         res
         .sendStatus(HTTP_STATUS.BAD_REQUEST.statusCode);
         return;
+    }
+}
+
+
+export const uploadEquipementController = async (req, res) =>{
+    if (!req.file) {
+        return res.status(HTTP_STATUS.BAD_REQUEST.statusCode).json({ message: "No file uploaded" });
+    }
+    try {
+        const filePath = req.file.path;
+        await importEquipementService(filePath)
+    } catch (error) {
+        res
+        .sendStatus(HTTP_STATUS.BAD_REQUEST.statusCode);
+        return
     }
 }

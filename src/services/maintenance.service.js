@@ -113,6 +113,15 @@ export const getMaintenanceByParams = async (request) =>{
                 ],
                 isActive:true
             },
+            include:{
+                incident:true,
+                maintenance:true,
+                incident:true,
+                equipement:true
+            },
+            orderBy:{
+                createdAt:'desc'
+            },
             skip: parseInt(skip),
             take: parseInt(limit),
             orderBy:{
