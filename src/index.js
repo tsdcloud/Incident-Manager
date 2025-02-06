@@ -33,7 +33,7 @@ app.use(morgan("common"));
 // app.use(rateLimitAndTimeout);
 
 
-app.use(verifyUserExist);
+
 app.get("/api/exports/:file", (req, res)=>{
     try{
         const fileName = req.params.file;
@@ -55,10 +55,10 @@ app.get("/api/exports/:file", (req, res)=>{
         res.sendStatus(HTTP_STATUS.BAD_REQUEST.statusCode)
     }
 });
-
+app.use(verifyUserExist);
+app.use("/api/incidents", incident);
 app.use("/api/consommables", consommable);
 app.use("/api/equipements", equipement);
-app.use("/api/incidents", incident);
 app.use("/api/incident-causes", incidentCause);
 app.use("/api/off-bridges", offBridge);
 app.use("/api/incident-types", incidentType);
