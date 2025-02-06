@@ -39,9 +39,6 @@ async function seedDatabase() {
         numRef,
         createdBy:"user 1"
       };
-
-      console.log(incidentType);
-
       // Insert data into the database
       await prisma.equipement
       // .create({
@@ -66,10 +63,142 @@ async function seedDatabase() {
   }
 }
 
-// Run the seeding script
-seedDatabase();
+const seedIncidentTable = async () => {
+  let incidentType;
+  let equipement;
+  let incidentCause;
 
-// Start the Express server (optional)
-// app.listen(3000, () => {
-//   console.log('Server is running on http://localhost:3000');
-// });
+  try {
+    const data = readExcelFile(`C:/Users/EVERMATE/Documents/INCIDENTS.xlsx`);
+
+    for (const row of data) {
+      
+      let incidentTypeName = row['Type INCIDENT'];
+      let equipementName = row['IdEquipement'];
+      let incidentCauseName = row['CAUSES INCIDENT'];
+      let incidentStatus = row['statut incident'] === 'CLOTURE' ? 'CLOSED' : 'PENDING';
+
+      if(incidentTypeName  && equipementName && incidentCauseName && incidentStatus){
+
+        incidentType = await prisma.incidentType.findFirst({
+          where: { name: incidentTypeName },
+        });
+  
+        if (!incidentType) {
+  
+          incidentType = await prisma.incidentType.findFirst({
+            orderBy: { createdAt: 'desc' },
+            select: { numRef: true }
+          });
+  
+          const newNumRef = generateRefNum(incidentType);
+  
+          incidentType = await prisma.incidentType.create({
+            data: {
+              numRef: newNumRef,
+              name: incidentTypeName,
+              createdBy: "user 1",
+            },
+          });
+        }
+  
+        equipement = await prisma.equipement.findFirst({
+          where: { name: equipementName },
+        });
+  
+        if (!equipement) {
+          equipement = await prisma.equipement.findFirst({
+            orderBy: { createdAt: 'desc' },
+            select: { numRef: true }
+          });
+          const newNumRef = generateRefNum(equipement);
+          equipement = await prisma.equipement.create({
+            data: {
+              numRef: newNumRef,
+              name: equipementName,
+              createdBy: "user 1",
+            },
+          });
+        }
+  
+        incidentCause = await prisma.incidentCause.findFirst({
+          where: { name: incidentCauseName },
+        });
+  
+        if (!incidentCause) {
+          // Generate a unique numRef
+          incidentCause = await prisma.incidentCause.findFirst({
+            orderBy: { createdAt: 'desc' },
+            select: { numRef: true }
+          });
+          const newNumRef = generateRefNum(incidentCause);
+          // Check if the numRef already exists
+          const existingIncidentCause = await prisma.incidentCause.findFirst({
+            where: { numRef: newNumRef },
+          });
+  
+          if (!existingIncidentCause) {
+            // If it doesn't exist, create it
+            incidentCause = await prisma.incidentCause.create({
+              data: {
+                numRef: newNumRef,
+                name: incidentCauseName,
+                createdBy: "user 1",
+              },
+            });
+          } else {
+            console.log(`Incident cause with numRef ${newNumRef} already exists.`);
+          }
+        } 
+  
+  
+        let lastIncidentCause = await prisma.incident.findFirst({
+          orderBy:{creationDate:'desc'}
+        });
+  
+        if (!incidentCause) {
+          incidentCause = await prisma.incidentCause.create({
+            data: {
+              numRef: generateRefNum(lastIncidentCause),
+              name: incidentCauseName,
+              createdBy: "user 1",
+            },
+          });
+        }
+  
+        let lastIncident = await prisma.incident.findFirst({
+          orderBy:{creationDate:'desc'}
+        });
+  
+        let data = {
+          numRef: generateRefNum(lastIncident),
+          incident: incidentType.id,
+          equipement: equipement?.id || null,
+          siteId: row['IdGuerite'] || '--',
+          description: row['Description INDIDENT'] || "",
+          createdBy: row['Nom CHEF DE GUERITE']|| "--",
+          status: incidentStatus,
+          incident: { connect: { id: incidentType.id }},
+          equipement: { connect: { id: equipement.id }},
+          incidentCauses: { connect: { id: incidentCause.id }},
+        };
+  
+        let incident = await prisma.incident.create({
+          data: {...data},
+        });
+        console.log(incident);
+      }
+    }
+
+    console.log("Incident creation completed!");
+
+  } catch (error) {
+    console.error(error);
+    throw new Error(`${error}`);
+  }
+}
+
+seedIncidentTable();
+// seedDatabase();
+
+

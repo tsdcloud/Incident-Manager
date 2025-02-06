@@ -1,4 +1,5 @@
 import {prisma} from '../config.js';
+import { generateRefNum } from '../utils/utils.js';
 const incidentClient = prisma.incident;
 
 const LIMIT = 100;
@@ -23,7 +24,7 @@ export const createIncidentService = async (body)=>{
         const yy = String(date.getFullYear()).slice(-2);
         const prefix = `${mm}${yy}`;
         const nextNum = lastIncident ? parseInt(lastIncident.numRef.slice(-4)) + 1 : 1;
-        const numRef = `${prefix}${String(nextNum).padStart(4, '0')}`;
+        const numRef = generateRefNum(lastIncident);
         let incident = await incidentClient.create({
             data:{ ...body, numRef }
         });
@@ -113,10 +114,18 @@ export const getIncidentByParams = async (request) =>{
                         },
                         isActive:true
                     },
+                    {
+                        description:{
+                            contains: search
+                        }
+                    }
                 ]
             },
             include:{
-                incident:true
+                consommable:true,
+                equipement:true,
+                incidentCauses:true,
+                incident:true,
             },
             skip: parseInt(skip),
             take: parseInt(limit),
