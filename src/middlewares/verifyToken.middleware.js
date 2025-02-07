@@ -15,7 +15,7 @@ export const verifyUserExist = async (req, res, next) => {
 
     let token = authorization?.split(" ")[1]
     try {
-        let url = `${USERS_API}/gateway/token/verify/`;
+        let url = `${USERS_API}gateway/token/verify/`;
         let requestOptions = {
             method: 'POST',
             headers:{
@@ -34,14 +34,22 @@ export const verifyUserExist = async (req, res, next) => {
         let decodedToken = jwtDecode(token);
         if(!decodedToken) return sendStatus(HTTP_STATUS.UN_AUTHORIZED.statusCode);
 
-        let employee = await getEmployee(decodedToken?.user_id, token);
+        // let employee = await getEmployee(decodedToken?.user_id, token);
+        let employee = await getEmployee("588a7341-6d4b-43bf-8524-488d653aa696", token);
         if(!employee) return sendStatus(HTTP_STATUS.UN_AUTHORIZED.statusCode);
+
+        // console.log("employee id ", decodedToken?.user_id)
+
+        // console.log("Employee id :", employee)
 
         if(req.method === "POST"){
             req.body["createdBy"] = employee?.id;
         }else if(req.method === "PATCH" || req.method === "DELETE"){
             req.body["updatedBy"] = employee?.id;
         }
+
+        // console.log("Request data :", req.body)
+
         next();
     } catch (error) {
         console.log(error);

@@ -95,11 +95,17 @@ export const getOffBridgeByParams = async (request) =>{
     const skip = (page - 1) * limit;
     try {
         let offBridges = await offBridgeClient.findMany({
+            // where:!search ? queries : {
+            //     numRef:{
+            //         contains:search
+            //     },
+            //     isActive:true
+            // },
             where:!search ? queries : {
-                numRef:{
-                    contains:search
-                },
-                isActive:true
+                OR: [
+                    { numRef: { contains: search } }, 
+                    { tier: { contains: search } }
+                ],
             },
             skip: parseInt(skip),
             take: parseInt(limit),
