@@ -5,7 +5,6 @@ import { jwtDecode } from 'jwt-decode';
 
 export const verifyUserExist = async (req, res, next) => {
     let { authorization } = req.headers;
-    
     if(!authorization){
         res
         .status(HTTP_STATUS.UN_AUTHORIZED.statusCode)

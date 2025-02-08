@@ -59,7 +59,7 @@ export const getAllIncidentService = async(body) =>{
                 creationDate:'desc'
             }
         });
-        const total = await incidentClient.count();
+        const total = await incidentClient.count({where:{isActive:true}});
         return {
             page: parseInt(page),
             totalPages: Math.ceil(total / LIMIT),
@@ -133,7 +133,7 @@ export const getIncidentByParams = async (request) =>{
                 creationDate:'desc'
             }
         });
-        const total = await incidentClient.count();
+        const total = await incidentClient.count({where:{isActive:true}});
         
         return search ? {data: incidents} :{
             page: parseInt(page),

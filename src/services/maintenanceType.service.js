@@ -51,7 +51,7 @@ export const getAllMaintenanceTypeService = async(body) =>{
                 createdAt:'desc'
             }
         });
-        const total = await maintenanceTypeClient.count();
+        const total = await maintenanceTypeClient.count({where:{isActive:true}});
         return {
             page: parseInt(page),
             totalPages: Math.ceil(total / LIMIT),
@@ -105,7 +105,7 @@ export const getMaintenanceTypeByParams = async (request) =>{
                 createdAt:'desc'
             }
         });
-        const total = await maintenanceTypeClient.count();
+        const total = await maintenanceTypeClient.count({where:{isActive:true}});
         return search ? {data: types} :{
             page: parseInt(page),
             totalPages: Math.ceil(total / limit),

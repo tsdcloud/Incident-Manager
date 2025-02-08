@@ -51,7 +51,7 @@ export const getAllIncidentCauseService = async(body) =>{
                 createdAt: 'desc'
             }
         });
-        const total = await incidentCauses.count();
+        const total = await incidentCauses.count({where:{isActive:true}});
         return {
             page: parseInt(page),
             totalPages: Math.ceil(total / limit),
@@ -105,7 +105,7 @@ export const getIncidentCauseByParams = async (request) =>{
                 createdAt:'desc'
             }
         });
-        const total = await incidentCauses.count();
+        const total = await incidentCauses.count({where:{isActive:true}});
         return search ? {data: causes} :{
             page: parseInt(page),
             totalPages: Math.ceil(total / limit),

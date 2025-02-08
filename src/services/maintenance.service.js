@@ -66,7 +66,7 @@ export const getAllMaintenanceService = async(body) =>{
                 createdAt:'desc'
             }
         });
-        const total = await maintenanceClient.count();
+        const total = await maintenanceClient.count({where:{isActive:true}});
         return {
             page: parseInt(page),
             totalPages: Math.ceil(total / LIMIT),
@@ -128,7 +128,7 @@ export const getMaintenanceByParams = async (request) =>{
                 createdAt:'desc'
             }
         });
-        const total = await maintenanceClient.count();
+        const total = await maintenanceClient.count({where:{isActive:true}});
         return search ? {data: maintenances} :{
             page: parseInt(page),
             totalPages: Math.ceil(total / limit),

@@ -51,7 +51,7 @@ export const getAllIncidentTypeService = async(body) =>{
                 createdAt: 'desc'
             }
         });
-        const total = await incidentType.count();
+        const total = await incidentType.count({where:{isActive:true}});
         return {
             page: parseInt(page),
             totalPages: Math.ceil(total / limit),
@@ -104,7 +104,7 @@ export const getIncidentTypeByParams = async (request) =>{
                 createdAt:'desc'
             }
         });
-        const total = await incidentType.count();
+        const total = await incidentType.count({where:{isActive:true}});
         return search ? {data: types} :{
             page: parseInt(page),
             totalPages: Math.ceil(total / limit),

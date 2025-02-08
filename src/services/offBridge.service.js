@@ -55,7 +55,7 @@ export const getAllOffBridgeService = async(body) =>{
                 createdAt:'desc'
             }
         });
-        const total = await offBridgeClient.count();
+        const total = await offBridgeClient.count({where:{isActive:true}});
         return {
             page: parseInt(page),
             totalPages: Math.ceil(total / LIMIT),
@@ -107,7 +107,7 @@ export const getOffBridgeByParams = async (request) =>{
                 createdAt:'desc'
             }
         });
-        const total = await offBridgeClient.count();
+        const total = await offBridgeClient.count({where:{isActive:true}});
         return search ? {data: offBridges} :{
             page: parseInt(page),
             totalPages: Math.ceil(total / limit),
