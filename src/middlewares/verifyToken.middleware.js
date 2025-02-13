@@ -34,7 +34,8 @@ export const verifyUserExist = async (req, res, next) => {
         if(!decodedToken) return sendStatus(HTTP_STATUS.UN_AUTHORIZED.statusCode);
 
         let employee = await getEmployee(decodedToken?.user_id, token);
-        if(!employee) return sendStatus(HTTP_STATUS.UN_AUTHORIZED.statusCode);
+
+        if(employee?.data.length <1) return res.sendStatus(HTTP_STATUS.UN_AUTHORIZED.statusCode);
 
         if(req.method === "POST"){
             req.body["createdBy"] = employee?.id;
