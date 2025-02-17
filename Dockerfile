@@ -55,7 +55,7 @@ COPY . .
 
 
 # Générer le client Prisma
-RUN npx prisma generate --schema=./prisma/schema.prisma
+# RUN npx prisma generate --schema=./prisma/schema.prisma --force
 
 RUN npm install prisma --save-dev
 RUN npm install express
