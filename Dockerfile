@@ -48,7 +48,7 @@ WORKDIR /App/Incident
 COPY package*.json ./
 
 # Installer les dépendances
-RUN npm install
+RUN npm install --force
 
 # Copier le reste des fichiers du projet
 COPY . .
