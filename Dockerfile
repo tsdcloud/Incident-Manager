@@ -49,6 +49,8 @@ COPY package*.json ./
 # Installer les dépendances
 RUN npm install --force
 
+RUN npm install @prisma/client@5.12.0 prisma@5.12.0
+
 # Copier le reste des fichiers du projet
 COPY . .
 
@@ -56,7 +58,7 @@ COPY . .
 # Générer le client Prisma
 RUN npx prisma generate
 
-RUN npm install prisma --save-dev --force
+RUN npm install prisma
 RUN npm install express --force
 #RUN npx prisma migrate dev --name init
 
