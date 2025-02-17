@@ -57,8 +57,8 @@ COPY . .
 # Générer le client Prisma
 # RUN npx prisma generate --schema=./prisma/schema.prisma --force
 
-RUN npm install prisma --save-dev
-RUN npm install express
+RUN npm install prisma --save-dev --force
+RUN npm install express --force
 #RUN npx prisma migrate dev --name init
 
 # Exposer le port utilisé par l'application
