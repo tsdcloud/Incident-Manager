@@ -37,7 +37,7 @@
 
 
 # Utiliser une image Node.js LTS comme base
-FROM node:18
+FROM node:20.10
 LABEL maintainer="ysiaka@bfclimited.com"
 
 # Définir le répertoire de travail
@@ -55,7 +55,7 @@ COPY . .
 
 
 # Générer le client Prisma
-# RUN npx prisma generate --schema=./prisma/schema.prisma --force
+RUN npx prisma generate --force
 
 RUN npm install prisma --save-dev --force
 RUN npm install express --force
