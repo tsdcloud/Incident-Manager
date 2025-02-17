@@ -42,7 +42,6 @@ LABEL maintainer="ysiaka@bfclimited.com"
 
 # Définir le répertoire de travail
 WORKDIR /App/Incident
-WORKDIR /App/Incident
 
 # Copier package.json et package-lock.json
 COPY package*.json ./
