@@ -61,7 +61,7 @@ RUN npm install express --force
 #RUN npx prisma migrate dev --name init
 
 # Exposer le port utilisé par l'application
-EXPOSE 3000
+EXPOSE 4000
 
 # Lancer l'application
 CMD ["node", "index.js"]
