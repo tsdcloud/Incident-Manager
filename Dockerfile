@@ -66,4 +66,4 @@ RUN npm install express --force
 EXPOSE 4000
 
 # Lancer l'application
-CMD ["node", "index.js"]
+CMD ["node", "./src/index.js"]
