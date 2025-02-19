@@ -58,7 +58,7 @@ app.get("/api/exports/:file", (req, res)=>{
         res.sendStatus(HTTP_STATUS.BAD_REQUEST.statusCode)
     }
 });
-app.use(verifyUserExist);
+// app.use(verifyUserExist);
 app.use("/api/incidents", incident);
 app.use("/api/consommables", consommable);
 app.use("/api/equipements", equipement);
