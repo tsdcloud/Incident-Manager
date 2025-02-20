@@ -146,7 +146,6 @@ export const generateExcelFileController = async (req, res) =>{
 
     if(!action){
         try {
-            console.log(req.query);
             let incidents = await generateExcelService(req.query);
             
             const workbook = new ExcelJS.Workbook();
@@ -188,12 +187,11 @@ export const generateExcelFileController = async (req, res) =>{
                 });
             });
     
-    
             const filePath = path.join(exportsDir, `incidents_report.xlsx`);
             await workbook.xlsx.writeFile(filePath);
             const downloadLink = `${req.protocol}://${req.get('host')}/api/exports/incidents_report.xlsx`; 
     
-            res.status(HTTP_STATUS.OK.statusCode).json({ message: 'File created successfully', downloadLink });
+            res.status(HTTP_STATUS.OK.statusCode).json({ message:'File created successfully', downloadLink });
             
         } catch (error) {
             console.log(error);

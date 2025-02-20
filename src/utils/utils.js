@@ -8,3 +8,15 @@ export const generateRefNum = (lastItem) =>{
 
     return `${prefix}${String(nextNum).padStart(4, '0')}`;
 }
+
+export const fetchExternalAPI = async(url)=>{
+    try {
+        let response = await fetch(url);
+        if(response.status !== 200) return null
+        let result = response.json();
+        return result
+    } catch (error) {
+        console.log(error)
+        return null
+    }
+}
