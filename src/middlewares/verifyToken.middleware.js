@@ -1,6 +1,5 @@
 import HTTP_STATUS from '../utils/http.utils.js'
 import { ENTITY_API, USERS_API } from '../config.js';
-import { header } from 'express-validator';
 import { jwtDecode } from 'jwt-decode';
 
 export const verifyUserExist = async (req, res, next) => {
