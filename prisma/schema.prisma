@@ -135,6 +135,8 @@ model OffBridge{
   isActive  Boolean   @default(true)
 }
 
+
+
 model Maintenance{
   id  String  @id  @default(uuid())
   numRef      String  @unique
