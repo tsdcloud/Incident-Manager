@@ -147,6 +147,8 @@ export const deleteMaintenanceController = async (req, res) => {
 
 
 export const generateExcelFileController = async (req, res) =>{
+    let { authorization } = req.headers;
+    let token = authorization?.split(" ")[1];
     let {action} = req.query;
 
     const exportsDir = path.join(__dirname, '../../', 'exports');
@@ -179,9 +181,9 @@ export const generateExcelFileController = async (req, res) =>{
                 { header: 'Status', key: 'status', width: 20 },
             ];
     
-            let employees = await fetchData(`${ENTITY_API}/employees/`);
-            let sites = await fetchData(`${ENTITY_API}/sites/`);
-            let shifts = await fetchData(`${ENTITY_API}/shifts/`);
+            let employees = await fetchData(`${ENTITY_API}/employees/`, token);
+            let sites = await fetchData(`${ENTITY_API}/sites/`, token);
+            let shifts = await fetchData(`${ENTITY_API}/shifts/`, token);
             
             maintenances.forEach(maintenance => {
                 worksheet.addRow({

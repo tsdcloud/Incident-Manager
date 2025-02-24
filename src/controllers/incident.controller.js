@@ -137,6 +137,8 @@ export const deleteIncidentController = async (req, res) => {
 }
 
 export const generateExcelFileController = async (req, res) =>{
+    let { authorization } = req.headers;
+    let token = authorization?.split(" ")[1];
     let {action} = req.query;
 
     const exportsDir = path.join(__dirname, '../../', 'exports');
@@ -159,17 +161,16 @@ export const generateExcelFileController = async (req, res) =>{
                 { header: 'Equipement', key: 'equipement', width: 15 },
                 { header: 'Site', key: 'site', width: 20 },
                 { header: 'Shift', key: 'shift', width: 20 },
-                { header: 'Chef de guerite', key: 'userId', width: 20 },
+                { header: 'Utilisateur', key: 'userId', width: 20 },
                 { header: 'description', key: 'description', width: 50 },
-                { header: 'Créé par', key: 'createdBy', width: 20 },
                 { header: 'Édité par', key: 'updatedBy', width: 20 },
                 { header: 'Status', key: 'status', width: 20 },
             ];
     
-            let employees = await fetchData(`${ENTITY_API}/employees/`);
-            let sites = await fetchData(`${ENTITY_API}/sites/`);
-            let shifts = await fetchData(`${ENTITY_API}/shifts/`);
-            
+            let employees = await fetchData(`${ENTITY_API}/employees/`, token);
+            let sites = await fetchData(`${ENTITY_API}/sites/`, token);
+            let shifts = await fetchData(`${ENTITY_API}/shifts/`, token);
+
             incidents.forEach(incident => {
                 worksheet.addRow({
                     numRef: incident.numRef,
@@ -179,11 +180,11 @@ export const generateExcelFileController = async (req, res) =>{
                     equipement: incident.equipement.name,
                     site: sites?.data.find(site=>site?.id === incident.siteId)?.name || incident.siteId,
                     shift: shifts?.data.find(shift=>shift?.id === incident.shiftId)?.name || incident.shiftId,
-                    userId: employees?.data.find(employee=>employee?.id === incident.userId)?.name || incident.userId,
+                    userId: employees?.data.find(employee=>employee?.id === incident.createdBy)?.name || incident.createdBy,
                     description: incident.description,
-                    createdBy: employees?.data.find(employee=>employee?.id === incident.userId)?.name || incident.createdBy,
-                    updatedBy: employees?.data.find(employee=>employee?.id === incident.userId)?.name || incident.updatedBy,
-                    status: incident.status,
+                    status: incident.status === "CLOSED" ? 
+                    "CLOTURE" : incident.status === "PENDING" ? 
+                    "EN ATTENTE" : incident.status ==="UNDER_MAINTENANCE"?"EN MAINTENANCE":incident.status,
                 });
             });
     

@@ -145,6 +145,8 @@ export const deleteOffBridgeController = async (req, res) => {
 }
 
 export const generateExcelFileController = async (req, res) =>{
+    let { authorization } = req.headers;
+    let token = authorization?.split(" ")[1];
     let {action} = req.query;
 
     const exportsDir = path.join(__dirname, '../../', 'exports');
@@ -179,8 +181,8 @@ export const generateExcelFileController = async (req, res) =>{
                 { header: 'Initier par', key: 'createdBy', width: 20 }
             ];
     
-            let employees = await fetchData(`${ENTITY_API}/employees/`);
-            let sites = await fetchData(`${ENTITY_API}/sites/`);
+            let employees = await fetchData(`${ENTITY_API}/employees/`, token);
+            let sites = await fetchData(`${ENTITY_API}/sites/`, token);
             
             offBridges.forEach(offBridge => {
                 worksheet.addRow({
