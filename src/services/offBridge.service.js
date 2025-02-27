@@ -1,4 +1,5 @@
 import {prisma} from '../config.js';
+import { generateRefNum } from '../utils/utils.js';
 const offBridgeClient = prisma.offBridge;
 
 const LIMIT = 100;
@@ -22,12 +23,23 @@ export const createOffBridgeService = async (body)=>{
         const mm = String(date.getMonth() + 1).padStart(2, '0');
         const yy = String(date.getFullYear()).slice(-2);
         const prefix = `${mm}${yy}`;
-        const nextNum = lastOffBridge ? parseInt(lastOffBridge.numRef.slice(-4)) + 1 : 1;
-        const numRef = `${prefix}${String(nextNum).padStart(4, '0')}`;
+        let nextNum = lastOffBridge ? parseInt(lastOffBridge.numRef.slice(-4)) + 1 : 1;
+        let numRef = `${prefix}${String(nextNum).padStart(4, '0')}`;
+
+        // Check for uniqueness of numRef
+        while (await offBridgeClient.findFirst({ where: { numRef } })) {
+            nextNum += 1;
+            numRef = `${prefix}${String(nextNum).padStart(4, '0')}`;
+        }
+        
         let offBridge = await offBridgeClient.create({
-            data:{ ...body, numRef }
+            data:{
+                ...body, 
+                numRef
+            }
         });
         return offBridge;
+        // return
     } catch (error) {
         console.log(error);
         throw new Error(`${error}`);
@@ -96,9 +108,9 @@ export const getOffBridgeByParams = async (request) =>{
     try {
         let offBridges = await offBridgeClient.findMany({
             where:!search ? queries : {
-                numRef:{
-                    contains:search
-                },
+                OR: [
+                    {numRef: { contains: search }},
+                ],
                 isActive:true
             },
             skip: parseInt(skip),

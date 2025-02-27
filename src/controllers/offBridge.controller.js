@@ -75,6 +75,7 @@ export const getOffBridgeByIdController = async (req, res) => {
  * @returns 
  */
 export const getAllOffBridgeController = async(req, res) => {
+    
     if(Object.keys(req.query).length !== 0 && req.query.constructor === Object){
         try {
             let  offBridges = await getOffBridgeByParams(req.query);
@@ -88,6 +89,7 @@ export const getAllOffBridgeController = async(req, res) => {
           return;
         }
     }
+
     try {
         let offBridges = await getAllOffBridgeService(req.body);
         res
