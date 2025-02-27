@@ -67,7 +67,7 @@ app.use("/api/off-bridges", offBridge);
 app.use("/api/incident-types", incidentType);
 app.use("/api/maintenances", maintenance);
 app.use("/api/maintenance-types", maintenanceType);
-app.use("/api/suppliers", supplier);
+// app.use("/api/suppliers", supplier);
 
 // app.get('/', (req, res)=>{
 //     res
