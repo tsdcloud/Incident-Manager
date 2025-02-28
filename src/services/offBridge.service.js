@@ -180,6 +180,16 @@ export const deleteOffBridgeService = async (id) =>{
  */
 export const generateExcelService = async (query) => {
     let { start, end, value, criteria, condition } = query;
+    if(start && end){
+        start = new Date(start);
+        start.setHours(0, 0, 0, 0);
+        start = start.toISOString();
+    
+        end = new Date(end);
+        end.setHours(23, 59, 59, 999);
+        end = end.toISOString();
+    }
+    
     try {
         let offBridges;
 
