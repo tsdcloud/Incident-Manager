@@ -6,6 +6,7 @@ import path from 'path';
 import fs from 'fs'
 import { fileURLToPath } from 'url';
 import ExcelJS from 'exceljs';
+import { ADDRESS } from "../config.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -190,9 +191,7 @@ export const generateExcelFileController = async (req, res) =>{
     
             const filePath = path.join(exportsDir, `incidents_report.xlsx`);
             await workbook.xlsx.writeFile(filePath);
-// 
-            // const downloadLink = `${req.route}/api/exports/incidents_report.xlsx`; 
-            const downloadLink = `${req.get('host')}/api/exports/incidents_report.xlsx`; 
+            const downloadLink = `${ADDRESS}/api/exports/incidents_report.xlsx`; 
     
             res.status(HTTP_STATUS.OK.statusCode).json({ message:'File created successfully', downloadLink });
             
