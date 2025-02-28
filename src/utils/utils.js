@@ -8,3 +8,10 @@ export const generateRefNum = (lastItem) =>{
 
     return `${prefix}${String(nextNum).padStart(4, '0')}`;
 }
+
+export function reverse(url, obj) { 
+    return url.replace(/(\/:\w+\??)/g, function (m, c) { 
+        c=c.replace(/[/:?]/g, ''); 
+        return obj[c] ? '/' + obj[c] : ""; 
+    }); 
+}
