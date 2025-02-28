@@ -198,6 +198,9 @@ export const deleteIncidentService = async (id) =>{
  */
 export const generateExcelService = async (query) => {
     let { start, end, value, criteria, condition } = query;
+    start = new Date(`${start}`);
+    end = new Date(`${end}`);
+
     try {
         let incidents;
 
@@ -207,12 +210,15 @@ export const generateExcelService = async (query) => {
                     [criteria]: {
                         not: value,
                     },
-                    ...(start && end ? {
+                    ...((start && end) ? {
                         creationDate: {
                             gte: start,
+                        },
+                        creationDate: {
                             lte: end,
                         },
                     } : {}),
+                    isActive:true
                 },
                 include:{
                     equipement:true,
@@ -225,12 +231,15 @@ export const generateExcelService = async (query) => {
             incidents = await incidentClient.findMany({
                 where: {
                     [criteria]: value,
-                    ...(start && end ? {
+                    ...((start && end) ? {
                         creationDate: {
                             gte: start,
+                        },
+                        creationDate: {
                             lte: end,
                         },
                     } : {}),
+                    isActive:true
                 },
                 include:{
                     equipement:true,

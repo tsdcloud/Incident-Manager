@@ -204,8 +204,10 @@ export const generateExcelService = async (query) =>{
                         not: value,
                     },
                     ...(start && end ? {
-                        creationDate: {
+                        createdAt: {
                             gte: start,
+                        },
+                        createdAt: {
                             lte: end,
                         },
                     } : {}),
@@ -222,8 +224,10 @@ export const generateExcelService = async (query) =>{
                 where: {
                     [criteria]: value,
                     ...(start && end ? {
-                        creationDate: {
+                        createdAt: {
                             gte: start,
+                        },
+                        createdAt: {
                             lte: end,
                         },
                     } : {}),

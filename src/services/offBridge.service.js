@@ -192,6 +192,8 @@ export const generateExcelService = async (query) => {
                     ...(start && end ? {
                         createdAt: {
                             gte: start,
+                        },
+                        createdAt: {
                             lte: end,
                         },
                     } : {}),
@@ -207,6 +209,8 @@ export const generateExcelService = async (query) => {
                     ...(start && end ? {
                         createdAt: {
                             gte: start,
+                        },
+                        createdAt: {
                             lte: end,
                         },
                     } : {}),
