@@ -212,7 +212,7 @@ export const generateExcelFileController = async (req, res) =>{
     
             const filePath = path.join(exportsDir, `off-bridges_report.xlsx`);
             await workbook.xlsx.writeFile(filePath);
-            const downloadLink = `${req.protocol}://${req.get('host')}/api/exports/off-bridges_report.xlsx`; 
+            const downloadLink = `${ADDRESS}/api/exports/incidents_report.xlsx`;
     
             res.status(HTTP_STATUS.OK.statusCode).json({ message: 'File created successfully', downloadLink });
             
