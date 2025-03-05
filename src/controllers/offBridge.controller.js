@@ -186,6 +186,8 @@ export const generateExcelFileController = async (req, res) =>{
     
             let employees = await fetchData(`${ENTITY_API}/employees/`, token);
             let sites = await fetchData(`${ENTITY_API}/sites/`, token);
+            let suppliers = await fetchData(`${ENTITY_API}/suppliers/`, token);
+            let products = await fetchData(`${ENTITY_API}/articles/`, token);
             
             offBridges.forEach(offBridge => {
                 worksheet.addRow({
@@ -193,14 +195,14 @@ export const generateExcelFileController = async (req, res) =>{
                     createdAt: offBridge.creationDate,
                     incidentCause: offBridge.incidentCauses.name,
                     siteId: sites?.data.find(site=>site?.id === offBridge.siteId)?.name || offBridge.siteId,
-                    tier: offBridge.tier,
+                    tier: suppliers?.data.find(supplier=> supplier?.id === offBridge.tier)?.name || offBridge.tier,
                     container1: offBridge.container1,
                     container2: offBridge.container2,
                     plomb1: offBridge.plomb1,
                     plomb2: offBridge.plomb2,
-                    loader: offBridge.loader,
-                    product: offBridge.product,
-                    transporter: offBridge.transporter,
+                    loader: suppliers?.data.find(supplier=> supplier?.id === offBridge.loader)?.name || offBridge.loader,
+                    product: products?.data.find(product=> product?.id === offBridge.product)?.name || offBridge.product,
+                    transporter: suppliers?.data.find(supplier=> supplier?.id === offBridge.transporter)?.name || offBridge.transporter,
                     vehicle: offBridge.vehicle,
                     blNumber: offBridge.blNumber,
                     driver: offBridge.driver,

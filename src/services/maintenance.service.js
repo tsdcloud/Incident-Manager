@@ -193,7 +193,9 @@ export const deleteMaintenanceService = async (id) =>{
 }
 
 export const generateExcelService = async (query) =>{
+
     let { start, end, value, criteria, condition } = query;
+
     if(start && end){
         start = new Date(start);
         start.setHours(0, 0, 0, 0);
@@ -203,15 +205,16 @@ export const generateExcelService = async (query) =>{
         end.setHours(23, 59, 59, 999);
         end = end.toISOString();
     }
+
     try {
         let maintenance;
-
         if (condition === "NOT") {
             maintenance = await maintenanceClient.findMany({
                 where: {
                     [criteria]: {
                         not: value,
                     },
+                    isActive:true,
                     ...(start && end ? {
                         createdAt: {
                             gte: start,
@@ -220,6 +223,7 @@ export const generateExcelService = async (query) =>{
                             lte: end,
                         },
                     } : {}),
+                    
                 },
                 include:{
                     equipement:true,
@@ -228,7 +232,6 @@ export const generateExcelService = async (query) =>{
                 }
             });
         } else {
-            console.log(query)
             maintenance = await maintenanceClient.findMany({
                 where: {
                     [criteria]: value,
@@ -240,6 +243,7 @@ export const generateExcelService = async (query) =>{
                             lte: end,
                         },
                     } : {}),
+                    isActive:true,
                 },
                 include:{
                     equipement:true,

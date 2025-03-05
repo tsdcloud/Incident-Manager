@@ -203,7 +203,7 @@ export const generateExcelFileController = async (req, res) =>{
                     description: maintenance.description,
                     createdBy: employees?.data.find(employee=>employee?.id === maintenance.userId)?.name || maintenance.createdBy,
                     updatedBy: employees?.data.find(employee=>employee?.id === maintenance.userId)?.name || maintenance.updatedBy,
-                    status: maintenance.status,
+                    status: maintenance.status === "PENDING" ? "EN ATTENTE" : "CLOTURE",
                 });
             });
     

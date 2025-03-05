@@ -162,8 +162,9 @@ export const updateOffBridgeService = async (id, body) =>{
  */
 export const deleteOffBridgeService = async (id) =>{
     try {
-        let offBridge = await offBridgeClient.delete({
-            where: {id}
+        let offBridge = await offBridgeClient.update({
+            where: {id},
+            data:{isActive:false}
         });
         return offBridge
     } catch (error) {
@@ -199,6 +200,7 @@ export const generateExcelService = async (query) => {
                     [criteria]: {
                         not: value,
                     },
+                    isActive:true,
                     ...(start && end ? {
                         createdAt: {
                             gte: start,
@@ -216,6 +218,7 @@ export const generateExcelService = async (query) => {
             offBridges = await offBridgeClient.findMany({
                 where: {
                     [criteria]: value,
+                    isActive:true,
                     ...(start && end ? {
                         createdAt: {
                             gte: start,
