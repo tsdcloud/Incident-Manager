@@ -26,10 +26,11 @@ model IncidentCause{
   id   String @id @default(uuid())
   numRef      String  @unique
   name  String
-  createdBy String
-  updatedBy String?
   incident Incident[]
   offBridge OffBridge[]
+  
+  createdBy String
+  updatedBy String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime  @updatedAt
@@ -84,21 +85,30 @@ model MaintenanceType{
 model Incident{
   id   String @id @default(uuid())
   numRef      String  @unique
+
   incidentId  String
   incident  IncidentType @relation(fields: [incidentId], references: [id])
+
   equipementId String?
   equipement  Equipement? @relation(fields: [equipementId], references: [id])
+
   siteId String?
   shiftId String?
+
   consomableId String?
   consommable Consommable? @relation(fields: [consomableId], references: [id])
+
   maintenance Maintenance?
+
   incidentCauseId String?
   incidentCauses IncidentCause? @relation(fields: [incidentCauseId], references: [id]) 
+
   userId  String?
   description String?
+
   createdBy String
   closedBy String?
+
   updatedBy String?
   status  INCIDENT_STATUS @default(PENDING)
   
@@ -154,10 +164,13 @@ model Maintenance{
   description String?
   supplierId String?
   userId  String?
-  closedDate  DateTime?
-  createdBy String
-  closedBy String?
-  updatedBy String?
+  
+  closedDate    DateTime?
+  createdBy     String
+  validationBy  String?
+  rejectedBy    String?
+  closedBy      String?
+  updatedBy     String?
 
 
   createdAt DateTime  @default(now())
@@ -172,6 +185,7 @@ enum INCIDENT_STATUS{
 }
 
 enum MAINTENANCE_STATUS{
+  AWAITING_VALIDATION
   PENDING
   CLOSED
 }

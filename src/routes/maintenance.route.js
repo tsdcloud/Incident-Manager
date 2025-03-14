@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createMaintenanceController, getAllMaintenanceController, getMaintenanceByIdController, updateMaintenanceController, generateExcelFileController, deleteMaintenanceController } from "../controllers/maintenance.controller.js";
+import { createMaintenanceController, getAllMaintenanceController, getMaintenanceByIdController, updateMaintenanceController, generateExcelFileController, deleteMaintenanceController, validateMaintenanceController } from "../controllers/maintenance.controller.js";
 import {
     createMaintenance,
     updateMaintenance
@@ -12,6 +12,8 @@ routes.get('/file', generateExcelFileController);
 routes.get('/:id', getMaintenanceByIdController);
 routes.post('/', createMaintenance, createMaintenanceController);
 routes.patch('/:id', updateMaintenance, updateMaintenanceController);
+routes.patch('/:id', updateMaintenance, updateMaintenanceController);
+routes.patch('/:id/validate', validateMaintenanceController);
 routes.delete('/:id', deleteMaintenanceController);
 
 

@@ -1,4 +1,5 @@
 import {prisma} from '../config.js';
+import { Errors } from '../utils/errors.utils.js';
 const incidentType = prisma.incidentType;
 
 const LIMIT = 100;
@@ -12,6 +13,21 @@ const SORT_BY = "createdAt";
  */
 export const createIncidentTypeService = async (body)=>{
     try {
+        
+        if(body.numRef){
+            let exist = await incidentType.findFirst({where:{numRef:body.numRef}});
+            if(exist){
+                return Errors("ref number already exist", "numRef");
+            }
+        }
+
+        if(body.name){
+            let exist = await incidentType.findFirst({where:{name:body.name}});
+            if(exist){
+                return Errors("Name already exist", "name");
+            }
+        }
+
         const lastIncidentType = await incidentType.findFirst({
             orderBy: { createdAt: 'desc' },
             select: { numRef: true }

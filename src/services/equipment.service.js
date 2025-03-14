@@ -1,6 +1,7 @@
 import {prisma} from '../config.js';
 import ExcelJs from 'exceljs';
 import { generateRefNum } from '../utils/utils.js';
+import {Errors} from '../utils/errors.utils.js'
 
 const equipementClient = prisma.equipement;
 
@@ -14,6 +15,23 @@ const SORT_BY = "name";
  * @returns 
  */
 export const createEquipementService = async (body)=>{
+
+    let {numRef, name} = body;
+
+    if(numRef){
+        let equipement = await equipementClient.findFirst({
+            where:{numRef}
+        });
+        if (equipement) return Errors("equipement with this ref number already exist", "numRef");
+    }
+
+    if(name){
+        let equipement = await equipementClient.findFirst({
+            where:{name}
+        })
+        if (equipement) return Errors("equipement with this name already exist", "name");
+    }
+     
     try {
         const lastEquipment = await equipementClient.findFirst({
             orderBy: { createdAt: 'desc' },
@@ -26,7 +44,7 @@ export const createEquipementService = async (body)=>{
         return equipement;
     } catch (error) {
         console.log(error);
-        throw new Error(`${error}`);
+        return Errors(`${error}`, 'server');
     }
 }
 
@@ -57,7 +75,7 @@ export const getAllEquipmentService = async(body) =>{
         };
     } catch (error) {
         console.log(error);
-        throw new Error(`${error}`)
+        return Errors(`${error}`, 'server');
     }
 }
 
@@ -74,7 +92,7 @@ export const getEquipementByIdService = async(id) =>{
         return equipement;
     } catch (error) {
         console.log(error);
-        throw new Error(`${error}`);
+        return Errors(`${error}`, 'server');
     }
 }
 
@@ -110,7 +128,7 @@ export const getEquipementByParams = async (request) =>{
         };
     } catch (error) {
         console.log(error);
-        throw new Error(`${error}`);
+        return Errors(`${error}`, 'server');
     }
 }
 
@@ -129,7 +147,7 @@ export const updateEquipementService = async (id, body) =>{
         return equipement;
     } catch (error) {
         console.log(error)
-        throw new Error(`${error}`);
+        return Errors(`${error}`, 'server');
     }
 }
 
@@ -140,16 +158,25 @@ export const updateEquipementService = async (id, body) =>{
  */
 export const deleteEquipmentService = async (id) =>{
     try {
+        let exist = await equipementClient.findFirst({where:{id}});
+
+        if(!exist){
+            return Errors("Equipement does not exist", "id");
+        }
+
+
         let equipement = await equipementClient.update({
             where: {id},
             data:{
-                isActive:false
+                isActive:false,
+                name: `deleted__${exist.name}__${new Date().toISOString()}`
             }
         });
+
         return equipement
     } catch (error) {
         console.log(error);
-        throw new Error(`${error}`);
+        return Errors(`${error}`, 'server');
     }
 }
 
@@ -191,9 +218,9 @@ export const importEquipementService = async (filePath) =>{
                 create: {name:row.name, numRef},
             })
         }
-        console.log("Upload completed")
+        console.log("Upload completed");
     } catch (error) {
         console.error(error)
-        throw new Error(`${error}`)
+        return Errors(`${error}`, 'server');
     }
 }

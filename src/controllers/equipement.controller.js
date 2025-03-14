@@ -10,10 +10,18 @@ import HTTP_STATUS from "../utils/http.utils.js";
  */
 export const createEquipementController = async (req, res) => {
     try {
-        let consommable = await createEquipementService(req.body);
+        let equipement = await createEquipementService(req.body);
+
+        if(equipement?.error){
+            res
+            .status(HTTP_STATUS.BAD_REQUEST.statusCode)
+            .json(equipement);
+            return;
+        }
+
         res
         .status(HTTP_STATUS.CREATED.statusCode)
-        .send(consommable);
+        .send(equipement);
         return;
     } catch (error) {
         console.log(error);
@@ -30,8 +38,6 @@ export const createEquipementController = async (req, res) => {
  */
 export const getEquipementByIdController = async (req, res) => {
     let { id } = req.params;
-    console.log(id);
-
     if(!id){
         res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);
         return;
@@ -116,6 +122,12 @@ export const updateEquipementController = async (req, res) => {
 export const deleteEquipementController = async (req, res) => {
     try {
         let equipement = await deleteEquipmentService(req.params.id);
+        if(equipement?.error){
+            res
+            .status(HTTP_STATUS.NOT_FOUND.statusCode)
+            .send(equipement);
+            return
+        }
         res
         .send(equipement)
         .status(HTTP_STATUS.OK.statusCode);

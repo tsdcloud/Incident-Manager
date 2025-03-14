@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE `incident` ADD COLUMN `onMaintenanceBy` VARCHAR(191) NULL;
+
+-- AlterTable
+ALTER TABLE `maintenance` MODIFY `status` ENUM('AWAITING_VALIDATION', 'PENDING', 'CLOSED') NOT NULL DEFAULT 'PENDING';

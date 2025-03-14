@@ -192,6 +192,28 @@ export const deleteMaintenanceService = async (id) =>{
     }
 }
 
+
+/**
+ * 
+ * @param {*} query 
+ * @returns 
+ */
+
+export const validateMaintenanceService = async (id, body)=>{
+    try {
+        let data = await maintenanceClient.update({
+            where:{id},
+            data:{...body}
+        });
+        return data
+    } catch (error) {
+        console.log(error);
+        return {"error":true, errors:[{msg:'Failed to validate'}]};
+    }
+}
+
+
+
 export const generateExcelService = async (query) =>{
 
     let { start, end, value, criteria, condition } = query;

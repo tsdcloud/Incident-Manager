@@ -11,8 +11,9 @@ import HTTP_STATUS from "../utils/http.utils.js";
 export const createIncidentCauseController = async (req, res) => {
     try {
         let incidentCause = await createIncidentCauseService(req.body);
+        
         res
-        .status(HTTP_STATUS.CREATED.statusCode)
+        .status(incidentCause?.error ? HTTP_STATUS.BAD_REQUEST.statusCode : HTTP_STATUS.CREATED.statusCode)
         .send(incidentCause);
         return;
     } catch (error) {
@@ -117,8 +118,8 @@ export const deleteIncidentCauseController = async (req, res) => {
     try {
         let incidentCause = await deleteIncidentCauseService(req.params.id);
         res
-        .send(incidentCause)
-        .status(HTTP_STATUS.OK.statusCode);
+        .status(incidentCause?.error ? HTTP_STATUS.NOT_FOUND.statusCode : HTTP_STATUS.OK.statusCode)
+        .send(incidentCause);
         return;
     } catch (error) {
         console.log(error);

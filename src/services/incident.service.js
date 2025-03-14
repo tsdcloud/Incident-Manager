@@ -198,6 +198,7 @@ export const deleteIncidentService = async (id) =>{
  */
 export const generateExcelService = async (query) => {
     let { start, end, value, criteria, condition } = query;
+    
     if(start && end){
         start = new Date(start);
         start.setHours(0, 0, 0, 0);
@@ -209,6 +210,7 @@ export const generateExcelService = async (query) => {
     }
 
     try {
+
         let incidents;
 
         if (condition === "NOT") {

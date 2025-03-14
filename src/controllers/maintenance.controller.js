@@ -6,7 +6,8 @@ import {
     getMaintenanceByIdService,
     getMaintenanceByParams, 
     generateExcelService, 
-    updateMaintenanceService } from "../services/maintenance.service.js";
+    updateMaintenanceService, 
+    validateMaintenanceService} from "../services/maintenance.service.js";
 import HTTP_STATUS from "../utils/http.utils.js";
 import { fetchData } from "../utils/fetch.utils.js";
 import path from 'path';
@@ -146,6 +147,17 @@ export const deleteMaintenanceController = async (req, res) => {
     }
 }
 
+export const validateMaintenanceController = async(req, res) =>{
+    try {
+        let {employeeId, body} = req;
+        let {id} = params;
+        body["validationBy"] = employeeId;
+        let maintenance = await validateMaintenanceService(id, body)
+    } catch (error) {
+        console.error(error);
+        res.sendStatus(HTTP_STATUS.SERVEUR_ERROR.statusCode)
+    }
+}
 
 export const generateExcelFileController = async (req, res) =>{
     let { authorization } = req.headers;

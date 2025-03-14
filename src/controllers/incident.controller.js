@@ -6,6 +6,7 @@ import path from 'path';
 import fs from 'fs'
 import { fileURLToPath } from 'url';
 import ExcelJS from 'exceljs';
+import { differenceInHours } from 'date-fns';
 import { ADDRESS } from "../config.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -157,12 +158,15 @@ export const generateExcelFileController = async (req, res) =>{
             worksheet.columns = [
                 { header: 'NumRef', key: 'numRef', width: 15 },
                 { header: 'Date de creation', key: 'creationDate', width: 20 },
+                { header: 'Date de cloture', key: 'closedDate', width: 20 },
+                { header: 'Durée de résolution', key: 'duration', width: 50 },
                 { header: 'Type d\'incident', key: 'incidentType', width: 50 },
                 { header: 'Cause d\'incident', key: 'incidentCause', width: 50 },
                 { header: 'Equipement', key: 'equipement', width: 15 },
                 { header: 'Site', key: 'site', width: 20 },
                 { header: 'Shift', key: 'shift', width: 20 },
                 { header: 'Utilisateur', key: 'userId', width: 20 },
+                { header: 'Cloturé par', key: 'closedBy', width: 20 },
                 { header: 'description', key: 'description', width: 50 },
                 { header: 'Édité par', key: 'updatedBy', width: 20 },
                 { header: 'Status', key: 'status', width: 20 },
@@ -176,12 +180,15 @@ export const generateExcelFileController = async (req, res) =>{
                 worksheet.addRow({
                     numRef: incident.numRef,
                     creationDate: incident.creationDate,
+                    closedDate: incident.closedDate,
+                    duration: `${differenceInHours(incident.closedDate, incident.creationDate)} Heure(s)`,
                     incidentType: incident.incident.name,
                     incidentCause: incident.incidentCauses.name,
                     equipement: incident.equipement.name,
                     site: sites?.data.find(site=>site?.id === incident.siteId)?.name || incident.siteId,
                     shift: shifts?.data.find(shift=>shift?.id === incident.shiftId)?.name || incident.shiftId,
                     userId: employees?.data.find(employee=>employee?.id === incident.createdBy)?.name || incident.createdBy,
+                    closedBy: employees?.data.find(employee=>employee?.id === incident.closedBy)?.name || incident.closedBy || "N/A",
                     description: incident.description,
                     status: incident.status === "CLOSED" ? 
                     "CLOTURE" : incident.status === "PENDING" ? 

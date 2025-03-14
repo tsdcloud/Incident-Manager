@@ -1,4 +1,5 @@
 import {prisma} from '../config.js';
+import {Errors} from '../utils/errors.utils.js';
 const incidentCauses = prisma.incidentCause;
 
 const LIMIT = 100;
@@ -12,6 +13,17 @@ const SORT_BY = "createdAt";
  */
 export const createIncidentCauseService = async (body)=>{
     try {
+        
+        if(body.numRef){
+            let exist = await incidentCauses.findFirst({where:{}});
+            if(exist) return Errors("Ref number already exits", "numRef")
+        }
+
+        if(body.name){
+            let exist = await incidentCauses.findFirst({where:{}});
+            if(exist) return Errors("Name already exits", "name")
+        }
+
         const lastIncidentCause = await incidentCauses.findFirst({
             orderBy: { createdAt: 'desc' },
             select: { numRef: true }
@@ -144,9 +156,15 @@ export const updateIncidentCauseService = async (id, body) =>{
  */
 export const deleteIncidentCauseService = async (id) =>{
     try {
+        let exist = await incidentCauses.findFirst({where:{id}});
+        if(!exist){
+            return Errors("Incident cause does not exist", "id")
+        }
         let cause = await incidentCauses.update({
             where: {id},
-            data:{isActive:false}
+            data:{
+                isActive:false,
+                name:`deleted__${exist.name}__${new Date().toDateString()}`            }
         });
         return cause
     } catch (error) {

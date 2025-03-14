@@ -1,4 +1,5 @@
 import {prisma} from '../config.js';
+import { Errors } from '../utils/errors.utils.js';
 const maintenanceTypeClient = prisma.maintenanceType;
 
 const LIMIT = 100;
@@ -12,6 +13,24 @@ const SORT_BY = "name";
  */
 export const createMaintenanceTypeService = async (body)=>{
     try {
+
+        let ref = body.numRef;
+        let name = body.name;
+
+        if(ref){
+            let exist = await maintenanceTypeClient.findFirst({where:{numRef:ref}})
+            if(exist){
+                return Errors("ref number already exist", "numRef");
+            }
+        }
+
+        if(name){
+            let exist = await maintenanceTypeClient.findFirst({where:{name}})
+            if(exist){
+                return Errors("Name already exist", "name");
+            }
+        }
+
         const lastMaintenanceType = await maintenanceTypeClient.findFirst({
             orderBy: { createdAt: 'desc' },
             select: { numRef: true }

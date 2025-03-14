@@ -12,7 +12,7 @@ export const createIncidentTypeController = async (req, res) => {
     try {
         let incidentType = await createIncidentTypeService(req.body);
         res
-        .status(HTTP_STATUS.CREATED.statusCode)
+        .status(incidentType?.error ? HTTP_STATUS.BAD_REQUEST.statusCode : HTTP_STATUS.CREATED.statusCode)
         .send(incidentType);
         return;
     } catch (error) {
