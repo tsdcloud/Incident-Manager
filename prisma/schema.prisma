@@ -91,7 +91,6 @@ model Incident{
 
   equipementId String?
   equipement  Equipement? @relation(fields: [equipementId], references: [id])
-
   siteId String?
   shiftId String?
 

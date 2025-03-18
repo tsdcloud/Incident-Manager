@@ -1,4 +1,4 @@
-export const notification=()=>{
+export const notification=(text, link)=>{
     return `
         <html>
             <head>
@@ -17,16 +17,12 @@ export const notification=()=>{
 
                         <!-- Body -->
                         <div class="p-6 flex flex-col text-sm/8 text-zinc-600 lead-">
-                            <p>Un nouvel incident a été déclaré</p>
-                            <p><span class="font-bold">Initiateur :</span> nom de l'initiateur</p>
-                            <p><span class="font-bold">Email :</span> email de l'initiateur</p>
-                            <p><span class="font-bold">Type d'incident :</span> le type d'incident</p>
-                            <p><span class="font-bold">Type d'incident :</span> nom de l'initiateur</p>
+                            <p style="font-family:sans-serif; font-size: 15px; color:#262626">${text}</p>
                         </div>
 
                         <!-- Footer -->
                         <div class="flex justify-center items-center p-4">
-                            <a href="" target="_blank" class="p-2 shadow bg-blue-950 hover:bg-blue-800 rounded-lg text-white text-xs transition-all">Ouvrire gestion des incidents</a>
+                            <a href="${link}" target="_blank" class="p-2 shadow bg-blue-950 hover:bg-blue-800 rounded-lg text-white text-xs transition-all">Ouvrire gestion des incidents</a>
                         </div>
                     </div>
                 </div>

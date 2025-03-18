@@ -1,5 +1,7 @@
+import { Prisma } from '@prisma/client';
 import {prisma} from '../config.js';
 import { generateRefNum } from '../utils/utils.js';
+import { Errors } from '../utils/errors.utils.js';
 const incidentClient = prisma.incident;
 
 const LIMIT = 100;
@@ -15,7 +17,8 @@ const SORT_BY = "name";
 export const createIncidentService = async (body)=>{
     try {
         const lastIncident = await incidentClient.findFirst({
-            orderBy: { creationDate: 'desc' },
+            where:{isActive:true},
+            orderBy: { creationDate: 'desc'},
             select: { numRef: true }
         });
 
@@ -28,10 +31,11 @@ export const createIncidentService = async (body)=>{
         let incident = await incidentClient.create({
             data:{ ...body, numRef }
         });
+
         return incident;
     } catch (error) {
-        console.log(error);
-        throw new Error(`${error}`);
+        console.log(error)
+        return (Errors(error.msg, "field"))
     }
 }
 
@@ -99,7 +103,7 @@ export const getIncidentByParams = async (request) =>{
     const skip = (page - 1) * limit;
     try {
         let incidents = await incidentClient.findMany({
-            where:!search ? queries : 
+            where:!search ? {isActive:true, ...queries} : 
             {
                 OR:[
                     {
@@ -117,7 +121,8 @@ export const getIncidentByParams = async (request) =>{
                     {
                         description:{
                             contains: search
-                        }
+                        },
+                        isActive:true
                     }
                 ]
             },
@@ -180,10 +185,15 @@ export const updateIncidentService = async (id, body) =>{
  */
 export const deleteIncidentService = async (id) =>{
     try {
-        let incident = await incidentClient.delete({
-            where: {id}
+        let incident = await incidentClient.findFirst({where:{id}})
+        let updateIncidnent = await incidentClient.update({
+            where: {id},
+            data:{
+                isActive:false,
+                numRef: `deleted__${incident.numRef}__${new Date().toISOString()}`
+            }
         });
-        return incident
+        return updateIncidnent
     } catch (error) {
         console.log(error);
         throw new Error(`${error}`);

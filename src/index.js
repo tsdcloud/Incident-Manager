@@ -19,6 +19,7 @@ import maintenanceType from './routes/maintenanceType.route.js'
 import supplier from './routes/supplier.route.js'
 import { verifyUserExist } from './middlewares/verifyToken.middleware.js';
 import {rateLimitAndTimeout} from './middlewares/ratelimiter.middleware.js';
+import { errorHandler } from './middlewares/errorHandler.middleware.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -36,6 +37,7 @@ app.use(morgan("common"));
 // app.use(rateLimitAndTimeout);
 
 
+app.use(errorHandler);
 
 app.get("/api/exports/:file", (req, res)=>{
     try{
@@ -58,6 +60,7 @@ app.get("/api/exports/:file", (req, res)=>{
         res.sendStatus(HTTP_STATUS.BAD_REQUEST.statusCode)
     }
 });
+
 app.use(verifyUserExist);
 app.use("/api/incidents", incident);
 app.use("/api/consommables", consommable);
@@ -67,7 +70,6 @@ app.use("/api/off-bridges", offBridge);
 app.use("/api/incident-types", incidentType);
 app.use("/api/maintenances", maintenance);
 app.use("/api/maintenance-types", maintenanceType);
-// app.use("/api/suppliers", supplier);
 
 // app.get('/', (req, res)=>{
 //     res

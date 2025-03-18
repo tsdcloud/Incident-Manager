@@ -149,16 +149,15 @@ export const getMaintenanceByParams = async (request) =>{
  */
 export const updateMaintenanceService = async (id, body) =>{
     try {
+        let {status} = body
         let date =  new Date();
-        if(body?.status === "CLOSED"){
+        if(status === "CLOSED"){
             body.closedDate = date;
-            console.log(body, id);
         }
         let maintenance = await maintenanceClient.update({
             where:{id},
             data:body
         });
-        console.log(maintenance);
         if(maintenance?.incidentId){
             await prisma.incident.update({
                 where:{id: maintenance?.incidentId},
@@ -199,13 +198,23 @@ export const deleteMaintenanceService = async (id) =>{
  * @returns 
  */
 
-export const validateMaintenanceService = async (id, body)=>{
+export const closeMaintenanceService = async (id, body)=>{
+    let {supplierId, incidentCauses, incidentId} = body;
     try {
-        let data = await maintenanceClient.update({
-            where:{id},
-            data:{...body}
-        });
-        return data
+        let data = await prisma.$transaction([
+            prisma.incident.update({
+                where:{id: incidentId}, 
+                data:{incidentCauseId: incidentCauses}
+            }),
+            prisma.maintenance.update({
+                where:{id},
+                data:{
+                    status: "CLOSED",
+                    supplierId
+                }
+            })
+        ]);
+        if(!data) throw new Error();
     } catch (error) {
         console.log(error);
         return {"error":true, errors:[{msg:'Failed to validate'}]};

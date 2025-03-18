@@ -1,4 +1,4 @@
-import { ENTITY_API } from "../config.js";
+import { EMAIL_HOST, ENTITY_API } from "../config.js";
 import { createIncidentService, deleteIncidentService, generateExcelService, getAllIncidentService, getIncidentByIdService, getIncidentByParams, updateIncidentService } from "../services/incident.service.js";
 import { fetchData } from "../utils/fetch.utils.js";
 import HTTP_STATUS from "../utils/http.utils.js";
@@ -8,6 +8,8 @@ import { fileURLToPath } from 'url';
 import ExcelJS from 'exceljs';
 import { differenceInHours } from 'date-fns';
 import { ADDRESS } from "../config.js";
+import { transporter } from "../utils/notification.utils.js";
+import { notification } from "../views/mail.view.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,6 +27,13 @@ export const createIncidentController = async (req, res) => {
         res
         .status(HTTP_STATUS.CREATED.statusCode)
         .send(incident);
+        const info = await transporter.sendMail({
+            from:"no-reply@bfcgroupsa.com",
+            to:"belombo@bfclimited.com, sngnetchedjeu@bfclimited.com",
+            subject:"Création d'un incident",
+            text:"Un nouvel incident a été créé. \n NumRef :"+incident?.numRef,
+            html:notification("Un nouvel incident a été créé. \n NumRef :"+incident?.numRef, "https://berp.bfcgroupsa.com/incidents/")
+        });
         return;
     } catch (error) {
         console.log(error);
@@ -182,8 +191,8 @@ export const generateExcelFileController = async (req, res) =>{
                     creationDate: incident.creationDate,
                     closedDate: incident.closedDate,
                     duration: `${differenceInHours(incident.closedDate, incident.creationDate)} Heure(s)`,
-                    incidentType: incident.incident.name,
-                    incidentCause: incident.incidentCauses.name,
+                    incidentType: incident.incident?.name || '',
+                    incidentCause: incident.incidentCauses?.name || '',
                     equipement: incident.equipement.name,
                     site: sites?.data.find(site=>site?.id === incident.siteId)?.name || incident.siteId,
                     shift: shifts?.data.find(shift=>shift?.id === incident.shiftId)?.name || incident.shiftId,

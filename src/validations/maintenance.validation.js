@@ -1,4 +1,4 @@
-import { body, validationResult } from "express-validator";
+import { body, param, validationResult } from "express-validator";
 import HTTP_STATUS from "../utils/http.utils.js";
 
 export const createMaintenance = [
@@ -25,6 +25,22 @@ export const updateMaintenance = [
             res
             .send(error.array())
             .status(HTTP_STATUS.BAD_REQUEST.statusCode)
+            return;
+        } 
+        next();
+    }
+]
+
+export const closeMaintenance = [
+    body("incidentCauseId").notEmpty().withMessage("Invalid incidentCauseId"),
+    body("supplierId").notEmpty().withMessage("Invalid supplierId"),
+    body("incidentId").notEmpty().withMessage("Invalid incidentId"),
+    (req, res, next) =>{
+        const error = validationResult(req);
+        if(!error.isEmpty()){
+            res
+            .status(HTTP_STATUS.BAD_REQUEST.statusCode)
+            .send(error.array());
             return;
         } 
         next();
