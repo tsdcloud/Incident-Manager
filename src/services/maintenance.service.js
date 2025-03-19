@@ -106,12 +106,16 @@ export const getMaintenanceByParams = async (request) =>{
     const skip = (page - 1) * limit;
     try {
         let maintenances = await maintenanceClient.findMany({
-            where:!search ? queries : {
+            where:!search ? {isActive:true, ...queries} : {
                 OR: [
                     {numRef: { contains: search }},
-                    {name: { contains: search }}
-                ],
-                isActive:true
+                    {incident:{
+                        numRef:{
+                            contains: search
+                        },
+                        isActive:true
+                    }}
+                ]
             },
             include:{
                 incident:true,
@@ -150,9 +154,10 @@ export const getMaintenanceByParams = async (request) =>{
 export const updateMaintenanceService = async (id, body) =>{
     try {
         let {status} = body
-        let date =  new Date();
+        let date =  new Date().toISOString();
         if(status === "CLOSED"){
             body.closedDate = date;
+            body.closedBy = body["updatedBy"];
         }
         let maintenance = await maintenanceClient.update({
             where:{id},
@@ -199,18 +204,27 @@ export const deleteMaintenanceService = async (id) =>{
  */
 
 export const closeMaintenanceService = async (id, body)=>{
-    let {supplierId, incidentCauses, incidentId} = body;
+    let {supplierId, incidentCauseId, incidentId, validationBy} = body;
+    let date =  new Date().toISOString();
+        
     try {
         let data = await prisma.$transaction([
             prisma.incident.update({
                 where:{id: incidentId}, 
-                data:{incidentCauseId: incidentCauses}
+                data:{
+                    incidentCauseId,
+                    status: 'CLOSED',
+                    closedBy:validationBy,
+                    closedDate:date,
+                }
             }),
             prisma.maintenance.update({
                 where:{id},
                 data:{
                     status: "CLOSED",
-                    supplierId
+                    supplierId,
+                    closedDate:date,
+                    closedBy:validationBy
                 }
             })
         ]);
@@ -235,6 +249,52 @@ export const generateExcelService = async (query) =>{
         end = new Date(end);
         end.setHours(23, 59, 59, 999);
         end = end.toISOString();
+    }
+
+    if(criteria === "date"){
+        try {
+            let maintenances;
+
+            if (condition === "NOT") {
+                maintenances = await maintenanceClient.findMany({
+                    where: {
+                        createdAt: {
+                            not:{
+                                gte: start,
+                                lte: end,
+                            }
+                        },
+                        isActive:true
+                    },
+                    include:{
+                        equipement:true,
+                        incident:true,
+                        maintenance:true
+                    }
+                });
+            } else {
+                maintenances = await maintenanceClient.findMany({
+                    where: {
+                        createdAt: {
+                            gte: start,
+                            lte: end,
+                        },
+                        isActive:true
+                    },
+                    include:{
+                        equipement:true,
+                        incident:true,
+                        maintenance:true
+                    }
+                });
+            }
+
+            return maintenances;
+            
+        } catch (error) {
+            console.log(error);
+            throw new Error(`${error}`);
+        }
     }
 
     try {

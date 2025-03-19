@@ -15,6 +15,7 @@ model IncidentType{
   createdBy   String
   updatedBy   String?
   incident Incident[]
+  incidentCause IncidentCause[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime  @updatedAt
@@ -27,6 +28,7 @@ model IncidentCause{
   numRef      String  @unique
   name  String
   incident Incident[]
+  incidentType  IncidentType[]
   offBridge OffBridge[]
   
   createdBy String

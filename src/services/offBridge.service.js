@@ -190,7 +190,49 @@ export const generateExcelService = async (query) => {
         end.setHours(23, 59, 59, 999);
         end = end.toISOString();
     }
-    
+
+    if(criteria === "date"){
+        try {
+            let offBridges;
+
+            if (condition === "NOT") {
+                offBridges = await offBridgeClient.findMany({
+                    where: {
+                        createdAt: {
+                            not:{
+                                gte: start,
+                                lte: end,
+                            }
+                        },
+                        isActive:true
+                    },
+                    include:{
+                        incidentCauses:true
+                    }
+                });
+            } else {
+                offBridges = await offBridgeClient.findMany({
+                    where: {
+                        createdAt: {
+                            gte: start,
+                            lte: end,
+                        },
+                        isActive:true
+                    },
+                    include:{
+                        incidentCauses:true
+                    }
+                });
+            }
+
+            return offBridges;
+            
+        } catch (error) {
+            console.log(error);
+            throw new Error(`${error}`);
+        }
+    }
+
     try {
         let offBridges;
 

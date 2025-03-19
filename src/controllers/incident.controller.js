@@ -190,7 +190,7 @@ export const generateExcelFileController = async (req, res) =>{
                     numRef: incident.numRef,
                     creationDate: incident.creationDate,
                     closedDate: incident.closedDate,
-                    duration: `${differenceInHours(incident.closedDate, incident.creationDate)} Heure(s)`,
+                    duration:`${differenceInHours(incident.closedDate, incident.creationDate)} Heure(s)`,
                     incidentType: incident.incident?.name || '',
                     incidentCause: incident.incidentCauses?.name || '',
                     equipement: incident.equipement.name,

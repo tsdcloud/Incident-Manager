@@ -189,15 +189,16 @@ export const generateExcelFileController = async (req, res) =>{
                 { header: 'Date previsionel', key: 'projectedDate', width: 20 },
                 { header: 'Prochaine maintenance', key: 'nextMaintenance', width: 20 },
                 { header: 'description', key: 'description', width: 50 },
-                { header: 'Maintenancier', key: 'supplierId', width: 20 },
-                { header: 'Chef de guerite', key: 'userId', width: 20 },
+                { header: 'Intervenant', key: 'supplierId', width: 20 },
+                { header: 'Initiateur', key: 'userId', width: 20 },
                 { header: 'Date de cloture', key: 'closedDate', width: 20 },
                 { header: 'Créé par', key: 'createdBy', width: 20 },
-                { header: 'Édité par', key: 'updatedBy', width: 20 },
+                { header: 'Cloturé par', key: 'closedBy', width: 20 },
                 { header: 'Status', key: 'status', width: 20 },
             ];
     
             let employees = await fetchData(`${ENTITY_API}/employees/`, token);
+            let suppliers = await fetchData(`${ENTITY_API}/suppliers/`, token);
             let sites = await fetchData(`${ENTITY_API}/sites/`, token);
             let shifts = await fetchData(`${ENTITY_API}/shifts/`, token);
             
@@ -205,19 +206,19 @@ export const generateExcelFileController = async (req, res) =>{
                 worksheet.addRow({
                     numRef: maintenance.numRef,
                     creationDate: maintenance.createdAt,
-                    maintenance: maintenance.incident?.name || "N/A",
-                    incident: maintenance.incident?.name || "N/A",
+                    maintenance: maintenance.incident?.numRef || "N/A",
+                    incident: maintenance.incident?.numRef || "N/A",
                     equipement: maintenance.equipement?.name || "N/A",
                     site: sites?.data.find(site=>site?.id === maintenance.siteId)?.name || maintenance.siteId,
-                    userId: employees?.data.find(employee=>employee?.id === maintenance.userId)?.name || maintenance.userId,
-                    supplierId: employees?.data.find(employee=>employee?.id === maintenance.supplierId)?.name || maintenance.supplierId,
+                    userId: employees?.data.find(employee=>employee?.id === maintenance.userId)?.name || maintenance.createdBy,
+                    supplierId: employees?.data.find(employee=>employee?.id === maintenance.supplierId)?.name ||suppliers?.data.map(supplier=>supplier?.id === maintenance.supplierId)?.name || maintenance.supplierId,
                     projectedDate:maintenance.projectedDate,
                     nextMaintenance:maintenance.nextMaintenance,
                     closedDate:maintenance.closedDate,
                     effectifDate:maintenance.effectifDate,
                     description: maintenance.description,
-                    createdBy: employees?.data.find(employee=>employee?.id === maintenance.userId)?.name || maintenance.createdBy,
-                    updatedBy: employees?.data.find(employee=>employee?.id === maintenance.userId)?.name || maintenance.updatedBy,
+                    createdBy: employees?.data.find(employee=>employee?.id === maintenance.createdBy)?.name || maintenance.createdBy,
+                    closedBy: employees?.data.find(employee=>employee?.id === maintenance.closedBy)?.name || maintenance.closedBy,
                     status: maintenance.status === "PENDING" ? "EN ATTENTE" : "CLOTURE",
                 });
             });

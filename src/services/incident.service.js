@@ -208,7 +208,7 @@ export const deleteIncidentService = async (id) =>{
  */
 export const generateExcelService = async (query) => {
     let { start, end, value, criteria, condition } = query;
-    
+
     if(start && end){
         start = new Date(start);
         start.setHours(0, 0, 0, 0);
@@ -217,6 +217,54 @@ export const generateExcelService = async (query) => {
         end = new Date(end);
         end.setHours(23, 59, 59, 999);
         end = end.toISOString();
+    }
+    
+    if(criteria === "date"){
+        try {
+            let incidents;
+
+            if (condition === "NOT") {
+                incidents = await incidentClient.findMany({
+                    where: {
+                        creationDate: {
+                            not:{
+                                gte: start,
+                                lte: end,
+                            }
+                        },
+                        isActive:true
+                    },
+                    include:{
+                        equipement:true,
+                        incident:true,
+                        maintenance:true,
+                        incidentCauses:true
+                    }
+                });
+            } else {
+                incidents = await incidentClient.findMany({
+                    where: {
+                        creationDate: {
+                            gte: start,
+                            lte: end,
+                        },
+                        isActive:true
+                    },
+                    include:{
+                        equipement:true,
+                        incident:true,
+                        maintenance:true,
+                        incidentCauses:true
+                    }
+                });
+            }
+
+            return incidents;
+            
+        } catch (error) {
+            console.log(error);
+            throw new Error(`${error}`);
+        }
     }
 
     try {
@@ -267,6 +315,7 @@ export const generateExcelService = async (query) => {
 
         return incidents;
     } catch (error) {
+        console.log(error);
         throw new Error(error);
     }
 }
