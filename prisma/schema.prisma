@@ -8,28 +8,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model IncidentType{
+model incidenttype{
   id          String  @id  @default(uuid())
   numRef      String  @unique
   name        String  @unique
   createdBy   String
   updatedBy   String?
-  incident Incident[]
-  incidentCause IncidentCause[]
+  incident incident[]
+  incidentCause incidentcause[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime  @updatedAt
   isActive  Boolean @default(true)
+
 }
 
 
-model IncidentCause{
+model incidentcause{
   id   String @id @default(uuid())
   numRef      String  @unique
   name  String
-  incident Incident[]
-  incidentType  IncidentType[]
-  offBridge OffBridge[]
+  incident incident[]
+  incidentType  incidenttype[]
+  offBridge offbridge[]
   
   createdBy String
   updatedBy String?
@@ -37,39 +38,42 @@ model IncidentCause{
   createdAt DateTime @default(now())
   updatedAt DateTime  @updatedAt
   isActive  Boolean @default(true)
+
 }
 
 
-model Equipement{
+model equipement{
   id          String  @id @default(uuid())
   numRef      String  @unique
   name        String  @unique
   siteId      String?
-  incidents   Incident[]
-  maintenance Maintenance[]
+  incidents   incident[]
+  maintenance maintenance[]
   createdBy   String
   updatedBy   String?
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime  @updatedAt
   isActive    Boolean @default(true) 
+
 }
 
 
-model Consommable{
+model consommable{
   id          String  @id   @default(uuid())
   numRef      String  @unique
   name        String @unique
-  incident    Incident[]
+  incident    incident[]
   createdBy   String
   updatedBy   String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime  @updatedAt
   isActive  Boolean @default(true) 
+
 }
 
-model MaintenanceType{
+model maintenancetype{
   id  String  @id  @default(uuid())
   numRef      String @unique
   name  String  @unique
@@ -77,32 +81,33 @@ model MaintenanceType{
   hasIncident   Boolean @default(false)
   hasProjectionDate   Boolean @default(true)
   updatedBy String?
-  maintenace Maintenance[]
+  maintenace maintenance[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime  @updatedAt
   isActive  Boolean @default(true) 
+
 }
 
-model Incident{
+model incident{
   id   String @id @default(uuid())
   numRef      String  @unique
 
   incidentId  String
-  incident  IncidentType @relation(fields: [incidentId], references: [id])
+  incident  incidenttype @relation(fields: [incidentId], references: [id])
 
   equipementId String?
-  equipement  Equipement? @relation(fields: [equipementId], references: [id])
+  equipement  equipement? @relation(fields: [equipementId], references: [id])
   siteId String?
   shiftId String?
 
   consomableId String?
-  consommable Consommable? @relation(fields: [consomableId], references: [id])
+  consommable consommable? @relation(fields: [consomableId], references: [id])
 
-  maintenance Maintenance?
+  maintenance maintenance?
 
   incidentCauseId String?
-  incidentCauses IncidentCause? @relation(fields: [incidentCauseId], references: [id]) 
+  incidentCauses incidentcause? @relation(fields: [incidentCauseId], references: [id]) 
 
   userId  String?
   description String?
@@ -116,13 +121,14 @@ model Incident{
   creationDate DateTime @default(now())
   closedDate   DateTime?
   isActive  Boolean   @default(true)
+
 }
 
-model OffBridge{
+model offbridge{
   id           String         @id      @default(uuid())
   numRef              String  @unique
   incidentCauseId     String
-  incidentCauses      IncidentCause    @relation(fields: [incidentCauseId], references: [id])
+  incidentCauses      incidentcause    @relation(fields: [incidentCauseId], references: [id])
   operation           OPERATION_TYPE?
   declarationType     DECLARATION_TYPE?
   siteId       String
@@ -148,15 +154,15 @@ model OffBridge{
 
 
 
-model Maintenance{
+model maintenance{
   id  String  @id  @default(uuid())
   numRef      String  @unique
   maintenanceId String
-  maintenance MaintenanceType @relation(fields: [maintenanceId], references: [id])
+  maintenance maintenancetype @relation(fields: [maintenanceId], references: [id])
   incidentId  String?  @unique
-  incident    Incident?        @relation(fields: [incidentId], references: [id])
+  incident    incident?        @relation(fields: [incidentId], references: [id])
   equipementId         String
-  equipement           Equipement       @relation(fields: [equipementId], references: [id])
+  equipement           equipement       @relation(fields: [equipementId], references: [id])
   siteId  String
   status  MAINTENANCE_STATUS @default(PENDING)
   projectedDate   DateTime?
@@ -177,6 +183,7 @@ model Maintenance{
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   isActive  Boolean @default(true) 
+
 }
 
 enum INCIDENT_STATUS{

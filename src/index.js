@@ -20,6 +20,7 @@ import supplier from './routes/supplier.route.js'
 import { verifyUserExist } from './middlewares/verifyToken.middleware.js';
 import {rateLimitAndTimeout} from './middlewares/ratelimiter.middleware.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
+import { logger } from './middlewares/logEvents.middleware.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -38,6 +39,7 @@ app.use(morgan("common"));
 
 
 app.use(errorHandler);
+app.use(logger);
 
 app.get("/api/exports/:file", (req, res)=>{
     try{
