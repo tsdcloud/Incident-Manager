@@ -29,17 +29,27 @@ export const createIncidentController = async (req, res) => {
         .status(HTTP_STATUS.CREATED.statusCode)
         .send(incident);
         let emailList = await getEmployeesEmail(req.headers.authorization, "RESPONSIBLE");
-        if(emailList ||emailList !== ""){
-            const info = await transporter.sendMail({
-                from:"no-reply@bfcgroupsa.com",
-                to:emailList,
-                // to:"belombo@bfclimited.com",
-                subject:"Création d'un incident",
-                text:"Un nouvel incident a été créé. \n NumRef :"+incident?.numRef,
-                html:notification("Un nouvel incident a été créé. \n NumRef :"+incident?.numRef, "https://berp.bfcgroupsa.com/incidents/")
-            });
-            console.log(info);
+
+        if (!emailList) {
+            console.error("Error: No recipient email defined.");
+            return res.status(400).json({ error: "Recipient email is required." });
         }
+        
+        const mailOptions = {
+            from:"no-reply@bfcgroupsa.com",
+            to:emailList,
+            // to:"belombo@bfclimited.com",
+            subject:"Création d'un incident",
+            text:"Un nouvel incident a été créé. \n NumRef :"+incident?.numRef,
+            html:notification("Un nouvel incident a été créé. \n NumRef :"+incident?.numRef, "https://berp.bfcgroupsa.com/incidents/")
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+              console.log("Email sending error:", error);
+            }
+        });
+
         return;
     } catch (error) {
         console.log(error);
