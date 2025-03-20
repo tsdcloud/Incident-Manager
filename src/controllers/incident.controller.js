@@ -46,7 +46,8 @@ export const createIncidentController = async (req, res) => {
 
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
-              console.log("Email sending error:", error);
+            //   console.log("Email sending error:", error);
+            return
             }
         });
 
