@@ -110,6 +110,7 @@ model incident{
   incidentCauses incidentcause? @relation(fields: [incidentCauseId], references: [id]) 
 
   userId  String?
+  technician   String?
   description String?
 
   createdBy String

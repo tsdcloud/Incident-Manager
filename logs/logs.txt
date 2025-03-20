@@ -626,3 +626,17 @@
 20250320	19:22:42	24a1196d-ea40-4eda-afa0-4c44398789c4	GET	http://localhost:5173	/api/consommables	::ffff:127.0.0.1
 20250320	19:22:42	dfb04388-3b57-41d5-bc8c-09f72dd7cf12	GET	http://localhost:5173	/api/equipements	::ffff:127.0.0.1
 20250320	19:22:42	4544d1fb-4797-4f88-abb8-fcf36f9d6d19	GET	http://localhost:5173	/api/incident-types	::ffff:127.0.0.1
+20250320	22:15:04	707e7871-7851-4fa8-b0d3-be1a1cd57b1e	GET	http://localhost:5173	/api/incident-causes	::ffff:127.0.0.1
+20250320	22:15:04	946bb66a-0801-475a-a567-a6f96d245385	GET	http://localhost:5173	/api/maintenance-types?hasIncident=true	::ffff:127.0.0.1
+20250320	22:15:04	75a92782-d0fc-4a2e-a8b6-07883b252522	GET	http://localhost:5173	/api/maintenance-types?hasIncident=false	::ffff:127.0.0.1
+20250320	22:15:04	dcb5937c-0cac-4b70-894b-c5ee48889076	GET	http://localhost:5173	/api/incidents	::ffff:127.0.0.1
+20250320	22:15:24	395ed332-b72e-4544-a314-b2b3c66f20ac	GET	http://localhost:5173	/api/incidents?search=0	::ffff:127.0.0.1
+20250320	22:15:25	0ef9622c-a597-473d-a26b-6899ed42a1bb	GET	http://localhost:5173	/api/incidents?search=00	::ffff:127.0.0.1
+20250320	22:15:25	6d9e05f3-92f0-4463-8bb5-4245cb60d7db	GET	http://localhost:5173	/api/incidents?search=001	::ffff:127.0.0.1
+20250320	22:15:26	1a08ed95-0190-4657-ae3a-619262df9ad3	GET	http://localhost:5173	/api/incidents?search=00	::ffff:127.0.0.1
+20250320	22:15:27	561bff47-9157-47a7-b6c6-2e7c68901a2d	GET	http://localhost:5173	/api/incidents?search=000	::ffff:127.0.0.1
+20250320	22:15:27	6d5bf7fd-475e-49e3-aa5c-c3cafd47816d	GET	http://localhost:5173	/api/incidents?search=0001	::ffff:127.0.0.1
+20250320	22:15:28	80487c5e-ac16-4490-9f90-059c8fb5e180	GET	http://localhost:5173	/api/incidents?search=000	::ffff:127.0.0.1
+20250320	22:15:29	5147ab4a-0140-4174-a698-88a123d8d08f	GET	http://localhost:5173	/api/incidents?search=00	::ffff:127.0.0.1
+20250320	22:15:29	4ab63efe-882e-4a1f-af7f-c1ecc83042b0	GET	http://localhost:5173	/api/incidents?search=0	::ffff:127.0.0.1
+20250320	22:15:29	a30e6306-ffb9-466d-850c-7291ebf8560c	GET	http://localhost:5173	/api/incidents?search=	::ffff:127.0.0.1
