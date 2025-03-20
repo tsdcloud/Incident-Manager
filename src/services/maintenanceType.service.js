@@ -1,6 +1,6 @@
 import {prisma} from '../config.js';
 import { Errors } from '../utils/errors.utils.js';
-const maintenanceTypeClient = prisma.maintenanceType;
+const maintenanceTypeClient = prisma.maintenancetype;
 
 const LIMIT = 100;
 const ORDER ="asc";

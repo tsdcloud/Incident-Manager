@@ -1,6 +1,6 @@
 import {prisma} from '../config.js';
 import { generateRefNum } from '../utils/utils.js';
-const offBridgeClient = prisma.offBridge;
+const offBridgeClient = prisma.offbridge;
 
 const LIMIT = 100;
 const ORDER ="asc";

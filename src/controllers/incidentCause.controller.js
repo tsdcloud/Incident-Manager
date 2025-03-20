@@ -11,7 +11,7 @@ import HTTP_STATUS from "../utils/http.utils.js";
 export const createIncidentCauseController = async (req, res) => {
     try {
         let incidentCause = await createIncidentCauseService(req.body);
-        
+        console.log(req.body)
         res
         .status(incidentCause?.error ? HTTP_STATUS.BAD_REQUEST.statusCode : HTTP_STATUS.CREATED.statusCode)
         .send(incidentCause);

@@ -131,6 +131,7 @@ model offbridge{
   incidentCauses      incidentcause    @relation(fields: [incidentCauseId], references: [id])
   operation           OPERATION_TYPE?
   declarationType     DECLARATION_TYPE?
+  paymentMode         PAYMENT_MODE     @default(CASH)
   siteId       String
   tier         String
   container1   String?
@@ -211,4 +212,9 @@ enum DECLARATION_TYPE{
   CONVENTIONAL_WOOD_LOG
   HEAVY_BULK
   CONVENTIONAL_LUMBER
+}
+
+enum PAYMENT_MODE{
+  CASH
+  MOBILE
 }

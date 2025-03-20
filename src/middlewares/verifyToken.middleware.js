@@ -31,11 +31,11 @@ export const verifyUserExist = async (req, res, next) => {
 
         let decodedToken = jwtDecode(token);
         if(!decodedToken) return sendStatus(HTTP_STATUS.UN_AUTHORIZED.statusCode);
-
         let employee = await getEmployee(decodedToken?.user_id, token);
         if(!employee?.id) return res.sendStatus(HTTP_STATUS.UN_AUTHORIZED.statusCode);
 
-        req["employeeId"] = employee?.id
+        req["employeeId"] = employee?.id;
+
         if(req.method === "POST"){
             req.body["createdBy"] = employee?.id;
         }else if(req.method === "PATCH" || req.method === "DELETE"){

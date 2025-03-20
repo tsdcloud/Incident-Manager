@@ -1,6 +1,6 @@
 import {prisma} from '../config.js';
 import { Errors } from '../utils/errors.utils.js';
-const incidentType = prisma.incidentType;
+const incidentType = prisma.incidenttype;
 
 const LIMIT = 100;
 const ORDER ="desc";

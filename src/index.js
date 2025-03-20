@@ -20,6 +20,7 @@ import supplier from './routes/supplier.route.js'
 import { verifyUserExist } from './middlewares/verifyToken.middleware.js';
 import {rateLimitAndTimeout} from './middlewares/ratelimiter.middleware.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
+import { errorLogger } from './middlewares/errorHandlers.js';
 import { logger } from './middlewares/logEvents.middleware.js';
 
 
