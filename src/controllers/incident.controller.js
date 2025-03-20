@@ -29,7 +29,7 @@ export const createIncidentController = async (req, res) => {
         .status(HTTP_STATUS.CREATED.statusCode)
         .send(incident);
         let emailList = await getEmployeesEmail(req.headers.authorization, "RESPONSIBLE");
-        if(emailList ||emailList === ""){
+        if(emailList ||emailList !== ""){
             const info = await transporter.sendMail({
                 from:"no-reply@bfcgroupsa.com",
                 to:emailList,
