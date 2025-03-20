@@ -67,7 +67,7 @@ export const getAllMaintenanceTypeService = async(body) =>{
             skip: parseInt(skip),
             take: parseInt(LIMIT),
             orderBy:{
-                createdAt:'desc'
+                name: 'asc'
             }
         });
         const total = await maintenanceTypeClient.count({where:{isActive:true}});
@@ -121,7 +121,7 @@ export const getMaintenanceTypeByParams = async (request) =>{
             skip: parseInt(skip),
             take: parseInt(limit),
             orderBy:{
-                createdAt:'desc'
+                name: 'asc'
             }
         });
         const total = await maintenanceTypeClient.count({where:{isActive:true}});

@@ -64,7 +64,7 @@ export const getAllIncidentTypeService = async(body) =>{
             skip: parseInt(skip),
             take: parseInt(limit),
             orderBy:{
-                createdAt: 'desc'
+                name: 'asc'
             }
         });
         const total = await incidentType.count({where:{isActive:true}});
@@ -117,7 +117,7 @@ export const getIncidentTypeByParams = async (request) =>{
             skip: parseInt(skip),
             take: parseInt(limit),
             orderBy:{
-                createdAt:'desc'
+                name: 'asc'
             }
         });
         const total = await incidentType.count({where:{isActive:true}});

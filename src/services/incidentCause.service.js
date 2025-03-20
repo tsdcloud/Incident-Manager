@@ -60,7 +60,7 @@ export const getAllIncidentCauseService = async(body) =>{
             skip: parseInt(skip),
             take: parseInt(limit),
             orderBy:{
-                createdAt: 'desc'
+                name: 'asc'
             }
         });
         const total = await incidentCauses.count({where:{isActive:true}});
@@ -114,7 +114,7 @@ export const getIncidentCauseByParams = async (request) =>{
             skip: parseInt(skip),
             take: parseInt(limit),
             orderBy:{
-                createdAt:'desc'
+                name: 'asc'
             }
         });
         const total = await incidentCauses.count({where:{isActive:true}});
