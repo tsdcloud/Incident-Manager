@@ -6,7 +6,7 @@ import path from 'path';
 import fs from 'fs'
 import { fileURLToPath } from 'url';
 import ExcelJS from 'exceljs';
-import { differenceInHours } from 'date-fns';
+import { differenceInHours, differenceInMinutes, differenceInSeconds } from 'date-fns';
 import { ADDRESS } from "../config.js";
 import { transporter } from "../utils/notification.utils.js";
 import { notification } from "../views/mail.view.js";
@@ -205,7 +205,7 @@ export const generateExcelFileController = async (req, res) =>{
                     numRef: incident.numRef,
                     creationDate: incident.creationDate,
                     closedDate: incident.closedDate,
-                    duration:`${differenceInHours(incident.closedDate, incident.creationDate)} Heure(s)`,
+                    duration:`${differenceInHours(incident.closedDate, incident.creationDate)} Heure(s) ${differenceInMinutes(incident.closedDate, incident.creationDate)} Min(s) ${differenceInSeconds(incident.closedDate, incident.creationDate)} Sec(s)`,
                     incidentType: incident.incident?.name || '',
                     incidentCause: incident.incidentCauses?.name || '',
                     equipement: incident.equipement.name,

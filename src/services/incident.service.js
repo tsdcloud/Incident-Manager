@@ -160,11 +160,11 @@ export const getIncidentByParams = async (request) =>{
  */
 export const updateIncidentService = async (id, body) =>{
     try {
-        let {createdBy, ...data} = body;
+        let {updatedBy, createdBy, ...data} = body;
         let date =  new Date();
         if(body?.status === "CLOSED"){
             data.closedDate = date;
-            data.closedBy = body.createdBy
+            data.closedBy = updatedBy;
         }
         console.log(data);
         let incident = await incidentClient.update({
