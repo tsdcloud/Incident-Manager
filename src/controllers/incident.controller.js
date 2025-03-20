@@ -29,15 +29,17 @@ export const createIncidentController = async (req, res) => {
         .status(HTTP_STATUS.CREATED.statusCode)
         .send(incident);
         let emailList = await getEmployeesEmail(req.headers.authorization, "RESPONSIBLE");
-        const info = await transporter.sendMail({
-            from:"no-reply@bfcgroupsa.com",
-            to:emailList,
-            // to:"belombo@bfclimited.com",
-            subject:"Création d'un incident",
-            text:"Un nouvel incident a été créé. \n NumRef :"+incident?.numRef,
-            html:notification("Un nouvel incident a été créé. \n NumRef :"+incident?.numRef, "https://berp.bfcgroupsa.com/incidents/")
-        });
-        console.log(info);
+        if(emailList ||emailList === ""){
+            const info = await transporter.sendMail({
+                from:"no-reply@bfcgroupsa.com",
+                to:emailList,
+                // to:"belombo@bfclimited.com",
+                subject:"Création d'un incident",
+                text:"Un nouvel incident a été créé. \n NumRef :"+incident?.numRef,
+                html:notification("Un nouvel incident a été créé. \n NumRef :"+incident?.numRef, "https://berp.bfcgroupsa.com/incidents/")
+            });
+            console.log(info);
+        }
         return;
     } catch (error) {
         console.log(error);
