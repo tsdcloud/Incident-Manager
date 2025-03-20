@@ -10,6 +10,7 @@ import { differenceInHours } from 'date-fns';
 import { ADDRESS } from "../config.js";
 import { transporter } from "../utils/notification.utils.js";
 import { notification } from "../views/mail.view.js";
+import { getEmployeesEmail } from "../utils/employees.utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,13 +28,16 @@ export const createIncidentController = async (req, res) => {
         res
         .status(HTTP_STATUS.CREATED.statusCode)
         .send(incident);
+        let emailList = await getEmployeesEmail(req.headers.authorization, "RESPONSIBLE");
         const info = await transporter.sendMail({
             from:"no-reply@bfcgroupsa.com",
-            to:"belombo@bfclimited.com, sngnetchedjeu@bfclimited.com",
+            to:emailList,
+            // to:"belombo@bfclimited.com",
             subject:"Création d'un incident",
             text:"Un nouvel incident a été créé. \n NumRef :"+incident?.numRef,
             html:notification("Un nouvel incident a été créé. \n NumRef :"+incident?.numRef, "https://berp.bfcgroupsa.com/incidents/")
         });
+        console.log(info);
         return;
     } catch (error) {
         console.log(error);
