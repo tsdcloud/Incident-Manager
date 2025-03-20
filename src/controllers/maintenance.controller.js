@@ -190,7 +190,7 @@ export const generateExcelFileController = async (req, res) =>{
                 { header: 'Prochaine maintenance', key: 'nextMaintenance', width: 20 },
                 { header: 'description', key: 'description', width: 50 },
                 { header: 'Intervenant', key: 'supplierId', width: 20 },
-                { header: 'Initiateur', key: 'userId', width: 20 },
+                { header: 'Initiateur', key: 'createdBy', width: 20 },
                 { header: 'Date de cloture', key: 'closedDate', width: 20 },
                 { header: 'Créé par', key: 'createdBy', width: 20 },
                 { header: 'Cloturé par', key: 'closedBy', width: 20 },
