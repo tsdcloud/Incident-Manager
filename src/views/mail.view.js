@@ -11,7 +11,7 @@ export const notification=(text, link)=>{
             <body class="h-[70vh] w-full ">
                 <div class="h-full w-fullflex justify-center items-center">
                     <div class="flex flex-col gap-4 justify-center items-center w-full h-screen">
-                        <h1 class="text-xl font-semibold uppercase">${NODE_ENV === "development" && "TEST - "}Declaration d'incident</h1>
+                        <h1 class="text-xl font-semibold uppercase">${NODE_ENV === "development" ? "TEST - ":""}Declaration d'incident</h1>
                         <div class="shadow border rounded-lg w-[300px] min-h-[200px] overflow-hidden border-gray-100">
                             <!-- Header -->
                             <div class="flex justify-center items-center p-2 bg-gray-200">
