@@ -30,11 +30,11 @@ export const createIncidentController = async (req, res) => {
         .send(incident);
         let emailList = await getEmployeesEmail(req.headers.authorization, "RESPONSIBLE");
 
-        if (!emailList) {
-            console.error("Error: No recipient email defined.");
-            return res.status(400).json({ error: "Recipient email is required." });
-        }
-        
+        // if (!emailList) {
+        //     console.error("Error: No recipient email defined.");
+        //     return res.status(400).json({ error: "Recipient email is required." });
+        // }
+        console.log(emailList);
         const mailOptions = {
             from:"no-reply@bfcgroupsa.com",
             to:emailList,
