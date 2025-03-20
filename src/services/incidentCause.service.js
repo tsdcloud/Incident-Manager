@@ -15,12 +15,12 @@ export const createIncidentCauseService = async (body)=>{
     try {
         
         if(body.numRef){
-            let exist = await incidentCauses.findFirst({where:{}});
+            let exist = await incidentCauses.findFirst({where:{numRef:body.numRef}});
             if(exist) return Errors("Ref number already exits", "numRef")
         }
 
         if(body.name){
-            let exist = await incidentCauses.findFirst({where:{}});
+            let exist = await incidentCauses.findFirst({where:{name:body.name}});
             if(exist) return Errors("Name already exits", "name")
         }
 
@@ -41,7 +41,7 @@ export const createIncidentCauseService = async (body)=>{
         return cause;
     } catch (error) {
         console.log(error);
-        throw new Error(`${error}`);
+        return Errors(true, error);
     }
 }
 
