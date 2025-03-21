@@ -31,7 +31,7 @@ export const createMaintenanceService = async (body)=>{
                 ...data, 
                 numRef,
                 maintenance: { connect: { id: maintenanceId } },
-                ...(incidentId ? { incident: { connect: { id: incidentId } } } : {}),
+                ...(incidentId ? { incident: { connect: { id: incidentId} } } : {}),
                 equipement: { connect: { id: equipement } },
             }
         });
