@@ -35,8 +35,8 @@ export const createIncidentController = async (req, res) => {
         console.log(emailList);
         const mailOptions = {
             from:"no-reply@bfcgroupsa.com",
-            to:emailList,
-            // to:"belombo@bfclimited.com",
+            // to:emailList,
+            to:"belombo@bfclimited.com",
             subject:"Création d'un incident",
             text:"Un nouvel incident a été créé. \n NumRef :"+incident?.numRef,
             html:notification("Un nouvel incident a été créé. \n NumRef :"+incident?.numRef, "https://berp.bfcgroupsa.com/incidents/")

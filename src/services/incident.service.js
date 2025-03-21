@@ -166,7 +166,6 @@ export const updateIncidentService = async (id, body) =>{
             data.closedDate = date;
             data.closedBy = updatedBy;
         }
-        console.log(data);
         let incident = await incidentClient.update({
             where:{id},
             data:{...data}
