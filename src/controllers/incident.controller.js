@@ -36,7 +36,7 @@ export const createIncidentController = async (req, res) => {
         const mailOptions = {
             from:"no-reply@bfcgroupsa.com",
             // to:emailList,
-            to:"belombo@bfclimited.com",
+            to:"belombo@bfclimited.com, bntede@bfcgroupsa.com",
             subject:"Création d'un incident",
             text:"Un nouvel incident a été créé. \n NumRef :"+incident?.numRef,
             html:notification("Un nouvel incident a été créé. \n NumRef :"+incident?.numRef, "https://berp.bfcgroupsa.com/incidents/")
@@ -189,7 +189,8 @@ export const generateExcelFileController = async (req, res) =>{
                 { header: 'Equipement', key: 'equipement', width: 15 },
                 { header: 'Site', key: 'site', width: 20 },
                 { header: 'Shift', key: 'shift', width: 20 },
-                { header: 'Utilisateur', key: 'userId', width: 20 },
+                { header: 'Initiateur', key: 'userId', width: 20 },
+                { header: 'Intervenant/Techn.', key: 'technician', width: 20 },
                 { header: 'Cloturé par', key: 'closedBy', width: 20 },
                 { header: 'description', key: 'description', width: 50 },
                 { header: 'Édité par', key: 'updatedBy', width: 20 },
@@ -197,6 +198,7 @@ export const generateExcelFileController = async (req, res) =>{
             ];
     
             let employees = await fetchData(`${ENTITY_API}/employees/`, token);
+            let entities = await fetchData(`${ENTITY_API}/entities/`, token);
             let sites = await fetchData(`${ENTITY_API}/sites/`, token);
             let shifts = await fetchData(`${ENTITY_API}/shifts/`, token);
 
@@ -205,13 +207,18 @@ export const generateExcelFileController = async (req, res) =>{
                     numRef: incident.numRef,
                     creationDate: incident.creationDate,
                     closedDate: incident.closedDate,
-                    duration:`${differenceInHours(incident.closedDate, incident.creationDate)} Heure(s) ${differenceInMinutes(incident.closedDate, incident.creationDate)} Min(s) ${differenceInSeconds(incident.closedDate, incident.creationDate)} Sec(s)`,
+                    duration:
+                    incident.status === "CLOSED" ?
+                    `${differenceInHours(incident.closedDate, incident.creationDate)} Heure(s) ${differenceInMinutes(incident.closedDate, incident.creationDate)} Min(s) ${differenceInSeconds(incident.closedDate, incident.creationDate)} Sec(s)` :
+                    `${differenceInHours(new Date().toISOString(), incident.creationDate)} Heure(s) ${differenceInMinutes(new Date().toISOString(), incident.creationDate)} Min(s) ${differenceInSeconds(new Date().toISOString(), incident.creationDate)} Sec(s)`
+                    ,
                     incidentType: incident.incident?.name || '',
                     incidentCause: incident.incidentCauses?.name || '',
                     equipement: incident.equipement.name,
                     site: sites?.data.find(site=>site?.id === incident.siteId)?.name || incident.siteId,
                     shift: shifts?.data.find(shift=>shift?.id === incident.shiftId)?.name || incident.shiftId,
-                    userId: employees?.data.find(employee=>employee?.id === incident.createdBy)?.name || incident.createdBy,
+                    userId: employees?.data.find(employee=>employee?.id === incident.createdBy)?.name || incident.createdBy ||"N/A",
+                    technician: employees?.data.find(employee=>employee?.id === incident.technician)?.name || entities?.data.find(entity=>entity?.id === incident.technician)?.name || incident.technician ||"N/A",
                     closedBy: employees?.data.find(employee=>employee?.id === incident.closedBy)?.name || incident.closedBy || "N/A",
                     description: incident.description,
                     status: incident.status === "CLOSED" ? 

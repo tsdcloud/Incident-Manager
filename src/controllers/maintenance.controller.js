@@ -206,7 +206,7 @@ export const generateExcelFileController = async (req, res) =>{
                 worksheet.addRow({
                     numRef: maintenance.numRef,
                     creationDate: maintenance.createdAt,
-                    maintenance: maintenance.incident?.numRef || "N/A",
+                    maintenance: maintenance.maintenance.name || "N/A",
                     incident: maintenance.incident?.numRef || "N/A",
                     equipement: maintenance.equipement?.name || "N/A",
                     site: sites?.data.find(site=>site?.id === maintenance.siteId)?.name || maintenance.siteId,
