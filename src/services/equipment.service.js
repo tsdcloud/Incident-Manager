@@ -20,14 +20,14 @@ export const createEquipementService = async (body)=>{
 
     if(numRef){
         let equipement = await equipementClient.findFirst({
-            where:{numRef}
+            where:{numRef, isActive:true}
         });
         if (equipement) return Errors("equipement with this ref number already exist", "numRef");
     }
 
     if(name){
         let equipement = await equipementClient.findFirst({
-            where:{name}
+            where:{name, isActive:true}
         })
         if (equipement) return Errors("equipement with this name already exist", "name");
     }
@@ -66,7 +66,7 @@ export const getAllEquipmentService = async(body) =>{
                 name:'asc'
             }
         });
-        const total = await equipementClient.count();
+        const total = await equipementClient.count({where:{isActive:true}});
         return {
             page: parseInt(page),
             totalPages: Math.ceil(total / LIMIT),
@@ -106,7 +106,7 @@ export const getEquipementByParams = async (request) =>{
     const skip = (page - 1) * limit;
     try {
         let equipement = await equipementClient.findMany({
-            where:!search ? queries : {
+            where:!search ? {isActive:true, ...queries} : {
                 OR:[
                     {name:{contains:search}},
                     {numRef:{contains:search}}
@@ -139,6 +139,22 @@ export const getEquipementByParams = async (request) =>{
  * @returns 
  */
 export const updateEquipementService = async (id, body) =>{
+    let {numRef, name} = body;
+
+    if(numRef){
+        let equipement = await equipementClient.findFirst({
+            where:{numRef}
+        });
+        if (equipement) return Errors("equipement with this ref number already exist", "numRef");
+    }
+
+    if(name){
+        let equipement = await equipementClient.findFirst({
+            where:{name}
+        })
+        if (equipement) return Errors("equipement with this name already exist", "name");
+    }
+
     try {
         let equipement = await equipementClient.update({
             where:{id},

@@ -7,7 +7,7 @@ export const verifyUserExist = async (req, res, next) => {
     if(!authorization){
         res
         .status(HTTP_STATUS.UN_AUTHORIZED.statusCode)
-        .json({error: HTTP_STATUS.UN_AUTHORIZED.message});
+        .json({ error:true, error_list: [{msg:"Bearer token not provided", "path":"token"}] });
         return;
     }
 
@@ -25,14 +25,14 @@ export const verifyUserExist = async (req, res, next) => {
         if(!response.ok){
             res
             .status(HTTP_STATUS.UN_AUTHORIZED.statusCode)
-            .json({error: HTTP_STATUS.UN_AUTHORIZED.message});
+            .json({ error:true, error_list: [{msg:"Token expired or not valid", "path":"token"}] });
             return;
         }
 
         let decodedToken = jwtDecode(token);
-        if(!decodedToken) return sendStatus(HTTP_STATUS.UN_AUTHORIZED.statusCode);
+        if(!decodedToken) return res.status(HTTP_STATUS.UN_AUTHORIZED.statusCode).json({ error:true, error_list: [{msg:"Token expired or not valid", "path":"token"}] });
         let employee = await getEmployee(decodedToken?.user_id, token);
-        if(!employee?.id) return res.sendStatus(HTTP_STATUS.UN_AUTHORIZED.statusCode);
+        if(!employee?.id) return res.status(HTTP_STATUS.UN_AUTHORIZED.statusCode).json({ error:true, error_list: [{msg:"Token expired or not valid", "path":"token"}] });
 
         req["employeeId"] = employee?.id;
 
@@ -46,7 +46,7 @@ export const verifyUserExist = async (req, res, next) => {
         console.log(error);
         res
         .status(HTTP_STATUS.SERVEUR_ERROR.statusCode)
-        .json({error: HTTP_STATUS.SERVEUR_ERROR.message});
+        .json({ error:true, error_list: [{msg:HTTP_STATUS.SERVEUR_ERROR.message, "path":"server error"}] });
         return;
     }
 }
@@ -71,6 +71,10 @@ const getEmployee = async (userId, token) =>{
             return result
         }
     } catch (error) {
-        console.error(error);
+        console.log(error);
+        res
+        .status(HTTP_STATUS.SERVEUR_ERROR.statusCode)
+        .json({ error:true, error_list: [{msg:HTTP_STATUS.SERVEUR_ERROR.message, "path":"server error"}] });
+        return;
     }
 } 

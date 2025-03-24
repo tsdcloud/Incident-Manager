@@ -14,7 +14,10 @@ export const createEquipement = [
         if(!error.isEmpty()){
             return res
             .status(HTTP_STATUS.BAD_REQUEST.statusCode)
-            .send(error.array());
+            .send({
+                "error": true,
+                "error_list": error.array()
+            });
         } 
         next();
     }
@@ -29,8 +32,11 @@ export const updateEquipement = [
         const error = validationResult(req);
         if(!error.isEmpty()){
             res
-            .send(error.array())
             .status(HTTP_STATUS.BAD_REQUEST.statusCode)
+            .send({
+                "error": true,
+                "error_list": error.array()
+            });
             return;
         } 
         next();

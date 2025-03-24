@@ -11,27 +11,24 @@ import HTTP_STATUS from "../utils/http.utils.js";
 export const createEquipementController = async (req, res) => {
     try {
         // Add validation for required fields
-        if (!req.body.name) {
-            res.status(HTTP_STATUS.BAD_REQUEST.statusCode)
-               .json({ error: "Name is required" });
-            return;
-        }
+        // if (!req.body.name) {
+        //     res.status(HTTP_STATUS.BAD_REQUEST.statusCode)
+        //        .json({ error: "Name is required" });
+        //     return;
+        // }
 
         let equipement = await createEquipementService(req.body);
 
-        if (equipement?.error) {
-            res.status(HTTP_STATUS.BAD_REQUEST.statusCode)
-               .json(equipement);
-            return;
-        }
-
-        res.status(HTTP_STATUS.CREATED.statusCode)
-           .json(equipement);
+        res
+        .status(equipement?.error ? HTTP_STATUS.BAD_REQUEST.statusCode : HTTP_STATUS.CREATED.statusCode)
+        .json(equipement);
         return;
+
     } catch (error) {
         console.log(error);
-        res.status(HTTP_STATUS.BAD_REQUEST.statusCode)
-           .json({ error: "Failed to create equipment" });
+        res
+        .status(HTTP_STATUS.BAD_REQUEST.statusCode)
+        .json({ error:true, error_list: [{msg:"Failed to create equipment", "path":"Internal server error"}] });
         return;
     }
 }

@@ -9,7 +9,10 @@ export const createMaintenance = [
         if(!error.isEmpty()){
             return res
             .status(HTTP_STATUS.BAD_REQUEST.statusCode)
-            .send(error.array());
+            .send({
+                "error": true,
+                "error_list": error.array()
+            });
         } 
         next();
     }
@@ -23,8 +26,11 @@ export const updateMaintenance = [
         const error = validationResult(req);
         if(!error.isEmpty()){
             res
-            .send(error.array())
             .status(HTTP_STATUS.BAD_REQUEST.statusCode)
+            .send({
+                "error": true,
+                "error_list": error.array()
+            });
             return;
         } 
         next();
@@ -40,7 +46,10 @@ export const closeMaintenance = [
         if(!error.isEmpty()){
             res
             .status(HTTP_STATUS.BAD_REQUEST.statusCode)
-            .send(error.array());
+            .send({
+                "error": true,
+                "error_list": error.array()
+            });
             return;
         } 
         next();

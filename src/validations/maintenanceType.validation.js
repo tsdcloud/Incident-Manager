@@ -10,7 +10,10 @@ export const createMaintenanceType = [
         if(!error.isEmpty()){
             res
             .status(HTTP_STATUS.BAD_REQUEST.statusCode)
-            .send(error.array())
+            .send({
+                "error": true,
+                "error_list": error.array()
+            });
             return;
         } 
         next();
@@ -27,7 +30,10 @@ export const updateMaintenanceType = [
         if(!error.isEmpty()){
             res
             .status(HTTP_STATUS.BAD_REQUEST.statusCode)
-            .send(error.array())
+            .send({
+                "error": true,
+                "error_list": error.array()
+            });
             return;
         } 
         next();
