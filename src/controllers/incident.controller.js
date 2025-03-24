@@ -1,4 +1,4 @@
-import { EMAIL_HOST, ENTITY_API } from "../config.js";
+import { EMAIL_HOST, ENTITY_API, NODE_ENV } from "../config.js";
 import { createIncidentService, deleteIncidentService, generateExcelService, getAllIncidentService, getIncidentByIdService, getIncidentByParams, updateIncidentService } from "../services/incident.service.js";
 import { fetchData } from "../utils/fetch.utils.js";
 import HTTP_STATUS from "../utils/http.utils.js";
@@ -26,28 +26,23 @@ export const createIncidentController = async (req, res) => {
     try {
         let incident = await createIncidentService(req.body);
         res
-        .status(HTTP_STATUS.CREATED.statusCode)
+        .status(incident.error ? HTTP_STATUS.BAD_REQUEST.statusCode : HTTP_STATUS.CREATED.statusCode)
         .send(incident);
         let emailList = await getEmployeesEmail(req.headers.authorization, "RESPONSIBLE");
-
-       
-
-        console.log(emailList);
         const mailOptions = {
             from:"no-reply@bfcgroupsa.com",
-            // to:emailList,
-            to:"belombo@bfclimited.com, bntede@bfcgroupsa.com",
+            to:NODE_ENV === "development"?"belombo@bfclimited.com":emailList,
             subject:"Création d'un incident",
             text:"Un nouvel incident a été créé. \n NumRef :"+incident?.numRef,
             html:notification("Un nouvel incident a été créé. \n NumRef :"+incident?.numRef, "https://berp.bfcgroupsa.com/incidents/")
         };
 
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-            //   console.log("Email sending error:", error);
-            return
-            }
-        });
+        // transporter.sendMail(mailOptions, (error, info) => {
+        //     if (error) {
+        //     //   console.log("Email sending error:", error);
+        //     return
+        //     }
+        // });
 
         return;
     } catch (error) {
@@ -131,7 +126,7 @@ export const updateIncidentController = async (req, res) => {
         let incident = await updateIncidentService(req.params.id, req.body);
         res
         .send(incident)
-        .status(HTTP_STATUS.OK.statusCode);
+        .status(incident.error ? HTTP_STATUS.BAD_REQUEST.statusCode : HTTP_STATUS.OK.statusCode);
         return;
     } catch (error) {
         console.log(error);

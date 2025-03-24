@@ -5,6 +5,7 @@ import {
     createMaintenance,
     updateMaintenance
 } from '../validations/maintenance.validation.js'
+import { checkSupplierExist } from "../middlewares/entity.middleware.js";
 
 const routes = Router();
 
@@ -13,7 +14,7 @@ routes.get('/file', generateExcelFileController);
 routes.get('/:id', getMaintenanceByIdController);
 routes.post('/', createMaintenance, createMaintenanceController);
 routes.patch('/:id', updateMaintenance, updateMaintenanceController);
-routes.patch('/:id/close', closeMaintenance, closeMaintenanceController);
+routes.patch('/:id/close', closeMaintenance, checkSupplierExist, closeMaintenanceController);
 routes.delete('/:id', deleteMaintenanceController);
 
 

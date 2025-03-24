@@ -22,6 +22,12 @@ export const createIncidentService = async (body)=>{
             select: { numRef: true }
         });
 
+        const equipementExist = await prisma.equipement.findFirst({where:{id:body.equipementId, isActive:true}});
+        const typeIncidentExist = await prisma.incidenttype.findFirst({where:{id:body.incidentId, isActive:true}});
+
+        if(!equipementExist) return (Errors("L'équipement sélectionné n'existe pas", "field"));
+        if(!typeIncidentExist) return (Errors("Le type d'incident sélectionné n'existe pas", "field"));
+
         const date = new Date();
         const mm = String(date.getMonth() + 1).padStart(2, '0');
         const yy = String(date.getFullYear()).slice(-2);
@@ -35,7 +41,7 @@ export const createIncidentService = async (body)=>{
         return incident;
     } catch (error) {
         console.log(error)
-        return (Errors(error.msg, "field"))
+        return (Errors(error.message, "field"))
     }
 }
 
@@ -54,7 +60,6 @@ export const getAllIncidentService = async(body) =>{
             skip: parseInt(skip),
             take: parseInt(LIMIT),
             include:{
-                consommable:true,
                 equipement:true,
                 incidentCauses:true,
                 incident:true,
@@ -160,6 +165,12 @@ export const getIncidentByParams = async (request) =>{
  */
 export const updateIncidentService = async (id, body) =>{
     try {
+        const equipementExist = await prisma.equipement.findFirst({where:{id:body.equipementId, isActive:true}});
+        const typeIncidentExist = await prisma.incidenttype.findFirst({where:{id:body.incidentId, isActive:true}});
+
+        if(!equipementExist) return (Errors("L'équipement sélectionné n'existe pas"));
+        if(!typeIncidentExist) return (Errors("Le type d'incident sélectionné n'existe pas"));
+
         let {updatedBy, createdBy, ...data} = body;
         let date =  new Date();
         if(body?.status === "CLOSED"){

@@ -1,4 +1,5 @@
 import {prisma} from '../config.js';
+import { Errors } from '../utils/errors.utils.js';
 const maintenanceClient = prisma.maintenance;
 
 
@@ -14,6 +15,15 @@ const SORT_BY = "name";
  */
 export const createMaintenanceService = async (body)=>{
     try {
+        let {maintenanceId, incidentId, equipement, ...data} = body
+
+        if(incidentId){
+            let incidentExist = await prisma.incident.findFirst({where:{id: incidentId}});
+            if(!incidentExist) return Errors("L'incident n'exist pas");
+        }
+        let maintenanceTypeExist = await prisma.maintenancetype.findFirst({where:{id: maintenanceId}});
+        if(!maintenanceTypeExist) return Errors("Le type de maintenance n'exist pas");
+
         const lastMaintenance = await maintenanceClient.findFirst({
             orderBy: { createdAt: 'desc' },
             select: { numRef: true }
@@ -25,7 +35,6 @@ export const createMaintenanceService = async (body)=>{
         const prefix = `${mm}${yy}`;
         const nextNum = lastMaintenance ? parseInt(lastMaintenance.numRef.slice(-4)) + 1 : 1;
         const numRef = `${prefix}${String(nextNum).padStart(4, '0')}`;
-        let {maintenanceId, incidentId, equipement, ...data} = body
         let maintenance = await maintenanceClient.create({
             data:{
                 ...data, 
@@ -153,16 +162,18 @@ export const getMaintenanceByParams = async (request) =>{
  */
 export const updateMaintenanceService = async (id, body) =>{
     try {
-        let {status} = body
+        let { status } = body;
         let date =  new Date().toISOString();
         if(status === "CLOSED"){
             body.closedDate = date;
             body.closedBy = body["updatedBy"];
         }
+
         let maintenance = await maintenanceClient.update({
             where:{id},
             data:body
         });
+
         if(maintenance?.incidentId){
             await prisma.incident.update({
                 where:{id: maintenance?.incidentId},
@@ -206,7 +217,13 @@ export const deleteMaintenanceService = async (id) =>{
 export const closeMaintenanceService = async (id, body)=>{
     let {supplierId, incidentCauseId, incidentId, validationBy} = body;
     let date =  new Date().toISOString();
-        
+    
+    let incidentCauseExist = await prisma.incidentcause.findFirst({where:{id: incidentCauseId}});
+    if(!incidentCauseExist) return Errors("La cause d'incident sélectionné n'exist pas");
+    
+    let incidentTypeExist = await prisma.incidenttype.findFirst({where:{id: incidentId}});
+    if(!incidentTypeExist) return Errors("Le type d'incident sélectionné n'exist pas");
+
     try {
         let data = await prisma.$transaction([
             prisma.incident.update({
@@ -231,7 +248,7 @@ export const closeMaintenanceService = async (id, body)=>{
         if(!data) throw new Error();
     } catch (error) {
         console.log(error);
-        return {"error":true, errors:[{msg:'Failed to validate'}]};
+        return {"error":true, errors:[{msg:"N'a pas pu être validé, essayez plus tard"}]};
     }
 }
 
@@ -346,6 +363,7 @@ export const generateExcelService = async (query) =>{
 
         return maintenance;
     } catch (error) {
-        throw new Error(error);
+        console.log(error)
+        return {"error":true, errors:[{msg:"N'a pas pu être exporté, essayez plus tard"}]};
     }
 }
