@@ -37,12 +37,13 @@ export const createIncidentController = async (req, res) => {
             html:notification("Un nouvel incident a été créé. \n NumRef :"+incident?.numRef, "https://berp.bfcgroupsa.com/incidents/")
         };
 
-        // transporter.sendMail(mailOptions, (error, info) => {
-        //     if (error) {
-        //     //   console.log("Email sending error:", error);
-        //     return
-        //     }
-        // });
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+              console.log("Email sending error: "+error);
+            return
+            }
+            console.log(info);
+        });
 
         return;
     } catch (error) {
