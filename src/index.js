@@ -22,15 +22,20 @@ import {rateLimitAndTimeout} from './middlewares/ratelimiter.middleware.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
 import { errorLogger } from './middlewares/errorHandlers.js';
 import { logger } from './middlewares/logEvents.middleware.js';
+import '../instrument.js';
+import Sentry from "@sentry/node";
 
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+Sentry.setupExpressErrorHandler(app);
+
 const  corsOptions = {
     origin: '*',
 }
+
 app.use(cors(corsOptions));
 app.use(helmet());
 app.use(bodyParser.json());
