@@ -111,7 +111,7 @@ model incident{
 
   userId  String?
   technician   String?
-  description String?
+  description String?     @db.LongText
 
   createdBy String
   closedBy String?

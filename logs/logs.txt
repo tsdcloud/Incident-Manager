@@ -2981,3 +2981,7 @@
 20250326	09:20:07	abd0d0b6-7b23-4516-9d83-2aaa6f76ce43	GET	http://localhost:5174	/api/maintenances	::ffff:127.0.0.1
 20250326	09:20:07	b14d29d5-2b6a-46d5-88d4-b01e43c9ccd6	GET	http://localhost:5174	/api/off-bridges	::ffff:127.0.0.1
 20250326	09:20:07	95cb1123-8837-40e5-9342-16af713bd020	GET	http://localhost:5174	/api/maintenances?status=CLOSED	::ffff:127.0.0.1
+20250326	13:08:53	a65546cf-746a-415b-84ee-4a0b0db5f183	GET	http://localhost:5174	/api/incident-causes	::ffff:127.0.0.1
+20250326	13:08:53	62e4fefe-b115-42c4-8db7-0f14b293928c	GET	http://localhost:5174	/api/maintenance-types?hasIncident=true	::ffff:127.0.0.1
+20250326	13:08:53	9c550149-14b9-4744-8adc-34a4b226f6ea	GET	http://localhost:5174	/api/maintenance-types?hasIncident=false	::ffff:127.0.0.1
+20250326	13:08:53	aebca3f6-e886-400f-bba7-19343d1afd03	GET	http://localhost:5174	/api/incidents	::ffff:127.0.0.1
