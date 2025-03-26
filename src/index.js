@@ -22,7 +22,7 @@ import {rateLimitAndTimeout} from './middlewares/ratelimiter.middleware.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
 import { errorLogger } from './middlewares/errorHandlers.js';
 import { logger } from './middlewares/logEvents.middleware.js';
-import '../instrument.js';
+// import '../instrument.js';
 import Sentry from "@sentry/node";
 
 
