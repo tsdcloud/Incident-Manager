@@ -23,7 +23,7 @@ import { errorHandler } from './middlewares/errorHandler.middleware.js';
 import { errorLogger } from './middlewares/errorHandlers.js';
 import { logger } from './middlewares/logEvents.middleware.js';
 // import '../instrument.js';
-import Sentry from "@sentry/node";
+// import Sentry from "@sentry/node";
 
 
 const __filename = fileURLToPath(import.meta.url);
