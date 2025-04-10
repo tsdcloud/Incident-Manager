@@ -6,7 +6,7 @@ import path from 'path';
 import fs from 'fs'
 import { fileURLToPath } from 'url';
 import ExcelJS from 'exceljs';
-import { differenceInHours, differenceInMinutes, differenceInSeconds } from 'date-fns';
+import { differenceInCalendarDays, differenceInHours, differenceInMinutes, differenceInSeconds } from 'date-fns';
 import { ADDRESS } from "../config.js";
 import { transporter } from "../utils/notification.utils.js";
 import { notification } from "../views/mail.view.js";
@@ -179,7 +179,9 @@ export const generateExcelFileController = async (req, res) =>{
                 { header: 'NumRef', key: 'numRef', width: 15 },
                 { header: 'Date de creation', key: 'creationDate', width: 20 },
                 { header: 'Date de cloture', key: 'closedDate', width: 20 },
-                { header: 'Durée de résolution', key: 'duration', width: 50 },
+                { header: 'Durée en jour', key: 'durationDay', width: 50 },
+                { header: 'Durée en heure', key: 'durationHour', width: 50 },
+                { header: 'Durée en minute', key: 'durationMin', width: 50 },
                 { header: 'Type d\'incident', key: 'incidentType', width: 50 },
                 { header: 'Cause d\'incident', key: 'incidentCause', width: 50 },
                 { header: 'Equipement', key: 'equipement', width: 15 },
@@ -203,10 +205,18 @@ export const generateExcelFileController = async (req, res) =>{
                     numRef: incident.numRef,
                     creationDate: incident.creationDate,
                     closedDate: incident.closedDate,
-                    duration:
+                    durationDay:
                     incident.status === "CLOSED" ?
-                    `${differenceInHours(incident.closedDate, incident.creationDate)} Heure(s) ${differenceInMinutes(incident.closedDate, incident.creationDate)} Min(s) ${differenceInSeconds(incident.closedDate, incident.creationDate)} Sec(s)` :
-                    `${differenceInHours(new Date().toISOString(), incident.creationDate)} Heure(s) ${differenceInMinutes(new Date().toISOString(), incident.creationDate)} Min(s) ${differenceInSeconds(new Date().toISOString(), incident.creationDate)} Sec(s)`
+                    `${differenceInCalendarDays(incident.closedDate, incident.creationDate)}` :
+                    `${differenceInHours(new Date().toISOString(), incident.creationDate)}`
+                    ,
+                    durationHour: incident.status === "CLOSED" ?
+                    `${differenceInHours(incident.closedDate, incident.creationDate)}` :
+                    `${differenceInHours(new Date().toISOString(), incident.creationDate)}`
+                    ,
+                    durationMin: incident.status === "CLOSED" ?
+                    `${differenceInMinutes(incident.closedDate, incident.creationDate)}` :
+                    `${differenceInMinutes(new Date().toISOString(), incident.creationDate)}`
                     ,
                     incidentType: incident.incident?.name || '',
                     incidentCause: incident.incidentCauses?.name || '',
