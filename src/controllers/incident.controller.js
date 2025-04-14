@@ -28,7 +28,7 @@ export const createIncidentController = async (req, res) => {
         res
         .status(incident.error ? HTTP_STATUS.BAD_REQUEST.statusCode : HTTP_STATUS.CREATED.statusCode)
         .send(incident);
-        let emailList = await getEmployeesEmail(req.headers.authorization, "RESPONSIBLE");
+        let emailList = await getEmployeesEmail(req.headers.authorization, "manager");
         const mailOptions = {
             from:"no-reply@bfcgroupsa.com",
             to:NODE_ENV === "development"?"belombo@bfclimited.com":emailList,
