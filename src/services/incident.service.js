@@ -28,11 +28,6 @@ export const createIncidentService = async (body)=>{
         if(!equipementExist) return (Errors("L'équipement sélectionné n'existe pas", "field"));
         if(!typeIncidentExist) return (Errors("Le type d'incident sélectionné n'existe pas", "field"));
 
-        const date = new Date();
-        const mm = String(date.getMonth() + 1).padStart(2, '0');
-        const yy = String(date.getFullYear()).slice(-2);
-        const prefix = `${mm}${yy}`;
-        const nextNum = lastIncident ? parseInt(lastIncident.numRef.slice(-4)) + 1 : 1;
         const numRef = generateRefNum(lastIncident);
         let incident = await incidentClient.create({
             data:{ ...body, numRef }
