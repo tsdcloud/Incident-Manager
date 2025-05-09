@@ -1,5 +1,5 @@
 import { EMAIL_HOST, ENTITY_API, NODE_ENV } from "../config.js";
-import { createIncidentService, deleteIncidentService, generateExcelService, getAllIncidentService, getIncidentByIdService, getIncidentByParams, updateIncidentService } from "../services/incident.service.js";
+import { createIncidentService, deleteIncidentService, generateExcelService, getAllIncidentService, getIncidentByIdService, getIncidentByParams, getStatsService, updateIncidentService } from "../services/incident.service.js";
 import { fetchData } from "../utils/fetch.utils.js";
 import HTTP_STATUS from "../utils/http.utils.js";
 import path from 'path';
@@ -11,6 +11,7 @@ import { ADDRESS } from "../config.js";
 import { transporter } from "../utils/notification.utils.js";
 import { notification } from "../views/mail.view.js";
 import { getEmployeesEmail } from "../utils/employees.utils.js";
+import { getSubscriptiobListService, sendPushNotification } from "../services/pushNotification.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,7 +29,24 @@ export const createIncidentController = async (req, res) => {
         res
         .status(incident.error ? HTTP_STATUS.BAD_REQUEST.statusCode : HTTP_STATUS.CREATED.statusCode)
         .send(incident);
-        let emailList = await getEmployeesEmail(req.headers.authorization, "manager");
+        let employees = await getEmployeesEmail(req.headers.authorization, "manager");
+        let emailList = employees.map(employee => employee.email);
+
+        let subscriptionList = await getSubscriptiobListService();
+        let payload = {
+            title: "BERP - INCIDENT",
+            subject:"Création d'un incident",
+            body:"Un nouvel incident a été créé. \n NumRef :"+incident?.numRef,
+            link:"https://berp.bfcgroupsa.com/incidents/",
+        };
+
+        subscriptionList?.map(sub=>
+            sendPushNotification({
+                endpoint: sub.endpoint,
+                keys: sub.keys
+              }, payload)
+        )
+
         const mailOptions = {
             from:"no-reply@bfcgroupsa.com",
             to:NODE_ENV === "development"?"belombo@bfclimited.com":emailList,
@@ -44,6 +62,8 @@ export const createIncidentController = async (req, res) => {
             }
             console.log(info);
         });
+
+        
 
         return;
     } catch (error) {
@@ -89,9 +109,12 @@ export const getIncidentByIdController = async (req, res) => {
  * @returns 
  */
 export const getAllIncidentController = async(req, res) => {
+    let {authorization}= req.headers;
+    let token = authorization.split(' ')[1];
+
     if(Object.keys(req.query).length !== 0 && req.query.constructor === Object){
         try {
-            let  incidents = await getIncidentByParams(req.query);
+            let  incidents = await getIncidentByParams(req.query, token);
             res
             .send(incidents)
             .status(HTTP_STATUS.OK.statusCode);
@@ -158,6 +181,12 @@ export const deleteIncidentController = async (req, res) => {
     }
 }
 
+
+/**
+ * 
+ * @param {*} req 
+ * @param {*} res 
+ */
 export const generateExcelFileController = async (req, res) =>{
     let { authorization } = req.headers;
     let token = authorization?.split(" ")[1];
@@ -175,12 +204,36 @@ export const generateExcelFileController = async (req, res) =>{
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Rapport Incidents');
             
+            const headers = [
+                'NumRef', 'Date de creation', 'Date de cloture', 
+                'Durée en minutes', 
+                'Type d\'incident', 'Cause d\'incident', 'Equipement', 
+                'Site', 'Shift', 'Initiateur', 'Intervenant/Techn.', 
+                'Cloturé par', 'description', 'Édité par', 'Status'
+              ];
+
+              worksheet.addRow(headers);
+              const headerRow = worksheet.getRow(1);
+                headerRow.eachCell((cell) => {
+                cell.font = { bold: true };
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: 'FFD3D3D3' }
+                };
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
+                });
+
+
             worksheet.columns = [
                 { header: 'NumRef', key: 'numRef', width: 15 },
                 { header: 'Date de creation', key: 'creationDate', width: 20 },
                 { header: 'Date de cloture', key: 'closedDate', width: 20 },
-                { header: 'Durée en jours', key: 'durationDay', width: 50 },
-                { header: 'Durée en heures', key: 'durationHour', width: 50 },
                 { header: 'Durée en minutes', key: 'durationMin', width: 50 },
                 { header: 'Type d\'incident', key: 'incidentType', width: 50 },
                 { header: 'Cause d\'incident', key: 'incidentCause', width: 50 },
@@ -194,45 +247,38 @@ export const generateExcelFileController = async (req, res) =>{
                 { header: 'Édité par', key: 'updatedBy', width: 20 },
                 { header: 'Status', key: 'status', width: 20 },
             ];
+
     
             let employees = await fetchData(`${ENTITY_API}/employees/`, token);
-            let entities = await fetchData(`${ENTITY_API}/entities/`, token);
+            let suppliers = await fetchData(`${ENTITY_API}/suppliers/`, token);
             let sites = await fetchData(`${ENTITY_API}/sites/`, token);
             let shifts = await fetchData(`${ENTITY_API}/shifts/`, token);
-
+            
             incidents.forEach(incident => {
                 worksheet.addRow({
                     numRef: incident.numRef,
                     creationDate: incident.creationDate,
                     closedDate: incident.closedDate,
-                    durationDay:
-                    incident.status === "CLOSED" ?
-                    `${differenceInCalendarDays(incident.closedDate, incident.creationDate)}` :
-                    `${differenceInHours(new Date().toISOString(), incident.creationDate)}`
-                    ,
-                    durationHour: incident.status === "CLOSED" ?
-                    `${differenceInHours(incident.closedDate, incident.creationDate)}` :
-                    `${differenceInHours(new Date().toISOString(), incident.creationDate)}`
-                    ,
                     durationMin: incident.status === "CLOSED" ?
                     `${differenceInMinutes(incident.closedDate, incident.creationDate)}` :
-                    `${differenceInMinutes(new Date().toISOString(), incident.creationDate)}`
+                    `N/C`
                     ,
                     incidentType: incident.incident?.name || '',
                     incidentCause: incident.incidentCauses?.name || '',
                     equipement: incident.equipement.name,
                     site: sites?.data.find(site=>site?.id === incident.siteId)?.name || incident.siteId,
                     shift: shifts?.data.find(shift=>shift?.id === incident.shiftId)?.name || incident.shiftId,
-                    userId: employees?.data.find(employee=>employee?.id === incident.createdBy)?.name || incident.createdBy ||"N/A",
-                    technician: employees?.data.find(employee=>employee?.id === incident.technician)?.name || entities?.data.find(entity=>entity?.id === incident.technician)?.name || incident.technician ||"N/A",
-                    closedBy: employees?.data.find(employee=>employee?.id === incident.closedBy)?.name || incident.closedBy || "N/A",
+                    userId: employees?.data.find(employee=>employee?.id === incident.createdBy)?.name || incident.createdBy ||"--",
+                    technician: employees?.data.find(employee=>employee?.id === incident.technician)?.name || suppliers?.data.find(supplier=>supplier?.id === incident.technician)?.name || incident.technician ||"--",
+                    closedBy: employees?.data.find(employee=>employee?.id === incident.closedBy)?.name || incident.closedBy || "--",
                     description: incident.description,
                     status: incident.status === "CLOSED" ? 
                     "CLOTURE" : incident.status === "PENDING" ? 
                     "EN ATTENTE" : incident.status ==="UNDER_MAINTENANCE"?"EN MAINTENANCE":incident.status,
                 });
             });
-    
+
+
             const filePath = path.join(exportsDir, `incidents_report.xlsx`);
             await workbook.xlsx.writeFile(filePath);
             const downloadLink = `${ADDRESS}/api/exports/incidents_report.xlsx`; 
@@ -244,5 +290,27 @@ export const generateExcelFileController = async (req, res) =>{
             res
             .sendStatus(HTTP_STATUS.BAD_REQUEST.statusCode)
         }
+    }
+}
+
+
+/**
+ * 
+ * @param {*} req 
+ * @param {*} res 
+ * @returns 
+ */
+export const getStatsController = async (req, res) =>{
+    try {
+        let stats = await getStatsService();
+        res
+        .status(HTTP_STATUS.OK.statusCode)
+        .send(stats);
+        return;
+    } catch (error) {
+        console.log(error);
+        res
+        .sendStatus(HTTP_STATUS.BAD_REQUEST.statusCode);
+        return;
     }
 }

@@ -6,7 +6,7 @@ import helmet from 'helmet';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import path from 'path';
-import { PORT } from './config.js';
+import { PORT, prisma } from './config.js';
 import HTTP_STATUS from './utils/http.utils.js';
 import consommable from './routes/consommable.route.js'
 import equipement from './routes/equipement.route.js'
@@ -65,6 +65,31 @@ app.get("/api/exports/:file", (req, res)=>{
         res.sendStatus(HTTP_STATUS.BAD_REQUEST.statusCode)
     }
 });
+
+app.post('/api/v1/subscribe', async (req, res)=>{
+    let {endpoint,
+        expirationTime,
+        keys} = req.body
+
+    try {
+        let subscriptions = await prisma.pushSubscription.create({
+            data:{
+                keys, expirationTime, endpoint
+            }
+        });
+        res
+        .status(HTTP_STATUS.CREATED.statusCode)
+        .json({error:false, data:subscriptions})
+    } catch (error) {
+        console.log(error);
+        res
+        .status(HTTP_STATUS.BAD_REQUEST.statusCode)
+        .send({error:true, error_list:[{
+            message:`${error}`,
+            field:'body'
+        }]})
+    }
+})
 
 app.use(verifyUserExist);
 app.use("/api/incidents", incident);

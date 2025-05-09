@@ -17,4 +17,7 @@ export const EMAIL_HOST_PASSWORD = process.env.EMAIL_HOST_PASSWORD;
 export const EMAIL_PORT = process.env.EMAIL_PORT;
 export const EMAIL_USE_TLS = process.env.EMAIL_USE_TLS;
 export const EMAIL_TIMEOUT = process.env.EMAIL_TIMEOUT;
+
+export const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY
+export const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY
 export const NODE_ENV = process.env.NODE_ENV;

@@ -62,8 +62,8 @@ export const getEmployeesEmail =async(token, roleName)=>{
         if(employeeRoles?.data?.length < 0 || !employeeRoles?.data) return null;
         let employees = employeeRoles?.data.map(employeeRole=>employeeRole?.employee);
         if(employees < 0) return null;
-        let employeeEmails = employees.map(employee => employee.email);
-        return employeeEmails;
+        // let employeeEmails = employees.map(employee => employee.email);
+        return employees;
 
     } catch (error) {
         console.log(error);
@@ -71,3 +71,18 @@ export const getEmployeesEmail =async(token, roleName)=>{
     }
 }
 
+export const handleExternalFetch = async(token, url) =>{
+    try {
+        let requestOptions ={
+            headers:{
+                'authorization': `Bearer ${token}`,
+            }
+        }
+        let response = await fetch(url, requestOptions);
+        let result = await response.json();
+        return result;
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
+}

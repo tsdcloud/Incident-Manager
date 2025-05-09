@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createIncidentController, getAllIncidentController, getIncidentByIdController, updateIncidentController, deleteIncidentController, generateExcelFileController } from "../controllers/incident.controller.js";
+import { createIncidentController, getAllIncidentController, getIncidentByIdController, updateIncidentController, deleteIncidentController, generateExcelFileController, getStatsController } from "../controllers/incident.controller.js";
 import {
     createIncident,
     updateIncident
@@ -9,6 +9,7 @@ import { checkShiftExist, checkSiteExist } from "../middlewares/entity.middlewar
 const routes = Router();
 
 routes.get('/', getAllIncidentController);
+routes.get('/stats', getStatsController);
 routes.get('/file', generateExcelFileController);
 routes.get('/:id', getIncidentByIdController);
 routes.post('/', rateLimitAndTimeout, createIncident, checkSiteExist, checkShiftExist,createIncidentController);
