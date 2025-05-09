@@ -64,7 +64,7 @@ export const getAllIncidentService = async() =>{
                 creationDate:'desc'
             }
         });
-        const total = incidents.length;
+        const total = await incidentClient.count({where:{isActive:true}});
         return {
             page: parseInt(page),
             totalPages: Math.ceil(total / LIMIT),
