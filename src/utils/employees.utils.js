@@ -63,7 +63,7 @@ export const getEmployeesEmail =async(token, roleName)=>{
         let employees = employeeRoles?.data.map(employeeRole=>employeeRole?.employee);
         if(employees < 0) return null;
         // let employeeEmails = employees.map(employee => employee.email);
-        return employees;
+        return employees ||[];
 
     } catch (error) {
         console.log(error);
