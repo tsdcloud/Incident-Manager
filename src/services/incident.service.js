@@ -489,7 +489,6 @@ export const getIncidentByParams = async (request, token) =>{
             }
         } 
         else{
-            console.log(queries)
             incidents = await incidentClient.findMany({
                 where:!search ? {isActive:true, ...queries} : 
                 {
@@ -520,8 +519,8 @@ export const getIncidentByParams = async (request, token) =>{
                     incidentCauses:true,
                     incident:true,
                 },
-                skip: parseInt(skip),
-                take: parseInt(limit),
+                skip: search ? parseInt(limit) : undefined,
+                take: search ? parseInt(limit) : undefined,
                 orderBy:{
                     creationDate:'desc'
                 }
