@@ -30,38 +30,40 @@ export const createIncidentController = async (req, res) => {
         .status(incident.error ? HTTP_STATUS.BAD_REQUEST.statusCode : HTTP_STATUS.CREATED.statusCode)
         .send(incident);
         let employees = await getEmployeesEmail(req.headers.authorization, "manager");
-        let emailList = employees.map(employee => employee.email);
-
-        let subscriptionList = await getSubscriptiobListService();
-        let payload = {
-            title: "BERP - INCIDENT",
-            subject:"Création d'un incident",
-            body:"Un nouvel incident a été créé. \n NumRef :"+incident?.numRef,
-            link:"https://berp.bfcgroupsa.com/incidents/",
-        };
-
-        subscriptionList?.map(sub=>
-            sendPushNotification({
-                endpoint: sub.endpoint,
-                keys: sub.keys
-              }, payload)
-        )
-
-        const mailOptions = {
-            from:"no-reply@bfcgroupsa.com",
-            to:NODE_ENV === "development"?"belombo@bfclimited.com":emailList,
-            subject:"Création d'un incident",
-            text:"Un nouvel incident a été créé. \n NumRef :"+incident?.numRef,
-            html:notification("Un nouvel incident a été créé. \n NumRef :"+incident?.numRef, "https://berp.bfcgroupsa.com/incidents/")
-        };
-
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-              console.log("Email sending error: "+error);
-            return
-            }
-            console.log(info);
-        });
+        if(employees){
+            let emailList = employees.map(employee => employee.email);
+    
+            let subscriptionList = await getSubscriptiobListService();
+            let payload = {
+                title: "BERP - INCIDENT",
+                subject:"Création d'un incident",
+                body:"Un nouvel incident a été créé. \n NumRef :"+incident?.numRef,
+                link:"https://berp.bfcgroupsa.com/incidents/",
+            };
+    
+            subscriptionList?.map(sub=>
+                sendPushNotification({
+                    endpoint: sub.endpoint,
+                    keys: sub.keys
+                  }, payload)
+            )
+    
+            const mailOptions = {
+                from:"no-reply@bfcgroupsa.com",
+                to:NODE_ENV === "development"?"belombo@bfclimited.com":emailList,
+                subject:"Création d'un incident",
+                text:"Un nouvel incident a été créé. \n NumRef :"+incident?.numRef,
+                html:notification("Un nouvel incident a été créé. \n NumRef :"+incident?.numRef, "https://berp.bfcgroupsa.com/incidents/")
+            };
+    
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                  console.log("Email sending error: "+error);
+                return
+                }
+                console.log(info);
+            });
+        }
 
         
 
