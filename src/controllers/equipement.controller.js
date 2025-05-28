@@ -1,4 +1,5 @@
-import { createEquipementService, deleteEquipmentService, getAllEquipmentService, getEquipementByIdService, getEquipementByParams, importEquipementService, updateEquipementService } from "../services/equipment.service.js";
+import { createEquipementService, deleteEquipmentService, getAllEquipmentService, getEquipementByIdService, getEquipementByParams, getEquipementHistoryService, importEquipementService, updateEquipementService } from "../services/equipment.service.js";
+import { apiResponse } from "../utils/apiResponse.js";
 import HTTP_STATUS from "../utils/http.utils.js";
 
 
@@ -62,6 +63,29 @@ export const getEquipementByIdController = async (req, res) => {
         res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.statusCode)
            .json({ error: "Failed to fetch equipment" });
         return;
+    }
+}
+
+
+/**
+ * Returns the equipement if any else returns an error
+ * @param {*} req 
+ * @param {*} res 
+ */
+export const getEquipementHistoryController= async (req, res) => {
+    try {
+        let {id, siteId} = req.params;
+
+        let equipement = await getEquipementHistoryService(id, siteId);
+        res
+        .status(equipement.error ? HTTP_STATUS.NOT_FOUND.statusCode : HTTP_STATUS.OK.statusCode)
+        .send(equipement);
+
+    } catch (error) {
+        console.log(error)
+        res
+        .status(HTTP_STATUS.SERVEUR_ERROR.statusCode)
+        .send(apiResponse(true, [{message:`${error}`, field:'server'}]))
     }
 }
 

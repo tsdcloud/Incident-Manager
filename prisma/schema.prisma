@@ -8,6 +8,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 model incidenttype{
   id          String  @id  @default(uuid())
   numRef      String  @unique
@@ -47,12 +48,75 @@ model equipement{
   siteId      String?
   incidents   incident[]
   maintenance maintenance[]
+  movement    movement[]
+  operations  operation[]
+  startUpDate DateTime?
+  status      EquipmentStatus @default(DEFAULT)
+  
+
   createdBy   String
   updatedBy   String?
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime  @updatedAt
   isActive    Boolean @default(true)
+}
+
+
+enum EquipmentStatus{
+  REBUS
+  STARTUP
+  DEFAULT
+}
+
+model history{
+  id        String      @id     @default(uuid())
+  movementId      String
+  movement        movement       @relation(fields: [movementId], references: [id])
+  operationId     String
+  operation       operation      @relation(fields: [operationId], references: [id])
+  maintenanceId   String
+  maintenance     maintenance    @relation(fields: [maintenanceId], references: [id])
+}
+
+
+model movement{
+  id        String    @id     @default(uuid())
+  equipementId        String
+  equipement          equipement      @relation(fields: [equipementId], references: [id])
+  originSite            String
+  destinationSite       String
+  description         String
+  createdBy   String
+  updatedBy   String?
+  histories   history[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime  @updatedAt
+  isActive    Boolean @default(true)
+}
+
+model operation{
+  id      String      @id       @default(uuid())
+  siteId  String
+  actionType          ActionType
+  equipementId        String
+  equipement          equipement      @relation(fields: [equipementId], references: [id])
+  content     String?
+  description String?
+  createdBy   String
+  updatedBy   String?
+  histories   history[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime  @updatedAt
+  isActive    Boolean @default(true)
+}
+
+enum ActionType{
+  START
+  STOP
+  REFUEL
 }
 
 
@@ -167,6 +231,7 @@ model maintenance{
   description String?
   supplierId String?
   userId  String?
+  histories     history[]
   
   closedDate    DateTime?
   createdBy     String

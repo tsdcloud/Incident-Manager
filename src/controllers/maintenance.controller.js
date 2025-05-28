@@ -78,9 +78,11 @@ export const getMaintenanceByIdController = async (req, res) => {
  * @returns 
  */
 export const getAllMaintenanceController = async(req, res) => {
+    let {authorization}= req.headers;
+    let token = authorization.split(' ')[1];
     if(Object.keys(req.query).length !== 0 && req.query.constructor === Object){
         try {
-            let  maintenances = await getMaintenanceByParams(req.query);
+            let  maintenances = await getMaintenanceByParams(req.query, token);
             res
             .send(maintenances)
             .status(HTTP_STATUS.OK.statusCode);

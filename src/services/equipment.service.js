@@ -2,6 +2,8 @@ import {prisma} from '../config.js';
 import ExcelJs from 'exceljs';
 import { generateRefNum } from '../utils/utils.js';
 import {Errors} from '../utils/errors.utils.js'
+import { apiResponse } from '../utils/apiResponse.js';
+
 
 const equipementClient = prisma.equipement;
 
@@ -17,6 +19,7 @@ const SORT_BY = "name";
 export const createEquipementService = async (body)=>{
 
     let {numRef, name} = body;
+
 
     if(numRef){
         let equipement = await equipementClient.findFirst({
@@ -53,7 +56,7 @@ export const createEquipementService = async (body)=>{
  * 
  * @returns 
  */
-export const getAllEquipmentService = async(body) =>{
+export const getAllEquipmentService = async() =>{
     const page = 1;
     const skip = (page - 1) * LIMIT;
 
@@ -97,7 +100,7 @@ export const getEquipementByIdService = async(id) =>{
 }
 
 /**
- * 
+ * Get equipments by params
  * @param request 
  * @returns 
  */
@@ -129,6 +132,25 @@ export const getEquipementByParams = async (request) =>{
     } catch (error) {
         console.log(error);
         return Errors(`${error}`, 'server');
+    }
+}
+
+/**
+ * Returns equipment based on the id and site
+ * @param {*} id 
+ * @param {*} siteId 
+ * @returns 
+ */
+export const getEquipementHistoryService = async (id, siteId) =>{
+    try {
+        let equipment = await equipementClient.findFirst({
+            where:{id, siteId, isActive:true}
+        });
+
+        return apiResponse(false, equipment);
+    } catch (error) {
+        console.log(error);
+        throw new Error(`${error}`);
     }
 }
 

@@ -7,7 +7,7 @@ export const verifyUserExist = async (req, res, next) => {
     if(!authorization){
         res
         .status(HTTP_STATUS.UN_AUTHORIZED.statusCode)
-        .json({ error:true, error_list: [{msg:"Bearer token not provided", "path":"token"}] });
+        .json({ error:true, errors: [{msg:"Bearer token not provided", "path":"token"}] });
         return;
     }
 
@@ -25,7 +25,7 @@ export const verifyUserExist = async (req, res, next) => {
         if(!response.ok){
             res
             .status(HTTP_STATUS.UN_AUTHORIZED.statusCode)
-            .json({ error:true, error_list: [{msg:"Token expired or not valid", "path":"token"}] });
+            .json({ error:true, errors: [{msg:"Token expired or not valid", "path":"token"}] });
             return;
         }
 

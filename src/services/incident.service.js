@@ -1,4 +1,3 @@
-import { Prisma } from '@prisma/client';
 import {prisma} from '../config.js';
 import { generateRefNum } from '../utils/utils.js';
 import { Errors } from '../utils/errors.utils.js';

@@ -1,5 +1,7 @@
 import {prisma} from '../config.js';
 import { Errors } from '../utils/errors.utils.js';
+import { handleExternalFetch } from '../utils/employees.utils.js';
+import { getCachedData, setCachedData } from '../utils/cache.utils.js';
 const maintenanceClient = prisma.maintenance;
 
 
@@ -110,49 +112,57 @@ export const getMaintenanceByIdService = async(id) =>{
  * @param request 
  * @returns 
  */
-export const getMaintenanceByParams = async (request) =>{
-    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, ...queries } = request; 
+export const getMaintenanceByParams = async (request, token) =>{
+    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, filter, value, ...queries } = request; 
     const skip = (page - 1) * limit;
-    try {
-        let maintenances = await maintenanceClient.findMany({
-            where:!search ? {isActive:true, ...queries} : {
-                OR: [
-                    {numRef: { contains: search }},
-                    {incident:{
-                        numRef:{
-                            contains: search
-                        },
-                        isActive:true
-                    }}
-                ]
-            },
-            include:{
-                incident:true,
-                maintenance:true,
-                incident:true,
-                equipement:true
-            },
-            orderBy:{
-                createdAt:'desc'
-            },
-            skip: parseInt(skip),
-            take: parseInt(limit),
-            orderBy:{
-                createdAt:'desc'
-            }
-        });
-        const total = await maintenanceClient.count({where:{isActive:true}});
+    let maintenances = []
+    let total = 0
+
+    if(filter && value){
+        maintenances = await handleFilteredSearch(filter, value, maintenances, token);
+    }else{
+        try {
+            maintenances = await maintenanceClient.findMany({
+                where:!search ? {isActive:true, ...queries} : {
+                    OR: [
+                        {numRef: { contains: search }},
+                        {incident:{
+                            numRef:{
+                                contains: search
+                            },
+                            isActive:true
+                        }}
+                    ]
+                },
+                include:{
+                    incident:true,
+                    maintenance:true,
+                    incident:true,
+                    equipement:true
+                },
+                orderBy:{
+                    createdAt:'desc'
+                },
+                skip: parseInt(skip),
+                take: parseInt(limit),
+                orderBy:{
+                    createdAt:'desc'
+                }
+            });
+        } catch (error) {
+            console.log(error);
+            throw new Error(`${error}`);
+        }
+    }
+    total = maintenances?.length;
         return search ? {data: maintenances} :{
             page: parseInt(page),
             totalPages: Math.ceil(total / limit),
             total,
             data: maintenances,
         };
-    } catch (error) {
-        console.log(error);
-        throw new Error(`${error}`);
-    }
 }
+
 
 /**
  * 
@@ -188,7 +198,7 @@ export const updateMaintenanceService = async (id, body) =>{
 }
 
 /**
- * 
+ * Delete a maintenance
  * @param id 
  * @returns 
  */
@@ -209,11 +219,10 @@ export const deleteMaintenanceService = async (id) =>{
 
 
 /**
- * 
+ * Close a maintenance
  * @param {*} query 
  * @returns 
  */
-
 export const closeMaintenanceService = async (id, body)=>{
     let {supplierId, incidentCauseId, incidentId, validationBy} = body;
     let date =  new Date().toISOString();
@@ -253,7 +262,11 @@ export const closeMaintenanceService = async (id, body)=>{
 }
 
 
-
+/**
+ * Generate extractions
+ * @param {*} query 
+ * @returns 
+ */
 export const generateExcelService = async (query) =>{
 
     let { start, end, value, criteria, condition } = query;
@@ -365,5 +378,240 @@ export const generateExcelService = async (query) =>{
     } catch (error) {
         console.log(error)
         return {"error":true, errors:[{msg:"N'a pas pu être exporté, essayez plus tard"}]};
+    }
+}
+
+
+const handleFilteredSearch=async(filter, value, maintenances, token)=>{
+    try {
+        switch(filter){
+            case 'siteId':
+                // Check cache first
+                const siteCacheKey = `site_${value}`;
+                let siteResponse = getCachedData(siteCacheKey);
+                
+                if (!siteResponse) {
+                    siteResponse = await handleExternalFetch(token, `${process.env.ENTITY_API}/sites?search=${value}`);
+                    if (siteResponse.data) {
+                        setCachedData(siteCacheKey, siteResponse);
+                    }
+                }
+
+                if(siteResponse.data){
+                    let siteIds = siteResponse.data.map(site => site.id);
+                    maintenances = await maintenanceClient.findMany({
+                        where:{
+                            isActive:true,
+                            siteId:{
+                                in:siteIds
+                            }
+                        },
+                        include:{
+                            equipement:true,
+                            incident:true,
+                        },
+                        orderBy:{
+                            createdAt:'desc'
+                        }
+                    });
+                    return maintenances
+                }
+                break
+            case "createdBy":
+                // Check cache first
+                const employeeCacheKey = `employee_${value}`;
+                let initiatorResponse = getCachedData(employeeCacheKey);
+                
+                if (!initiatorResponse) {
+                    initiatorResponse = await handleExternalFetch(token, `${process.env.ENTITY_API}/employees?search=${value}`);
+                    if (initiatorResponse.data) {
+                        setCachedData(employeeCacheKey, initiatorResponse);
+                    }
+                }
+
+                if(initiatorResponse.data){
+                    let employeesIds = initiatorResponse.data.map(employee => employee.id);
+                    maintenances = await maintenanceClient.findMany({
+                        where:{
+                            isActive:true,
+                            createdBy:{
+                                in:employeesIds
+                            }
+                        },
+                        include:{
+                            equipement:true,
+                            incident:true,
+                        },
+                        orderBy:{
+                            createdAt:'desc'
+                        }
+                    });
+                    return maintenances
+                }
+                break
+            case 'closedBy':
+                // Check cache first
+                const closedByCacheKey = `employee_${value}`;
+                let closedByResponse = getCachedData(closedByCacheKey);
+                
+                if (!closedByResponse) {
+                    closedByResponse = await handleExternalFetch(token, `${process.env.ENTITY_API}/employees?search=${value}`);
+                    if (closedByResponse.data) {
+                        setCachedData(closedByCacheKey, closedByResponse);
+                    }
+                }
+
+                if(closedByResponse.data){
+                    let employeesIds = closedByResponse.data.map(employee => employee.id);
+                    maintenances = await maintenanceClient.findMany({
+                        where:{
+                            isActive:true,
+                            status:"CLOSED",
+                            closedBy:{
+                                in:employeesIds
+                            }
+                        },
+                        include:{
+                            equipement:true,
+                            incident:true,
+                        },
+                        orderBy:{
+                            createdAt:'desc'
+                        }
+                    });
+                    console.log(maintenances);
+                    return maintenances
+                }
+                break
+            case 'intervainer':
+                // Check cache for employees
+                const intervenerCacheKey = `employee_${value}`;
+                let intervenerResponse = getCachedData(intervenerCacheKey);
+                
+                if (!intervenerResponse) {
+                    intervenerResponse = await handleExternalFetch(token, `${process.env.ENTITY_API}/employees?search=${value}`);
+                    if (intervenerResponse.data) {
+                        setCachedData(intervenerCacheKey, intervenerResponse);
+                    }
+                }
+
+                // Check cache for suppliers
+                const supplierCacheKey = `supplier_${value}`;
+                let supplierResponse = getCachedData(supplierCacheKey);
+                
+                if (!supplierResponse) {
+                    supplierResponse = await handleExternalFetch(token, `${process.env.ENTITY_API}/suppliers?search=${value}`);
+                    if (supplierResponse.data) {
+                        setCachedData(supplierCacheKey, supplierResponse);
+                    }
+                }
+
+                let intervenerIds = intervenerResponse.data.map(intervener => intervener.id);
+                let suppliersIds = supplierResponse.data.map(supplier => supplier.id);
+                
+                maintenances = await maintenanceClient.findMany({
+                    where:{
+                        isActive:true,
+                        OR:[
+                            {
+                                technician:{
+                                    in:intervenerIds
+                                }
+                            },
+                            {
+                                technician:{
+                                    in:suppliersIds
+                                }
+                            }
+                        ]
+                    },
+                    include:{
+                        equipement:true,
+                        incident:true,
+                    },
+                    orderBy:{
+                        createdAt:'desc'
+                    }
+                });
+                return maintenances
+                break
+            case "incidentRef":
+                let incidents = await prisma.incident.findMany({
+                    where:{
+                        isActive:true,
+                        numRef: {
+                            contains:value
+                        }
+                    }
+                });
+                let incidentIds = incidents.map(incident => incident.id);
+                maintenances = await maintenanceClient.findMany({
+                    where:{
+                        isActive:true,
+                        incidentId:{
+                            in:incidentIds
+                        }
+                    },
+                    include:{
+                        equipement:true,
+                        incident:true,
+                    },
+                    orderBy:{
+                        createdAt:'desc'
+                    }
+                })
+                return maintenances
+            break
+            case "numRef":
+                maintenances = await maintenanceClient.findMany({
+                    where:{
+                        isActive:true,
+                        numRef:{
+                            contains:value
+                        }
+                    },
+                    include:{
+                        equipement:true,
+                        incident:true,
+                    },
+                    orderBy:{
+                        createdAt:'desc'
+                    }
+                })
+                return maintenances
+                break        
+            case "equipementId":
+                let equipements = await prisma.equipement.findMany({
+                    where:{
+                        isActive:true, 
+                        name:{
+                            contains:value
+                        }
+                    }
+                });
+
+                let equipementIds = equipements.map(equipement => equipement.id);
+
+                maintenances = await maintenanceClient.findMany({
+                    where:{
+                        isActive:true,
+                        equipementId:{
+                            in:equipementIds
+                        }
+                    },
+                    include:{
+                        equipement:true,
+                        incident:true,
+                    },
+                    orderBy:{
+                        createdAt:'desc'
+                    }
+                });
+                return maintenances;
+            break;
+        }
+    } catch (error) {
+        console.log(error)
+        throw new Error();
     }
 }
