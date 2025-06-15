@@ -3,3 +3,4 @@ logs
 logs.txt
 node_modules
 .env
+migrations

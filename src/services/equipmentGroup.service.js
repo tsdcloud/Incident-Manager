@@ -5,7 +5,7 @@
 import {prisma} from '../config.js';
 import { apiResponse } from '../utils/apiResponse.js';
 import { generateRefNum } from '../utils/utils.js';
-const equipmentGroupClient = prisma.equipmentGroup;
+const equipmentGroupClient = prisma.equipmentgroup;
 
 
 /**

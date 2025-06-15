@@ -178,6 +178,12 @@ export const getEquipementByParams = async (request) =>{
                 ],
                 isActive:true
             },
+            include:{
+                equipmentGroup:true,
+                movement:true,
+                maintenance:true,
+                operations:true
+            },
             skip: parseInt(skip),
             take: parseInt(limit),
             orderBy:{
