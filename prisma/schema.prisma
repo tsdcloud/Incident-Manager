@@ -280,15 +280,7 @@ model maintenance{
 }
 
 
-model PushSubscription {
-  id              String     @id @default(uuid())
-  userId          Int?
-  User            String?
-  endpoint        String  @unique
-  expirationTime  String?
-  keys            Json
-  createdAt       DateTime @default(now())
-}
+
 
 enum INCIDENT_STATUS{
   PENDING
