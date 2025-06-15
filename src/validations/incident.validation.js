@@ -1,7 +1,7 @@
 import { body, validationResult } from "express-validator";
 import HTTP_STATUS from "../utils/http.utils.js";
 
-export const createIncident = [
+export const createIncidentValidation = [
     body("incidentId").notEmpty().withMessage("Le type d'incident est requis"),
     body("equipementId").notEmpty().withMessage("L'équipement est requis"),
     body("siteId").notEmpty().withMessage("Le site est requis"),
@@ -24,7 +24,7 @@ export const createIncident = [
 ]
 
 
-export const updateIncident = [
+export const updateIncidentValidation = [
     body("incidentId").optional().notEmpty().withMessage("incidentId should not be empty"),
     body("equipementId").optional().notEmpty().withMessage("equipementId should not be empty"),
     body("siteId").optional().notEmpty().withMessage("siteId should not be empty"),

@@ -2,10 +2,8 @@ import { body, validationResult } from "express-validator";
 import HTTP_STATUS from "../utils/http.utils.js";
 
 export const createIncidentType = [
-    body("name").notEmpty().withMessage("Invalid name"),
-    body("createdBy").notEmpty().withMessage("Invalid user"),
-    body("updatedBy").optional().notEmpty().withMessage("Invalid user"),
-    body("description").optional().notEmpty().withMessage("Invalid description"),
+    body("name").notEmpty().withMessage("Nom est requis"),
+    body("description").optional().notEmpty().withMessage("Description ne doit pas être vide"),
     (req, res, next) =>{
         const error = validationResult(req);
         if(!error.isEmpty()){
@@ -13,7 +11,7 @@ export const createIncidentType = [
             .status(HTTP_STATUS.BAD_REQUEST.statusCode)
             .send({
                 "error": true,
-                "error_list": error.array()
+                "errors": error.array()
             });
             return;
         } 
@@ -23,9 +21,7 @@ export const createIncidentType = [
 
 
 export const updateIncidentType = [
-    body("name").optional().notEmpty().withMessage("Invalid name"),
-    body("createdBy").optional().notEmpty().withMessage("Invalid user"),
-    body("updatedBy").optional().notEmpty().withMessage("Invalid user"),
+    body("name").optional().notEmpty().withMessage("Nom est requis"),
     body("description").optional().notEmpty().withMessage("Invalid description"),
     (req, res, next) =>{
         const error = validationResult(req);
@@ -34,7 +30,7 @@ export const updateIncidentType = [
             .status(HTTP_STATUS.BAD_REQUEST.statusCode)
             .send({
                 "error": true,
-                "error_list": error.array()
+                "errors": error.array()
             });
             return;
         } 

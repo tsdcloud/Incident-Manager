@@ -21,7 +21,9 @@ export const verifyUserExist = async (req, res, next) => {
             },
             body: JSON.stringify({"token":token})
         };
+
         let response = await fetch(url, requestOptions);
+        
         if(!response.ok){
             res
             .status(HTTP_STATUS.UN_AUTHORIZED.statusCode)
@@ -30,9 +32,10 @@ export const verifyUserExist = async (req, res, next) => {
         }
 
         let decodedToken = jwtDecode(token);
-        if(!decodedToken) return res.status(HTTP_STATUS.UN_AUTHORIZED.statusCode).json({ error:true, error_list: [{msg:"Token expired or not valid", "path":"token"}] });
+        
+        if(!decodedToken) return res.status(HTTP_STATUS.UN_AUTHORIZED.statusCode).json({ error:true, errors: [{msg:"Token expired or not valid", field:"token"}] });
         let employee = await getEmployee(decodedToken?.user_id, token);
-        if(!employee?.id) return res.status(HTTP_STATUS.UN_AUTHORIZED.statusCode).json({ error:true, error_list: [{msg:"Token expired or not valid", "path":"token"}] });
+        if(!employee?.id) return res.status(HTTP_STATUS.UN_AUTHORIZED.statusCode).json({ error:true, errors: [{msg:"Token expired or not valid", field:"token"}] });
 
         req["employeeId"] = employee?.id;
 
@@ -46,7 +49,7 @@ export const verifyUserExist = async (req, res, next) => {
         console.log(error);
         res
         .status(HTTP_STATUS.SERVEUR_ERROR.statusCode)
-        .json({ error:true, error_list: [{msg:HTTP_STATUS.SERVEUR_ERROR.message, "path":"server error"}] });
+        .json({ error:true, errors: [{msg:HTTP_STATUS.SERVEUR_ERROR.message, field:"server error"}] });
         return;
     }
 }
@@ -74,7 +77,7 @@ const getEmployee = async (userId, token) =>{
         console.log(error);
         res
         .status(HTTP_STATUS.SERVEUR_ERROR.statusCode)
-        .json({ error:true, error_list: [{msg:HTTP_STATUS.SERVEUR_ERROR.message, "path":"server error"}] });
+        .json({ error:true, errors: [{msg:HTTP_STATUS.SERVEUR_ERROR.message, field:"server error"}] });
         return;
     }
 } 

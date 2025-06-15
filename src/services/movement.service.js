@@ -1,6 +1,5 @@
 import { prisma } from "../config.js";
 import { apiResponse } from "../utils/apiResponse.js";
-import { fetchData } from "../utils/fetch.utils.js";
 const movementClient = prisma.movement;
 
 const LIMIT = 100;
@@ -13,24 +12,45 @@ const SORT_BY = "name";
  */
 export const createMovementService = async (body) =>{
     try {
-        let {originSite, equipementId, destinationSite} = body;
-        // verify if equipement exist
-        let equipementExist = await prisma.equipement.findFirst({
-            where:{
-                id:equipementId,
-                isActive:true
-            }
+        let {equipementId, originSite, destinationSite, ...rest} = body;
+
+        if(destinationSite === originSite){
+            return apiResonse(true, [{message:"Destination site sholud not be the same as originSite"}])
+        }
+        // Check if the equipment exist
+        let equipementExist = await prisma.equipment.findFirst({
+            where:{id:equipementId, isActive:true}
         });
+
+        if(!equipementExist) return apiResponse(true, [{message:'Equipement doest exist', field:"equipementId"}]);
+
+        // check if the origin site exist
         
-        if(!equipementExist) return apiResponse(true, [{message:'equipement does not exist', field:'equipementId'}]);
+        // Check if the destination site exist
+
+
+        let movement = await prisma.$transaction([
+            prisma.movement.create({
+                data:{
+                    originSite,
+                    destinationSite,
+                    equipement: {
+                        connect: { id: equipementId }
+                    },
+                    ...rest
+                }
+            }),
+            prisma.equipment.update({
+                where:{id:equipementId},
+                data:{siteId:destinationSite}
+            })
+        ])
         
-        let movement = await movementClient.create({
-            data:body
-        });
-        return apiResponse(false,undefined, movement);
+
+        return apiResponse(false, undefined, movement);
     } catch (error) {
         console.log(error);
-        return apiResponse(false,[{message:`${error}`, field:'server'}]);
+        return apiResponse(true, [{message:`${error}`, field:"server"}]);
     }
 }
 

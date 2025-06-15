@@ -5,7 +5,7 @@ import {Errors} from '../utils/errors.utils.js'
 import { apiResponse } from '../utils/apiResponse.js';
 
 
-const equipementClient = prisma.equipement;
+const equipementClient = prisma.equipment;
 
 const LIMIT = 100;
 const ORDER ="asc";
@@ -25,35 +25,40 @@ export const createEquipementService = async (body)=>{
         let equipement = await equipementClient.findFirst({
             where:{numRef, isActive:true}
         });
-        if (equipement) return Errors("equipement with this ref number already exist", "numRef");
+        if (equipement) return apiResponse(true, [{msg: "NumRef already exist", field: "numRef"}]);;
     }
 
     if(name){
         let equipement = await equipementClient.findFirst({
             where:{name, isActive:true}
         })
-        if (equipement) return Errors("equipement with this name already exist", "name");
+        if (equipement) return apiResponse(true, [{msg: "Name already exist", field: "name"}]);;
     }
      
     try {
         const lastEquipment = await equipementClient.findFirst({
             orderBy: { createdAt: 'desc' },
             select: { numRef: true }
-        });       
+        });
+        let {operatingMode, lifeSpan, periodicity, ...rest} = body;
+        let fmtOperationMode = parseFloat(operatingMode);
+        let fmtlifeSpan = parseFloat(lifeSpan);
+        let fmtPeriodicity = parseFloat(periodicity);
+
         const numRef = generateRefNum(lastEquipment);
         let equipement = await equipementClient.create({
-            data:{...body, numRef}
+            data:{numRef, periodicity:fmtPeriodicity, operatingMode: fmtOperationMode, lifeSpan:fmtlifeSpan, ...rest}
         });
         return equipement;
     } catch (error) {
         console.log(error);
-        return Errors(`${error}`, 'server');
+        return apiResponse(true, [{msg: error, field: "server"}]);
     }
 }
 
 
 /**
- * 
+ * Get all the equipments
  * @returns 
  */
 export const getAllEquipmentService = async() =>{
@@ -66,9 +71,35 @@ export const getAllEquipmentService = async() =>{
             skip: parseInt(skip),
             take: parseInt(LIMIT),
             orderBy:{
-                name:'asc'
+                title:'asc'
+            },
+            include:{
+                equipmentGroup:true,
+                movement:true,
+                maintenance:true,
+                operations:true
             }
         });
+
+        // Calculate nextMaintenance for each equipment
+        equipements = equipements.map(equipment => {
+            const periodicityInDays = equipment.periodicity;
+            let nextMaintenance;
+            
+            if (!equipment.lastMaintenance) {
+                nextMaintenance = new Date(equipment.createdAt);
+                nextMaintenance.setDate(nextMaintenance.getDate() + periodicityInDays);
+            } else {
+                nextMaintenance = new Date(equipment.lastMaintenance);
+                nextMaintenance.setDate(nextMaintenance.getDate() + periodicityInDays);
+            }
+            
+            return {
+                ...equipment,
+                nextMaintenance
+            };
+        });
+
         const total = await equipementClient.count({where:{isActive:true}});
         return {
             page: parseInt(page),
@@ -81,6 +112,37 @@ export const getAllEquipmentService = async() =>{
         return Errors(`${error}`, 'server');
     }
 }
+
+
+/**
+ * Return the list of equipements from site
+ * @param {*} siteId 
+ * @returns  object
+ */
+export const getSiteEquipmentsService = async(siteId) => {
+    try {
+        let equipements = await equipementClient.findMany({
+            where:{
+                siteId, isActive:true
+            },
+            include:{
+                equipmentGroup:true,
+                movement:true,
+                maintenance:true,
+                operations:true
+            },
+            orderBy:{
+                title:"asc"
+            }
+        });
+        console.log(equipements)
+        return apiResponse(false, undefined, equipements);
+    } catch (error) {
+        console.log(error);
+        return apiResponse(true, [{message:`${error}`, field:'server'}]);
+    }
+}
+
 
 /**
  * 
@@ -111,7 +173,7 @@ export const getEquipementByParams = async (request) =>{
         let equipement = await equipementClient.findMany({
             where:!search ? {isActive:true, ...queries} : {
                 OR:[
-                    {name:{contains:search}},
+                    {title:{contains:search}},
                     {numRef:{contains:search}}
                 ],
                 isActive:true
@@ -119,7 +181,7 @@ export const getEquipementByParams = async (request) =>{
             skip: parseInt(skip),
             take: parseInt(limit),
             orderBy:{
-                name:'asc'
+                title:'asc'
             }
         });
         const total = await equipementClient.count();

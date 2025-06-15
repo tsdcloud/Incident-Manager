@@ -10,50 +10,103 @@ datasource db {
 
 
 model incidenttype{
-  id          String  @id  @default(uuid())
-  numRef      String  @unique
-  name        String  @unique
-  createdBy   String
-  updatedBy   String?
-  incident incident[]
+  id            String  @id  @default(uuid())
+  numRef        String  @unique
+  name          String  @unique
+  createdBy     String
+  updatedBy     String?
+  description   String?
+  incident      incident[]
   incidentCause incidentcause[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime  @updatedAt
-  isActive  Boolean @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime  @updatedAt
+  isActive      Boolean @default(true)
 }
 
 
 model incidentcause{
-  id   String @id @default(uuid())
-  numRef      String  @unique
-  name  String
-  incident incident[]
-  incidentType  incidenttype[]
-  offBridge offbridge[]
+  id                  String @id @default(uuid())
+  numRef              String  @unique
+  name                String
+  description         String?
+  incident            incident[]
+  incidentType        incidenttype[]
+  offBridge           offbridge[]
   
-  createdBy String
-  updatedBy String?
+  createdBy           String
+  updatedBy           String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime  @updatedAt
-  isActive  Boolean @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime  @updatedAt
+  isActive            Boolean @default(true)
 }
 
 
-model equipement{
+model equipmentGroup{
   id          String  @id @default(uuid())
-  numRef      String  @unique
   name        String  @unique
-  siteId      String?
-  incidents   incident[]
-  maintenance maintenance[]
-  movement    movement[]
-  operations  operation[]
-  startUpDate DateTime?
-  status      EquipmentStatus @default(DEFAULT)
-  
+  numRef      String  @unique
+  description String?
+  equipements equipment[]
+  createdBy   String
+  updatedBy   String?
 
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime  @updatedAt
+  isActive    Boolean @default(true)
+	
+}
+
+model equipment{
+  id                  String  @id     @default(uuid())
+  numRef              String  @unique
+  title               String  @unique
+  operatingMode       Float   @default(0.0)
+  lifeSpan            Float   @default(0.0)
+  siteId              String?
+  startUpDate         DateTime?
+  scrapDate           DateTime?
+  equipmentGroupId      String
+  equipmentGroup        equipmentGroup    @relation(fields: [equipmentGroupId], references: [id])
+  lastMaintenance       DateTime?
+  periodicity           Float
+  status                EquipmentStatus @default(NEW)
+
+  incidents           incident[]
+  maintenance         maintenance[]
+  movement            movement[]
+  operations          operation[]
+  createdBy           String
+  updatedBy           String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime  @updatedAt
+  isActive    Boolean @default(true)
+}
+
+
+// enum EquipmentStatus{
+//   REBUS
+//   STARTUP
+//   DEFAULT
+// }
+
+enum EquipmentStatus{
+  NEW
+  SECOND_HAND
+}
+
+
+
+model history{
+  id              String      @id     @default(uuid())
+  movementId      String
+  movement        movement       @relation(fields: [movementId], references: [id])
+  operationId     String
+  operation       operation      @relation(fields: [operationId], references: [id])
+  maintenanceId   String
+  maintenance     maintenance    @relation(fields: [maintenanceId], references: [id])
   createdBy   String
   updatedBy   String?
 
@@ -63,30 +116,13 @@ model equipement{
 }
 
 
-enum EquipmentStatus{
-  REBUS
-  STARTUP
-  DEFAULT
-}
-
-model history{
-  id        String      @id     @default(uuid())
-  movementId      String
-  movement        movement       @relation(fields: [movementId], references: [id])
-  operationId     String
-  operation       operation      @relation(fields: [operationId], references: [id])
-  maintenanceId   String
-  maintenance     maintenance    @relation(fields: [maintenanceId], references: [id])
-}
-
-
 model movement{
-  id        String    @id     @default(uuid())
-  equipementId        String
-  equipement          equipement      @relation(fields: [equipementId], references: [id])
+  id                    String    @id     @default(uuid())
+  equipement            equipment      @relation(fields: [equipementId], references: [id])
+  equipementId          String
   originSite            String
   destinationSite       String
-  description         String
+  description         String?
   createdBy   String
   updatedBy   String?
   histories   history[]
@@ -96,12 +132,13 @@ model movement{
   isActive    Boolean @default(true)
 }
 
+
 model operation{
   id      String      @id       @default(uuid())
   siteId  String
   actionType          ActionType
   equipementId        String
-  equipement          equipement      @relation(fields: [equipementId], references: [id])
+  equipement          equipment      @relation(fields: [equipementId], references: [id])
   content     String?
   description String?
   createdBy   String
@@ -112,6 +149,7 @@ model operation{
   updatedAt   DateTime  @updatedAt
   isActive    Boolean @default(true)
 }
+
 
 enum ActionType{
   START
@@ -128,63 +166,58 @@ model consommable{
   createdBy   String
   updatedBy   String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime  @updatedAt
-  isActive  Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime  @updatedAt
+  isActive    Boolean @default(true)
 }
+
 
 model maintenancetype{
-  id  String  @id  @default(uuid())
-  numRef      String @unique
-  name  String  @unique
-  createdBy String
-  hasIncident   Boolean @default(false)
+  id          String  @id  @default(uuid())
+  numRef      String  @unique
+  name        String  @unique
+  createdBy   String
+  hasIncident         Boolean @default(false)
   hasProjectionDate   Boolean @default(true)
-  updatedBy String?
-  maintenace maintenance[]
+  updatedBy           String?
+  // maintenace          maintenance[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime  @updatedAt
-  isActive  Boolean @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime  @updatedAt
+  isActive            Boolean @default(true)
 }
+
 
 model incident{
-  id   String @id @default(uuid())
-  numRef      String  @unique
-
-  incidentId  String
-  incident  incidenttype @relation(fields: [incidentId], references: [id])
-
-  equipementId String?
-  equipement  equipement? @relation(fields: [equipementId], references: [id])
-  siteId String?
-  shiftId String?
-
-  consomableId String?
-  consommable consommable? @relation(fields: [consomableId], references: [id])
-
-  maintenance maintenance?
-
-  incidentCauseId String?
-  incidentCauses incidentcause? @relation(fields: [incidentCauseId], references: [id]) 
-
-  userId  String?
-  technician   String?
-  description String?     @db.LongText
-
-  createdBy String
-  closedBy String?
-
-  updatedBy String?
-  status  INCIDENT_STATUS @default(PENDING)
+  id                  String @id @default(uuid())
+  numRef              String  @unique
+  incidentId          String
+  incident            incidenttype @relation(fields: [incidentId], references: [id])
+  equipementId        String?
+  equipement          equipment? @relation(fields: [equipementId], references: [id])
+  siteId              String?
+  shiftId             String?
+  consomableId        String?
+  consommable         consommable? @relation(fields: [consomableId], references: [id])
+  maintenance         maintenance?
+  incidentCauseId     String?
+  incidentCauses      incidentcause? @relation(fields: [incidentCauseId], references: [id]) 
+  userId              String?
+  technician          String?
+  description         String?     @db.LongText
+  createdBy           String
+  closedBy            String?
+  updatedBy           String?
+  status              INCIDENT_STATUS @default(PENDING)
   
-  creationDate DateTime @default(now())
-  closedDate   DateTime?
-  isActive  Boolean   @default(true)
+  creationDate        DateTime @default(now())
+  closedDate          DateTime?
+  isActive            Boolean   @default(true)
 }
 
+
 model offbridge{
-  id           String         @id      @default(uuid())
+  id                  String         @id      @default(uuid())
   numRef              String  @unique
   incidentCauseId     String
   incidentCauses      incidentcause    @relation(fields: [incidentCauseId], references: [id])
@@ -205,56 +238,56 @@ model offbridge{
   driver       String
   trailer      String
   createdBy    String
-  updatedBy String?
+  updatedBy    String?
   
-  createdAt DateTime @default(now())
+  createdAt  DateTime @default(now())
   updateAt   DateTime @updatedAt  
-  isActive  Boolean   @default(true)
+  isActive   Boolean   @default(true)
 }
 
 
-
 model maintenance{
-  id  String  @id  @default(uuid())
+  id          String  @id  @default(uuid())
   numRef      String  @unique
-  maintenanceId String
-  maintenance maintenancetype @relation(fields: [maintenanceId], references: [id])
-  incidentId  String?  @unique
-  incident    incident?        @relation(fields: [incidentId], references: [id])
+  // maintenanceId String
+  maintenance   MAINTENANCE_TYPE
+  // maintenance   maintenancetype @relation(fields: [maintenanceId], references: [id])
+  incidentId    String?  @unique
+  incident      incident?        @relation(fields: [incidentId], references: [id], onDelete: Cascade)
   equipementId         String
-  equipement           equipement       @relation(fields: [equipementId], references: [id])
-  siteId  String
-  status  MAINTENANCE_STATUS @default(PENDING)
+  equipement           equipment       @relation(fields: [equipementId], references: [id], onDelete: Cascade)
+  siteId               String
+  status          MAINTENANCE_STATUS @default(PENDING)
   projectedDate   DateTime?
   nextMaintenance DateTime?
-  effectifDate DateTime?
-  description String?
-  supplierId String?
-  userId  String?
-  histories     history[]
+  effectifDate    DateTime?
+  description     String?
+  supplierId      String?
+  userId          String?
+  histories       history[]
   
-  closedDate    DateTime?
-  createdBy     String
-  validationBy  String?
-  rejectedBy    String?
-  closedBy      String?
-  updatedBy     String?
+  closedDate      DateTime?
+  createdBy       String
+  validationBy    String?
+  rejectedBy      String?
+  closedBy        String?
+  updatedBy       String?
 
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  isActive  Boolean @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  isActive        Boolean @default(true)
 }
 
 
 model PushSubscription {
-  id        String     @id @default(uuid())
-  userId    Int?
-  User      String?
-  endpoint  String  @unique
-  expirationTime String?
-  keys      Json
-  createdAt DateTime @default(now())
+  id              String     @id @default(uuid())
+  userId          Int?
+  User            String?
+  endpoint        String  @unique
+  expirationTime  String?
+  keys            Json
+  createdAt       DateTime @default(now())
 }
 
 enum INCIDENT_STATUS{
@@ -287,4 +320,11 @@ enum PAYMENT_MODE{
   CASH
   MOBILE
   BILLABLE
+}
+
+enum MAINTENANCE_TYPE{
+  CORRECTION
+  PALLIATIVE
+  CURATIVE
+  PROGRAMMED
 }

@@ -17,14 +17,15 @@ const SORT_BY = "name";
  */
 export const createMaintenanceService = async (body)=>{
     try {
-        let {maintenanceId, incidentId, equipement, ...data} = body
+        let {incidentId, equipementId, ...data} = body
+        console.log(body)
 
         if(incidentId){
             let incidentExist = await prisma.incident.findFirst({where:{id: incidentId}});
             if(!incidentExist) return Errors("L'incident n'exist pas");
         }
-        let maintenanceTypeExist = await prisma.maintenancetype.findFirst({where:{id: maintenanceId}});
-        if(!maintenanceTypeExist) return Errors("Le type de maintenance n'exist pas");
+        // let maintenanceTypeExist = await prisma.maintenancetype.findFirst({where:{id: maintenanceId}});
+        // if(!maintenanceTypeExist) return Errors("Le type de maintenance n'exist pas");
 
         const lastMaintenance = await maintenanceClient.findFirst({
             orderBy: { createdAt: 'desc' },
@@ -41,11 +42,21 @@ export const createMaintenanceService = async (body)=>{
             data:{
                 ...data, 
                 numRef,
-                maintenance: { connect: { id: maintenanceId } },
+                // maintenance: { connect: { id: maintenanceId } },
                 ...(incidentId ? { incident: { connect: { id: incidentId} } } : {}),
-                equipement: { connect: { id: equipement } },
+                equipement: { connect: { id: equipementId } },
             }
         });
+
+        if (data.maintenance === 'PROGRAMMED') {
+            await prisma.equipment.update({
+                where: { id: equipementId },
+                data: {
+                    lastMaintenance: date
+                }
+            });
+        }
+
         return maintenance;
     } catch (error) {
         console.log(error);
@@ -69,7 +80,6 @@ export const getAllMaintenanceService = async(body) =>{
             take: parseInt(LIMIT),
             include:{
                 incident:true,
-                maintenance:true,
                 incident:true,
                 equipement:true
             },
@@ -135,8 +145,6 @@ export const getMaintenanceByParams = async (request, token) =>{
                     ]
                 },
                 include:{
-                    incident:true,
-                    maintenance:true,
                     incident:true,
                     equipement:true
                 },
@@ -230,9 +238,6 @@ export const closeMaintenanceService = async (id, body)=>{
     let incidentCauseExist = await prisma.incidentcause.findFirst({where:{id: incidentCauseId}});
     if(!incidentCauseExist) return Errors("La cause d'incident sélectionné n'exist pas");
     
-    let incidentTypeExist = await prisma.incidenttype.findFirst({where:{id: incidentId}});
-    if(!incidentTypeExist) return Errors("Le type d'incident sélectionné n'exist pas");
-
     try {
         let data = await prisma.$transaction([
             prisma.incident.update({
@@ -254,6 +259,7 @@ export const closeMaintenanceService = async (id, body)=>{
                 }
             })
         ]);
+        
         if(!data) throw new Error();
     } catch (error) {
         console.log(error);
@@ -299,7 +305,6 @@ export const generateExcelService = async (query) =>{
                     include:{
                         equipement:true,
                         incident:true,
-                        maintenance:true
                     }
                 });
             } else {
@@ -314,7 +319,6 @@ export const generateExcelService = async (query) =>{
                     include:{
                         equipement:true,
                         incident:true,
-                        maintenance:true
                     }
                 });
             }
@@ -349,7 +353,6 @@ export const generateExcelService = async (query) =>{
                 include:{
                     equipement:true,
                     incident:true,
-                    maintenance:true
                 }
             });
         } else {
@@ -369,7 +372,6 @@ export const generateExcelService = async (query) =>{
                 include:{
                     equipement:true,
                     incident:true,
-                    maintenance:true
                 }
             });
         }

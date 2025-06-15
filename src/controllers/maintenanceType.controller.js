@@ -1,32 +1,33 @@
 import { createMaintenanceTypeService, deleteMaintenanceTypeService, getAllMaintenanceTypeService, getMaintenanceTypeByIdService, getMaintenanceTypeByParams, updateMaintenanceTypeService } from "../services/maintenanceType.service.js";
+import { apiResponse } from "../utils/apiResponse.js";
 import HTTP_STATUS from "../utils/http.utils.js";
 
 
 /**
- * 
+ * Creates a new maintenance type
  * @param req 
  * @param res 
- * @returns 
+ * @returns - object of the created maintenance type
  */
 export const createMaintenanceTypeController = async (req, res) => {
     try {
         let type = await createMaintenanceTypeService(req.body);
         res
-        .status(HTTP_STATUS.CREATED.statusCode)
+        .status(type.error ? HTTP_STATUS.BAD_REQUEST.statusCode : HTTP_STATUS.CREATED.statusCode)
         .send(type);
         return;
     } catch (error) {
         console.log(error);
-        res.sendStatus(HTTP_STATUS.BAD_REQUEST.statusCode);
+        res.status(HTTP_STATUS.SERVEUR_ERROR.statusCode).send(apiResponse(true, [{msg: `${error}`, field: "server"}]));
         return
     }
 }
 
 /**
- * 
+ * Get a maintenance type by id
  * @param req
  * @param res 
- * @returns 
+ * @returns - object of the maintenance type
  */
 export const getMaintenanceTypeByIdController = async (req, res) => {
     let { id } = req.params;
