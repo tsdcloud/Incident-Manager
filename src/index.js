@@ -18,19 +18,21 @@ import offBridge from './routes/offBridge.route.js'
 import maintenanceType from './routes/maintenanceType.route.js'
 import operationRoutes from './routes/operation.route.js'
 import movementRoutes from './routes/movement.route.js'
+import equipmentGroupRoutes from './routes/equipmentGroup.route.js';
+import equipmentRoutes from './routes/equipement.route.js';
 import { verifyUserExist } from './middlewares/verifyToken.middleware.js';
 import {rateLimitAndTimeout} from './middlewares/ratelimiter.middleware.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
 import { errorLogger } from './middlewares/errorHandlers.js';
 import { logger } from './middlewares/logEvents.middleware.js';
-// Import this first!
+
 import * as Sentry from "@sentry/node"
 
 
 
 Sentry.init({
     dsn: process.env.SENTRY_DSN,
-  })
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,8 +42,9 @@ const  corsOptions = {
     origin: '*',
 }
 if(process.env.NODE_ENV != "development"){
-    app.use(Sentry.Handlers.requestHandler());
+    // app.use(Sentry.Handlers.requestHandler());
 }
+
 app.use(cors(corsOptions));
 app.use(helmet());
 app.use(bodyParser.json());
@@ -98,8 +101,7 @@ app.post('/api/v1/subscribe', async (req, res)=>{
             field:'body'
         }]})
     }
-})
-
+});
 app.use(verifyUserExist);
 app.use("/api/incidents", incident);
 app.use("/api/consommables", consommable);
@@ -111,6 +113,9 @@ app.use("/api/maintenances", maintenance);
 app.use("/api/maintenance-types", maintenanceType);
 app.use("/api/operations", operationRoutes);
 app.use("/api/movements", movementRoutes);
+app.use("/api/equipment-groups", equipmentGroupRoutes);
+app.use("/api/equipments", equipmentRoutes);
+
 
 // app.get('/', (req, res)=>{
 //     res

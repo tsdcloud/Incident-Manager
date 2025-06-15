@@ -22,7 +22,7 @@ export const createIncidentService = async (body)=>{
             select: { numRef: true }
         });
 
-        const equipementExist = await prisma.equipement.findFirst({where:{id:body.equipementId, isActive:true}});
+        const equipementExist = await prisma.equipment.findFirst({where:{id:body.equipementId, isActive:true}});
         const typeIncidentExist = await prisma.incidenttype.findFirst({where:{id:body.incidentId, isActive:true}});
 
         if(!equipementExist) return (Errors("L'équipement sélectionné n'existe pas", "field"));
@@ -315,7 +315,8 @@ export const getIncidentByParams = async (request, token) =>{
                         where:{
                             name:{
                                 contains:value
-                            }
+                            },
+                            isActive:true
                         }
                     });
     
@@ -326,7 +327,8 @@ export const getIncidentByParams = async (request, token) =>{
                         where:{
                             incidentId:{
                                 in: typeIds
-                            }
+                            },
+                            isActive:true
                         },
                         include:{
                             consommable:true,
@@ -348,7 +350,8 @@ export const getIncidentByParams = async (request, token) =>{
                         where:{
                             name:{
                                 contains:value
-                            }
+                            },
+                            isActive:true
                         }
                     });
     
@@ -359,7 +362,8 @@ export const getIncidentByParams = async (request, token) =>{
                         where:{
                             incidentCauseId:{
                                 in: causesIds
-                            }
+                            },
+                            isActive:true
                         },
                         include:{
                             consommable:true,
@@ -377,10 +381,11 @@ export const getIncidentByParams = async (request, token) =>{
                     break;
                 case 'equipmentId':
                     // Get the incident type with the search value
-                    let equipements = await prisma.equipement.findMany({
+                    let equipements = await prisma.equipment.findMany({
                         where:{
-                            name:{
-                                contains:value
+                            title:{
+                                contains:value,
+                                isActive:true
                             }
                         }
                     });
@@ -392,7 +397,8 @@ export const getIncidentByParams = async (request, token) =>{
                         where:{
                             equipementId:{
                                 in: equipmentIds
-                            }
+                            },
+                            isActive:true
                         },
                         include:{
                             consommable:true,
@@ -550,7 +556,7 @@ export const getIncidentByParams = async (request, token) =>{
  */
 export const updateIncidentService = async (id, body) =>{
     try {
-        const equipementExist = await prisma.equipement.findFirst({where:{id:body.equipementId, isActive:true}});
+        const equipementExist = await prisma.equipment.findFirst({where:{id:body.equipementId, isActive:true}});
         const typeIncidentExist = await prisma.incidenttype.findFirst({where:{id:body.incidentId, isActive:true}});
 
         if(!equipementExist) return (Errors("L'équipement sélectionné n'existe pas"));

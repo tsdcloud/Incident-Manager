@@ -1,4 +1,4 @@
-import { createEquipementService, deleteEquipmentService, getAllEquipmentService, getEquipementByIdService, getEquipementByParams, getEquipementHistoryService, importEquipementService, updateEquipementService } from "../services/equipment.service.js";
+import { createEquipementService, deleteEquipmentService, getAllEquipmentService, getEquipementByIdService, getEquipementByParams, getEquipementHistoryService, getSiteEquipmentsService, importEquipementService, updateEquipementService } from "../services/equipment.service.js";
 import { apiResponse } from "../utils/apiResponse.js";
 import HTTP_STATUS from "../utils/http.utils.js";
 
@@ -121,6 +121,28 @@ export const getAllEquipementController = async(req, res) => {
         res
         .sendStatus(HTTP_STATUS.BAD_REQUEST.statusCode);
         return;
+    }
+}
+
+
+
+/**
+ * Get all the site equipments
+ * @param {*} req 
+ * @param {*} res 
+ * @returns object
+ */
+export const getSiteEquipmentsController = async (req, res)=>{
+    try {
+        let {siteId} = req.params;
+        let equipments = await getSiteEquipmentsService(siteId);
+        res
+        .status(equipments.error ? HTTP_STATUS.NOT_FOUND.statusCode : HTTP_STATUS.OK.statusCode)
+        .send(equipments);
+    } catch (error) {
+        console.log(error);
+        res.status(HTTP_STATUS.SERVEUR_ERROR.statusCode).send(apiResponse(true, [{message:`${error}`, field:"server"}]));
+        return 
     }
 }
 

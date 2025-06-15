@@ -15,7 +15,7 @@ export const createOperationService = async (body) =>{
     try {
         let {siteId, equipementId, actionTypeId} = body;
         // verify if equipement exist
-        let equipementExist = await prisma.equipement.findFirst({
+        let equipementExist = await prisma.equipment.findFirst({
             where:{
                 id:equipementId,
                 isActive:true
@@ -26,7 +26,7 @@ export const createOperationService = async (body) =>{
         let operation = await operationClient.create({
             data:body
         });
-        return apiResponse(false,undefined, operation);
+        return apiResponse(false, undefined, operation);
     } catch (error) {
         console.log(error);
         return apiResponse(false,[{message:`${error}`, field:'server'}]);
