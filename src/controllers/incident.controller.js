@@ -267,7 +267,7 @@ export const generateExcelFileController = async (req, res) =>{
                     ,
                     incidentType: incident.incident?.name || '',
                     incidentCause: incident.incidentCauses?.name || '',
-                    equipement: incident.equipement.name,
+                    equipement: incident.equipement?.title,
                     site: sites?.data.find(site=>site?.id === incident.siteId)?.name || incident.siteId,
                     shift: shifts?.data.find(shift=>shift?.id === incident.shiftId)?.name || incident.shiftId,
                     userId: employees?.data.find(employee=>employee?.id === incident.createdBy)?.name || incident.createdBy ||"--",
