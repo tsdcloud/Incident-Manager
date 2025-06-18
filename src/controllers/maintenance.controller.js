@@ -210,7 +210,7 @@ export const generateExcelFileController = async (req, res) =>{
                     creationDate: maintenance.createdAt,
                     maintenance: maintenance.maintenance.name || "--",
                     incident: maintenance.incident?.numRef || "--",
-                    equipement: maintenance.equipement?.name || "--",
+                    equipement: maintenance.equipement?.title || "--",
                     site: sites?.data.find(site=>site?.id === maintenance.siteId)?.name || maintenance.siteId,
                     userId: employees?.data.find(employee=>employee?.id === maintenance.userId)?.name || maintenance.createdBy,
                     supplierId: employees?.data.find(employee=>employee?.id === maintenance.supplierId)?.name ||suppliers?.data.map(supplier=>supplier?.id === maintenance.supplierId)?.name || maintenance.supplierId,
