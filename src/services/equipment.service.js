@@ -18,7 +18,7 @@ const SORT_BY = "name";
  */
 export const createEquipementService = async (body)=>{
 
-    let {numRef, name} = body;
+    let {numRef, title} = body;
 
 
     if(numRef){
@@ -28,9 +28,9 @@ export const createEquipementService = async (body)=>{
         if (equipement) return apiResponse(true, [{msg: "NumRef already exist", field: "numRef"}]);;
     }
 
-    if(name){
+    if(title){
         let equipement = await equipementClient.findFirst({
-            where:{name, isActive:true}
+            where:{title, isActive:true}
         })
         if (equipement) return apiResponse(true, [{msg: "Name already exist", field: "name"}]);;
     }
@@ -229,7 +229,7 @@ export const getEquipementHistoryService = async (id, siteId) =>{
  * @returns 
  */
 export const updateEquipementService = async (id, body) =>{
-    let {numRef, name} = body;
+    let {numRef, title} = body;
 
     if(numRef){
         let equipement = await equipementClient.findFirst({
@@ -238,9 +238,9 @@ export const updateEquipementService = async (id, body) =>{
         if (equipement) return Errors("equipement with this ref number already exist", "numRef");
     }
 
-    if(name){
+    if(title){
         let equipement = await equipementClient.findFirst({
-            where:{name}
+            where:{title}
         })
         if (equipement) return Errors("equipement with this name already exist", "name");
     }
@@ -264,10 +264,10 @@ export const updateEquipementService = async (id, body) =>{
  */
 export const deleteEquipmentService = async (id) =>{
     try {
-        let exist = await equipementClient.findFirst({where:{id}});
+        let exist = await equipementClient.findFirst({where:{id, isActive:true}});
 
         if(!exist){
-            return Errors("Equipement does not exist", "id");
+            return apiResponse(true, [{msg:"Equipement does not exist", field:"id"}]);
         }
 
 
@@ -275,7 +275,7 @@ export const deleteEquipmentService = async (id) =>{
             where: {id},
             data:{
                 isActive:false,
-                name: `deleted__${exist.name}__${new Date().toISOString()}`
+                title: `deleted__${exist.title}__${new Date().toISOString()}`
             }
         });
 

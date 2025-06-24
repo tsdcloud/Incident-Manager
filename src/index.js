@@ -19,6 +19,7 @@ import maintenanceType from './routes/maintenanceType.route.js'
 import operationRoutes from './routes/operation.route.js'
 import movementRoutes from './routes/movement.route.js'
 import equipmentGroupRoutes from './routes/equipmentGroup.route.js';
+import equipmentGroupFamilyRoutes from './routes/equipementGroupFamily.route.js';
 import equipmentRoutes from './routes/equipement.route.js';
 import { verifyUserExist } from './middlewares/verifyToken.middleware.js';
 import {rateLimitAndTimeout} from './middlewares/ratelimiter.middleware.js';
@@ -114,6 +115,7 @@ app.use("/api/maintenance-types", maintenanceType);
 app.use("/api/operations", operationRoutes);
 app.use("/api/movements", movementRoutes);
 app.use("/api/equipment-groups", equipmentGroupRoutes);
+app.use("/api/equipment-group-families", equipmentGroupFamilyRoutes);
 app.use("/api/equipments", equipmentRoutes);
 
 

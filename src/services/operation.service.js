@@ -13,7 +13,7 @@ const SORT_BY = "name";
  */
 export const createOperationService = async (body) =>{
     try {
-        let {siteId, equipementId, actionTypeId} = body;
+        let {siteId, equipementId, actionTypeId, content} = body;
         // verify if equipement exist
         let equipementExist = await prisma.equipment.findFirst({
             where:{
@@ -21,6 +21,8 @@ export const createOperationService = async (body) =>{
                 isActive:true
             }
         });
+
+        
         if(!equipementExist) return apiResponse(true, [{message:'equipement does not exist', field:'equipementId'}]);
         
         let operation = await operationClient.create({

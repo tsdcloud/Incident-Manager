@@ -5,6 +5,7 @@ import { apiResponse } from '../utils/apiResponse.js';
 // Creation validation
 export const createEquipmentGroupValidation = [
     body('name').notEmpty().withMessage('Nom est requis'),
+    body('equipmentGroupFamilyId').notEmpty().withMessage('Famille d\'equipement est requise'),
     body('description').optional().notEmpty().withMessage('Description ne doit pas être vide'),
     (req, res, next) =>{
         const error = validationResult(req);
@@ -29,6 +30,7 @@ export const createEquipmentGroupValidation = [
 // Update validation
 export const updateEquipmentGroupValidation = [
     body('name').optional().notEmpty().withMessage('Nom ne doit pas être vide'),
+    body('equipmentGroupFamilyId').optional().notEmpty().withMessage('Famille d\'equipement ne doit pas être vide'),
     body('description').optional().notEmpty().withMessage('Description ne doit pas être vide'),
     (req,res, next)=>{
         let errors = validationResult(req.body);

@@ -110,7 +110,7 @@ model operation {
   updatedAt    DateTime   @updatedAt
   isActive     Boolean    @default(true)
   actionType   ActionType
-  content      String?
+  content      Float?
   histories    history[]
   equipement   equipment  @relation(fields: [equipementId], references: [id])
 
@@ -234,7 +234,7 @@ model maintenance {
 }
 
 model equipmentgroup {
-  id          String      @id
+  id          String      @id @default(uuid())
   name        String      @unique(map: "equipmentGroup_name_key")
   numRef      String      @unique(map: "equipmentGroup_numRef_key")
   equipmentGroupFamilyId String?
@@ -242,20 +242,20 @@ model equipmentgroup {
   createdBy   String
   updatedBy   String?
   createdAt   DateTime    @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime    @updatedAt  
   isActive    Boolean     @default(true)
   description String?
   equipements equipment[]
 }
 
 model equipmentGroupFamily{
-  id        String      @id
+  id        String        @id @default(uuid())
   name        String      @unique
   numRef      String      @unique
   createdBy   String
   updatedBy   String?
   createdAt   DateTime    @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime    @updatedAt   
   equipmentGroups         equipmentgroup[]
   isActive    Boolean     @default(true)
   description String?

@@ -38,7 +38,7 @@ export const getAllMovementsController = async(req, res)=>{
             try {
                 let  movements = await getMovementsByParamsService(req.query);
                 res
-                .status(movements.error ? HTTP_STATUS.NOT_FOUND.statusCode : HTTP_STATUS.OK.statusCode)
+                .status(movements?.error ? HTTP_STATUS.NOT_FOUND.statusCode : HTTP_STATUS.OK.statusCode)
                 .send(movements);
                 return;
             } catch (error) {

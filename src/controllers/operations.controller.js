@@ -38,7 +38,7 @@ export const getAllOperationController = async(req, res)=>{
             try {
                 let  operation = await getOperationsByParamsService(req.query);
                 res
-                .status(operation.error ? HTTP_STATUS.NOT_FOUND.statusCode : HTTP_STATUS.OK.statusCode)
+                .status(operation?.error ? HTTP_STATUS.NOT_FOUND.statusCode : HTTP_STATUS.OK.statusCode)
                 .send(operation);
                 return;
             } catch (error) {

@@ -121,7 +121,7 @@ export const getIncidentTypeByParams = async (request) =>{
             }
         });
         const total = await incidentType.count({where:{isActive:true}});
-        return search ? {data: types} :{
+        return {
             page: parseInt(page),
             totalPages: Math.ceil(total / limit),
             total,

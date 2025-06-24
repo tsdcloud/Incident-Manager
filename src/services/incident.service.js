@@ -384,9 +384,9 @@ export const getIncidentByParams = async (request, token) =>{
                     let equipements = await prisma.equipment.findMany({
                         where:{
                             title:{
-                                contains:value,
-                                isActive:true
-                            }
+                                contains:value
+                            },
+                            isActive:true
                         }
                     });
     

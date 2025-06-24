@@ -1,5 +1,5 @@
 /**
- * This file contains the logic for equipment group
+ * This file contains the logic for equipment group families
  */
 
 import {prisma} from '../config.js';
@@ -7,7 +7,9 @@ import { apiResponse } from '../utils/apiResponse.js';
 import { generateRefNum } from '../utils/utils.js';
 const equipmentGroupFamilyClient = prisma.equipmentGroupFamily;
 
-
+const LIMIT = 100;
+const ORDER ="asc";
+const SORT_BY = "name";
 /**
  * Creates a new equipment group
  * @param {*} body 
@@ -51,14 +53,14 @@ export const createEquipmentGroupFamilyService = async (body) =>{
 
 
 /**
- * Update an equipment group
+ * Update an equipment group family
  * @param {*} id 
  * @param {*} body 
- * @returns updated equipment group
+ * @returns updated equipment group family
  */
-export const updateEquipmentGroupService = async(id, body)=>{
+export const updateEquipmentGroupFamilyService = async(id, body)=>{
     try {
-        let group = await equipmentGroupFamilyClient.update({
+        let family = await equipmentGroupFamilyClient.update({
             where:{
                 isActive:true, 
                 id
@@ -66,7 +68,7 @@ export const updateEquipmentGroupService = async(id, body)=>{
             data:body
         });
 
-        return apiResponse(false, undefined, group);
+        return apiResponse(false, undefined, family);
     } catch (error) {
         console.log(error);
         return apiResponse(true, [{msg:error, field:"server"}]);
@@ -74,15 +76,15 @@ export const updateEquipmentGroupService = async(id, body)=>{
 }
 
 /**
- * Returns the list of active equipments
- * @returns active equipment groups
+ * Returns the list of active equipment group families
+ * @returns active equipment group families
  */
-export const getAllEquipmentGroupsService = async () =>{
+export const getAllEquipmentGroupFamiliesService = async () =>{
     try {
-        let groups = await equipmentGroupFamilyClient.findMany({
+        let families = await equipmentGroupFamilyClient.findMany({
             where:{isActive:true}
         });
-        return apiResponse(false, undefined, groups);
+        return apiResponse(false, undefined, families);
     } catch (error) {
         console.log(error);
         return apiResponse(true, [{msg:error, field:"server"}]);
@@ -91,14 +93,35 @@ export const getAllEquipmentGroupsService = async () =>{
 
 
 /**
- * Returns equipments based on the params
+ * Returns equipment group families based on the params
  * @param {*} params 
- * @returns list of active equipment groups based on params
+ * @returns list of active equipment group families based on params
  */
-export const getEquipmentByParamsService = async(params)=>{
+export const getEquipmentGroupFamiliesByParamsService = async(params)=>{
     try {
-        let {} = params;
-        // 
+        const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, ...queries } = params; 
+        
+        let families = await equipmentGroupFamilyClient.findMany({
+            where:!search ? {...queries, isActive:true} : {
+                name:{
+                    contains:search
+                },
+                isActive:true
+            },
+            orderBy:{
+                name:'desc'
+            }
+        });
+
+        const total = await equipmentGroupFamilyClient.count({where:{isActive:true}});
+
+        return apiResponse(false, undefined, {
+            page: parseInt(page),
+            totalPages: Math.ceil(total / LIMIT),
+            total,
+            data: families,
+        });
+        
     } catch (error) {
         console.log(error);
         return apiResponse(true, [{msg:error, field:"server"}]);
@@ -108,21 +131,21 @@ export const getEquipmentByParamsService = async(params)=>{
 
 
 /**
- * Get the group by Id
+ * Get the family by Id
  * @param {*} id 
- * @returns group with id if active or Error
+ * @returns family with id if active or Error
  */
-export const getEquipmentByIdService = async(id)=>{
+export const getEquipmentGroupFamiliyByIdService = async(id)=>{
     try {
-        let group = await equipmentGroupFamilyClient.findUnique({
+        let family = await equipmentGroupFamilyClient.findUnique({
             where:{
                 isActive:true,
                 id
             }
         });
 
-        if(!group) return apiResponse(true, [{msg:"Le group n'existe pas", field:"id"}]);
-        return apiResponse(false, undefined, group);
+        if(!family) return apiResponse(true, [{msg:"La famille n'existe pas", field:"id"}]);
+        return apiResponse(false, undefined, family);
     } catch (error) {
         console.log(error);
         return apiResponse(true, [{msg:error, field:'server'}]);
@@ -131,26 +154,26 @@ export const getEquipmentByIdService = async(id)=>{
 
 
 /**
- * Delete equipment group
+ * Delete equipment group family
  * @param {*} id 
  * @returns an empty object
  */
-export const deleteEquipmentGroupService = async (id) =>{
+export const deleteEquipmentGroupFamilyService = async (id) =>{
     try {
-        // check if the equipment exist
-        let groupExist = await equipmentGroupFamilyClient.findUnique({
+        // check if the equipment group family exist exist
+        let familyExist = await equipmentGroupFamilyClient.findUnique({
             where:{
                 isActive:true, 
                 id
             }
         });
 
-        if(!groupExist) return apiResponse(true, [{msg:"Le group d'equipement n'existe pas", field:"id"}]);
+        if(!familyExist) return apiResponse(true, [{msg:"La famille d'equipement n'existe pas", field:"id"}]);
         // Update the name and active status if exist
-        let group = await equipmentGroupFamilyClient.update({
+        let family = await equipmentGroupFamilyClient.update({
             where:{id},
             data:{
-                name:`deleted_${groupExist.name}_${new Date().toTimeString()}`,
+                name:`deleted_${familyExist.name}_${new Date().toTimeString()}`,
                 isActive:false
             }
         });

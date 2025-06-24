@@ -1,4 +1,4 @@
-import { createEquipmentGroupService, deleteEquipmentGroupService, getAllEquipmentGroupsService, updateEquipmentGroupService } from "../services/equipmentGroup.service.js";
+import { createEquipmentGroupService, deleteEquipmentGroupService, getAllEquipmentGroupsService, getEquipmentGroupByParamsService, updateEquipmentGroupService } from "../services/equipmentGroup.service.js";
 import { apiResponse } from "../utils/apiResponse.js";
 import HTTP_STATUS from "../utils/http.utils.js";
 
@@ -50,6 +50,21 @@ export const getEquipmentByIdController = async (req, res) =>{
  * @returns all the active groups
  */
 export const getAllEquipmentGroupsController = async (req, res) => {
+    if(Object.keys(req.query).length !== 0 && req.query.constructor === Object){
+        try {
+            let  groups = await getEquipmentGroupByParamsService(req.query);
+            res
+            .status(groups.error ? HTTP_STATUS.BAD_REQUEST.statusCode : HTTP_STATUS.OK.statusCode)
+            .send(groups)
+            return;
+        } catch (error) {
+          console.log(error);
+          res
+        .status(HTTP_STATUS.BAD_REQUEST.statusCode)
+        .send(apiResponse(true, [{msg: `${error}`, field:"server"}]));
+          return;
+        }
+    }
     try {
         let groups = await getAllEquipmentGroupsService();
         return res.status(groups.error ? HTTP_STATUS.NOT_FOUND.statusCode : HTTP_STATUS.OK.statusCode).send(groups);

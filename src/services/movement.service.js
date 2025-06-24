@@ -15,7 +15,7 @@ export const createMovementService = async (body) =>{
         let {equipementId, originSite, destinationSite, ...rest} = body;
 
         if(destinationSite === originSite){
-            return apiResonse(true, [{message:"Destination site sholud not be the same as originSite"}])
+            return apiResponse(true, [{message:"Destination site sholud not be the same as originSite"}])
         }
         // Check if the equipment exist
         let equipementExist = await prisma.equipment.findFirst({
@@ -129,7 +129,7 @@ export const getMovementsByParamsService=async(request)=>{
                     {destinationSite: {contains:search}},
                     {description: {contains:search}},
                     {equipement: {
-                        name:{
+                        title:{
                             contains:search
                         }
                     }},
