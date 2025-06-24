@@ -237,6 +237,8 @@ model equipmentgroup {
   id          String      @id
   name        String      @unique(map: "equipmentGroup_name_key")
   numRef      String      @unique(map: "equipmentGroup_numRef_key")
+  equipmentGroupFamilyId String?
+  equipmentGroupFamily   equipmentGroupFamily?    @relation(references: [id], fields: [equipmentGroupFamilyId])
   createdBy   String
   updatedBy   String?
   createdAt   DateTime    @default(now())
@@ -244,6 +246,19 @@ model equipmentgroup {
   isActive    Boolean     @default(true)
   description String?
   equipements equipment[]
+}
+
+model equipmentGroupFamily{
+  id        String      @id
+  name        String      @unique
+  numRef      String      @unique
+  createdBy   String
+  updatedBy   String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime
+  equipmentGroups         equipmentgroup[]
+  isActive    Boolean     @default(true)
+  description String?
 }
 
 enum EquipmentStatus {
