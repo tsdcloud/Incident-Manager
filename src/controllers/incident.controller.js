@@ -32,7 +32,7 @@ export const createIncidentController = async (req, res) => {
         let employees = await getEmployeesEmail(req.headers.authorization, "manager");
         if(employees){
             let emailList = employees.map(employee => employee.email);
-    
+            console.log(emailList);
             let subscriptionList = await getSubscriptiobListService();
             let payload = {
                 title: "BERP - INCIDENT",
