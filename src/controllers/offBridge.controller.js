@@ -197,7 +197,7 @@ export const generateExcelFileController = async (req, res) =>{
                     incidentCause: offBridge.incidentCauses.name,
                     siteId: sites?.data.find(site=>site?.id === offBridge.siteId)?.name || offBridge.siteId,
                     tier: suppliers?.data.find(supplier=> supplier?.id === offBridge.tier)?.name || offBridge.tier,
-                    paymentmode: offBridge.paymentMode === "CASH" ? "ESPECE" : offBridge.paymentMode === "CASH" ? "A FACTURER" : offBridge.paymentMode ,
+                    paymentmode: offBridge.paymentMode === "CASH" ? "ESPECE" : offBridge.paymentMode === "BILLABLE" ? "A FACTURER" : offBridge.paymentMode ,
                     container1: offBridge.container1,
                     container2: offBridge.container2,
                     plomb1: offBridge.plomb1,
