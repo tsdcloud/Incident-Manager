@@ -39,9 +39,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const  corsOptions = {
-    origin: '*',
-}
+// const  corsOptions = {
+//     origin: '*',
+// }
+const corsOptions = {
+    origin: [
+        'https://berp.bfcgroupsa.com',
+        'https://incident.bfcgroupsa.com' ,  // si tu veux aussi l'auto-autoriser
+        "https://berp.bfcgroupsa.com",
+        "https://incident.bfcgroupsa.com",
+        "https://wpo.bfcgroupsa.com",
+        "https://entity.bfcgroupsa.com"
+    ],
+    credentials: true,          // si tu envoies des cookies / token
+    optionsSuccessStatus: 200   // legacy browsers (IE11) choke on 204
+};
 if(process.env.NODE_ENV != "development"){
     // app.use(Sentry.Handlers.requestHandler());
 }
