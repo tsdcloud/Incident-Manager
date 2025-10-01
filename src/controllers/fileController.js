@@ -52,7 +52,7 @@ export const upload = multer({
 // Fonction utilitaire pour construire l'URL
 const buildFileUrl = (filename) => {
     if (process.env.USE_FULL_URL === 'true') {
-        return `https://${process.env.ADDRESS}/api/files/download/${filename}`;
+        return `${process.env.ADDRESS}/api/files/download/${filename}`;
     }
     return `http://${process.env.ADDRESS}:${process.env.PORT}/api/files/download/${filename}`;
 };
