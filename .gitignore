@@ -3,3 +3,5 @@ logs
 logs.txt
 node_modules
 .env
+data
+exports/
