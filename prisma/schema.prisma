@@ -39,7 +39,7 @@ model incidentcause {
 model equipment {
   id               String          @id @default(uuid())
   numRef           String          @unique
-  title            String          @unique
+  title            String
   operatingMode    Float           @default(0)
   siteId           String?
   startUpDate      DateTime?
@@ -145,7 +145,7 @@ model maintenancetype {
 model incident {
   id              String          @id @default(uuid())
   numRef          String          @unique
-  incidentId      String
+  incidentId      String?
   equipementId    String?
   siteId          String?
   shiftId         String?
@@ -159,18 +159,34 @@ model incident {
   status          INCIDENT_STATUS @default(PENDING)
   creationDate    DateTime        @default(now())
   closedDate      DateTime?
+  closedManuDate  DateTime?
+  hasStoppedOperations        Boolean         @default(false)
   isActive        Boolean         @default(true)
   technician      String?
   consommable     consommable?    @relation(fields: [consomableId], references: [id])
   equipement      equipment?      @relation(fields: [equipementId], references: [id])
   incidentCauses  incidentcause?  @relation(fields: [incidentCauseId], references: [id])
-  incident        incidenttype    @relation(fields: [incidentId], references: [id])
+  incident        incidenttype?    @relation(fields: [incidentId], references: [id])
   maintenance     maintenance?
+  photos          incidentphoto[]
 
   @@index([consomableId], map: "incident_consomableId_fkey")
   @@index([equipementId], map: "incident_equipementId_fkey")
   @@index([incidentCauseId], map: "incident_incidentCauseId_fkey")
   @@index([incidentId], map: "incident_incidentId_fkey")
+}
+
+model incidentphoto {
+  id                String          @id @default(uuid())
+  url               String
+  filename          String?
+  incidentId        String
+  incident          incident       @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  createdBy         String
+  updatedBy         String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  isActive          Boolean        @default(true)
 }
 
 model offbridge {
@@ -217,6 +233,7 @@ model maintenance {
   supplierId      String?
   userId          String?
   closedDate      DateTime?
+  closedManuDate  DateTime?
   createdBy       String
   validationBy    String?
   rejectedBy      String?

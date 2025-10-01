@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "server": "node src/index.js",
-    "server:dev": "nodemon src/index.js"
+    "server:dev": "nodemon src/index.js",
+    "seed": "node src/seed.js"
   },
   "keywords": [
     "incident",

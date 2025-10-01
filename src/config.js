@@ -21,3 +21,4 @@ export const EMAIL_TIMEOUT = process.env.EMAIL_TIMEOUT;
 export const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY
 export const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY
 export const NODE_ENV = process.env.NODE_ENV;
+export const USE_FULL_URL = process.env.USE_FULL_URL;

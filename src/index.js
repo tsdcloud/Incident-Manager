@@ -26,6 +26,7 @@ import {rateLimitAndTimeout} from './middlewares/ratelimiter.middleware.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
 import { errorLogger } from './middlewares/errorHandlers.js';
 import { logger } from './middlewares/logEvents.middleware.js';
+import { fileRoutes } from './routes/fileRoutes.js';
 
 import * as Sentry from "@sentry/node"
 
@@ -39,21 +40,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-// const  corsOptions = {
-//     origin: '*',
-// }
-const corsOptions = {
-    origin: [
-        'https://berp.bfcgroupsa.com',
-        'https://incident.bfcgroupsa.com' ,  // si tu veux aussi l'auto-autoriser
-        "https://berp.bfcgroupsa.com",
-        "https://incident.bfcgroupsa.com",
-        "https://wpo.bfcgroupsa.com",
-        "https://entity.bfcgroupsa.com"
-    ],
-    credentials: true,          // si tu envoies des cookies / token
-    optionsSuccessStatus: 200   // legacy browsers (IE11) choke on 204
-};
+const  corsOptions = {
+    origin: '*',
+}
+// const corsOptions = {
+//     origin: [
+//         'https://berp.bfcgroupsa.com',
+//         'https://incident.bfcgroupsa.com' ,  // si tu veux aussi l'auto-autoriser
+//         "https://berp.bfcgroupsa.com",
+//         "https://incident.bfcgroupsa.com",
+//         "https://wpo.bfcgroupsa.com",
+//         "https://entity.bfcgroupsa.com"
+//     ],
+//     credentials: true,          // si tu envoies des cookies / token
+//     optionsSuccessStatus: 200   // legacy browsers (IE11) choke on 204
+// };
 if(process.env.NODE_ENV != "development"){
     // app.use(Sentry.Handlers.requestHandler());
 }
@@ -115,6 +116,7 @@ app.post('/api/v1/subscribe', async (req, res)=>{
         }]})
     }
 });
+app.use('/api/files', fileRoutes);
 app.use(verifyUserExist);
 app.use("/api/incidents", incident);
 app.use("/api/consommables", consommable);

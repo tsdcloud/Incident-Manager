@@ -18,7 +18,7 @@ const SORT_BY = "name";
  */
 export const createEquipementService = async (body)=>{
 
-    let {numRef, title} = body;
+    let {numRef, title, siteId} = body;
 
 
     if(numRef){
@@ -30,7 +30,7 @@ export const createEquipementService = async (body)=>{
 
     if(title){
         let equipement = await equipementClient.findFirst({
-            where:{title, isActive:true}
+            where:{title, siteId, isActive:true}
         })
         if (equipement) return apiResponse(true, [{msg: "Name already exist", field: "name"}]);;
     }
@@ -300,11 +300,11 @@ export const importEquipementService = async (filePath) =>{
 
         worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
             if (rowNumber > 1) {
-              const rowData = row.values.slice(1);
-              console.log(rowData[2]);
-              rows.push({
-                name: rowData[2],
-              });
+                const rowData = row.values.slice(1);
+                console.log(rowData[2]);
+                rows.push({
+                    name: rowData[2],
+                });
             }
         });
 
@@ -316,10 +316,10 @@ export const importEquipementService = async (filePath) =>{
             let numRef = generateRefNum(lastEquipment);
             const equipement = await equipementClient.upsert({
                 where: {
-                  name: row.name,
+                    name: row.name,
                 },
                 update: {
-                  name: row.name,
+                    name: row.name,
                 },
                 create: {name:row.name, numRef},
             })

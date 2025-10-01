@@ -188,12 +188,16 @@ export const generateExcelFileController = async (req, res) =>{
                 { header: 'Incident', key: 'incident', width: 50 },
                 { header: 'Equipement', key: 'equipement', width: 15 },
                 { header: 'Site', key: 'site', width: 20 },
+                { header: 'description', key: 'description', width: 50 },
+                { header: 'Initiateur', key: 'userId', width: 20 },
+                { header: 'Intervenant', key: 'supplierId', width: 20 },
+                { header: 'Date de clôture utilisateur', key: 'closedManuDate', width: 20 },
+                { header: 'Date de clôture Système', key: 'closedDate', width: 20 },
+                { header: 'Durée équipement en minutes', key: 'durationMinEquipment', width: 25 },
+                { header: 'Durée système en minutes', key: 'durationMinSystem', width: 25 },
+                { header: 'Durée utilisateur en minutes', key: 'durationMinUser', width: 25 },
                 { header: 'Date previsionel', key: 'projectedDate', width: 20 },
                 { header: 'Prochaine maintenance', key: 'nextMaintenance', width: 20 },
-                { header: 'description', key: 'description', width: 50 },
-                { header: 'Intervenant', key: 'supplierId', width: 20 },
-                { header: 'Initiateur', key: 'createdBy', width: 20 },
-                { header: 'Date de cloture', key: 'closedDate', width: 20 },
                 { header: 'Créé par', key: 'createdBy', width: 20 },
                 { header: 'Cloturé par', key: 'closedBy', width: 20 },
                 { header: 'Status', key: 'status', width: 20 },
@@ -203,23 +207,67 @@ export const generateExcelFileController = async (req, res) =>{
             let suppliers = await fetchData(`${ENTITY_API}/suppliers/`, token);
             let sites = await fetchData(`${ENTITY_API}/sites/`, token);
             let shifts = await fetchData(`${ENTITY_API}/shifts/`, token);
+
+            // Fonction utilitaire pour formater les dates
+            const formatDate = (dateString) => {
+                if (!dateString) return "";
+                const date = new Date(dateString);
+                return isNaN(date.getTime()) ? "" : date.toLocaleDateString('fr-FR');
+            };
+
+            // Fonction utilitaire pour calculer la différence en minutes
+            const calculateDuration = (startDate, endDate) => {
+                if (!startDate || !endDate) return "N/C";
+                
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                
+                if (isNaN(start.getTime()) || isNaN(end.getTime())) return "N/C";
+                
+                const diffMs = end - start;
+                return Math.round(diffMs / (1000 * 60)); // Conversion en minutes
+            };
             
             maintenances.forEach(maintenance => {
+                // Calcul des durées
+                let durationMinEquipment = "N/C";
+                let durationMinSystem = "N/C";
+                let durationMinUser = "N/C";
+
+                if (maintenances.status === "CLOSED") {
+                    if (maintenances.closedManuDate) {
+                        durationMinEquipment = calculateDuration(maintenances.createdAt, maintenances.closedManuDate);
+                        durationMinUser = calculateDuration(maintenances.createdAt, maintenances.closedManuDate);
+                    }
+                    if (maintenances.closedDate) {
+                        durationMinSystem = calculateDuration(maintenances.createdAt, maintenances.closedDate);
+                        // Si pas de closedManuDate, utiliser closedDate pour l'équipement
+                        if (!maintenances.closedManuDate) {
+                            durationMinEquipment = calculateDuration(maintenances.createdAt, maintenances.closedDate);
+                        }
+                    }
+                }
                 worksheet.addRow({
                     numRef: maintenance.numRef,
-                    creationDate: maintenance.createdAt,
-                    maintenance: maintenance.maintenance.name || "--",
+                    // creationDate: maintenance.createdAt,
+                    creationDate: formatDate(maintenance.createdAt),
+                    maintenance: maintenance.maintenance || "--",
                     incident: maintenance.incident?.numRef || "--",
                     equipement: maintenance.equipement?.title || "--",
                     site: sites?.data.find(site=>site?.id === maintenance.siteId)?.name || maintenance.siteId,
-                    userId: employees?.data.find(employee=>employee?.id === maintenance.userId)?.name || maintenance.createdBy,
-                    supplierId: employees?.data.find(employee=>employee?.id === maintenance.supplierId)?.name ||suppliers?.data.map(supplier=>supplier?.id === maintenance.supplierId)?.name || maintenance.supplierId,
+                    description: maintenance.description,
+                    userId: employees?.data.find(employee=>employee?.id === maintenance.createdBy)?.name || maintenance.createdBy,
+                    supplierId: employees?.data.find(employee=>employee?.id === maintenance.supplierId)?.name ||suppliers?.data.find(supplier=>supplier?.id === maintenance.supplierId)?.name || maintenance.supplierId,
+                    closedManuDate: formatDate(maintenance.closedManuDate),
+                    closedDate: formatDate(maintenance.closedDate),
+                    durationMinEquipment,
+                    durationMinSystem,
+                    durationMinUser,
+                    
                     projectedDate:maintenance.projectedDate,
                     nextMaintenance:maintenance.nextMaintenance,
-                    closedDate:maintenance.closedDate || 'N/C',
-                    effectifDate:maintenance.effectifDate,
-                    description: maintenance.description,
                     createdBy: employees?.data.find(employee=>employee?.id === maintenance.createdBy)?.name || maintenance.createdBy,
+                    // effectifDate:maintenance.effectifDate,
                     closedBy: employees?.data.find(employee=>employee?.id === maintenance.closedBy)?.name || maintenance.closedBy,
                     status: maintenance.status === "PENDING" ? "EN ATTENTE" : "CLOTURE",
                 });

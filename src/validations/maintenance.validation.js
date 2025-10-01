@@ -41,6 +41,23 @@ export const closeMaintenance = [
     body("incidentCauseId").notEmpty().withMessage("Invalid incidentCauseId"),
     body("supplierId").notEmpty().withMessage("Invalid supplierId"),
     body("incidentId").notEmpty().withMessage("Invalid incidentId"),
+    body("closedManuDate")
+    .optional()
+    .custom((value) => {
+        if (value === null || value === undefined || value === '') {
+            return true;
+        }
+        
+        // Accepter le format datetime-local (YYYY-MM-DDTHH:mm)
+        const datetimeLocalRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+        if (datetimeLocalRegex.test(value)) {
+            return true;
+        }
+        
+        // Accepter aussi le format ISO complet
+        return validator.isISO8601(value);
+    })
+    .withMessage("closedManuDate must be a valid ISO 8601 date or datetime-local format"),
     (req, res, next) =>{
         const error = validationResult(req);
         if(!error.isEmpty()){

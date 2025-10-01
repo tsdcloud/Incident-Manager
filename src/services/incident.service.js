@@ -29,8 +29,26 @@ export const createIncidentService = async (body)=>{
         if(!typeIncidentExist) return (Errors("Le type d'incident sélectionné n'existe pas", "field"));
 
         const numRef = generateRefNum(lastIncident);
+        // let incident = await incidentClient.create({
+        //     data:{ ...body, numRef }
+        // });
+        // Créer l'incident avec les photos
         let incident = await incidentClient.create({
-            data:{ ...body, numRef }
+            data: { 
+                ...body,
+                numRef,
+                // Créer les photos associées si elles existent
+                photos: body.photos && body.photos.length > 0 ? {
+                    create: body.photos.map(photo => ({
+                        url: photo.url,
+                        filename: photo.filename,
+                        createdBy: body.createdBy
+                    }))
+                } : undefined
+            },
+            include: {
+                photos: true // Inclure les photos dans la réponse
+            }
         });
 
         return incident;
@@ -58,6 +76,7 @@ export const getAllIncidentService = async() =>{
                 equipement:true,
                 incidentCauses:true,
                 incident:true,
+                photos: true
             },
             orderBy:{
                 creationDate:'desc'
@@ -126,6 +145,7 @@ export const getIncidentByParams = async (request, token) =>{
                                 equipement:true,
                                 incidentCauses:true,
                                 incident:true,
+                                photos: true
                             },
                             orderBy:{
                                 creationDate:'desc'
@@ -160,6 +180,7 @@ export const getIncidentByParams = async (request, token) =>{
                                 equipement:true,
                                 incidentCauses:true,
                                 incident:true,
+                                photos: true
                             },
                             orderBy:{
                                 creationDate:'desc'
@@ -238,6 +259,7 @@ export const getIncidentByParams = async (request, token) =>{
                                 equipement:true,
                                 incidentCauses:true,
                                 incident:true,
+                                photos: true
                             },
                             orderBy:{
                                 creationDate:'desc'
@@ -272,6 +294,7 @@ export const getIncidentByParams = async (request, token) =>{
                                 equipement:true,
                                 incidentCauses:true,
                                 incident:true,
+                                photos: true
                             },
                             orderBy:{
                                 creationDate:'desc'
@@ -301,6 +324,7 @@ export const getIncidentByParams = async (request, token) =>{
                             equipement:true,
                             incidentCauses:true,
                             incident:true,
+                            photos: true
                         },
                         skip: parseInt(skip),
                         take: parseInt(limit),
@@ -335,6 +359,7 @@ export const getIncidentByParams = async (request, token) =>{
                             equipement:true,
                             incidentCauses:true,
                             incident:true,
+                            photos: true
                         },
                         skip: parseInt(skip),
                         take: parseInt(limit),
@@ -370,6 +395,7 @@ export const getIncidentByParams = async (request, token) =>{
                             equipement:true,
                             incidentCauses:true,
                             incident:true,
+                            photos: true
                         },
                         skip: parseInt(skip),
                         take: parseInt(limit),
@@ -405,6 +431,7 @@ export const getIncidentByParams = async (request, token) =>{
                             equipement:true,
                             incidentCauses:true,
                             incident:true,
+                            photos: true
                         },
                         skip: parseInt(skip),
                         take: parseInt(limit),
@@ -427,6 +454,7 @@ export const getIncidentByParams = async (request, token) =>{
                             equipement:true,
                             incidentCauses:true,
                             incident:true,
+                            photos: true
                         },
                         skip: parseInt(skip),
                         take: parseInt(limit),
@@ -447,6 +475,7 @@ export const getIncidentByParams = async (request, token) =>{
                             equipement:true,
                             incidentCauses:true,
                             incident:true,
+                            photos: true
                         },
                         orderBy:{
                             creationDate:'desc'
@@ -485,7 +514,8 @@ export const getIncidentByParams = async (request, token) =>{
                             equipement:true,
                             incident:true,
                             maintenance:true,
-                            incidentCauses:true
+                            incidentCauses:true,
+                            photos: true
                         }
                     })
                     break
@@ -523,6 +553,7 @@ export const getIncidentByParams = async (request, token) =>{
                     equipement:true,
                     incidentCauses:true,
                     incident:true,
+                    photos: true
                 },
                 skip: search ? parseInt(limit) : undefined,
                 take: search ? parseInt(limit) : undefined,
@@ -554,19 +585,62 @@ export const getIncidentByParams = async (request, token) =>{
  * @param body 
  * @returns 
  */
+// export const updateIncidentService = async (id, body) =>{
+//     try {
+//         const equipementExist = await prisma.equipment.findFirst({where:{id:body.equipementId, isActive:true}});
+//         const typeIncidentExist = await prisma.incidenttype.findFirst({where:{id:body.incidentId, isActive:true}});
+//         const causeIncidentExist = await prisma.incidentcause.findFirst({where:{id:body.incidentCauseId, isActive:true}});
+
+//         if(!equipementExist) return (Errors("L'équipement sélectionné n'existe pas"));
+//         if(!typeIncidentExist) return (Errors("Le type d'incident sélectionné n'existe pas"));
+//         if(!causeIncidentExist) return (Errors("La cause d'incident sélectionné n'existe pas"));
+
+//         let {updatedBy, createdBy, ...data} = body;
+//         let date =  new Date();
+//         if(body?.status === "CLOSED"){
+//             data.closedDate = date;
+//             data.closedBy = updatedBy;
+
+//         }
+//         let incident = await incidentClient.update({
+//             where:{id},
+//             data:{...data}
+//         });
+//         return incident;
+//     } catch (error) {
+//         console.log(error)
+//         throw new Error(`${error}`);
+//     }
+// }
 export const updateIncidentService = async (id, body) =>{
     try {
-        const equipementExist = await prisma.equipment.findFirst({where:{id:body.equipementId, isActive:true}});
-        const typeIncidentExist = await prisma.incidenttype.findFirst({where:{id:body.incidentId, isActive:true}});
-
-        if(!equipementExist) return (Errors("L'équipement sélectionné n'existe pas"));
-        if(!typeIncidentExist) return (Errors("Le type d'incident sélectionné n'existe pas"));
+        if(body?.equipementId){
+            const equipementExist = await prisma.equipment.findFirst({where:{id:body.equipementId, isActive:true}});
+            if(!equipementExist) return (Errors("L'équipement sélectionné n'existe pas"));
+        }
+        if(body?.incidentId){
+            const typeIncidentExist = await prisma.incidenttype.findFirst({where:{id:body.incidentId, isActive:true}});
+            if(!typeIncidentExist) return (Errors("Le type d'incident sélectionné n'existe pas"));
+        }
+        if(body?.incidentCauseId){
+            const causeIncidentExist = await prisma.incidentcause.findFirst({where:{id:body.incidentCauseId, isActive:true}});
+            if(!causeIncidentExist) return (Errors("La cause d'incident sélectionné n'existe pas"));
+        }
 
         let {updatedBy, createdBy, ...data} = body;
         let date =  new Date();
         if(body?.status === "CLOSED"){
             data.closedDate = date;
             data.closedBy = updatedBy;
+            // Ajouter la date manuelle si fournie - CORRECTION ICI
+            if(body.closedManuDate) {  // Utilisez body.closedManuDate au lieu de closedManuDate
+                data.closedManuDate = new Date(body.closedManuDate);
+                console.log('Date avant formatage:', data.closedManuDate);
+                const date = new Date(data.closedManuDate);
+                console.log('Date après new Date():', date);
+                console.log('Date en ISO:', date.toISOString());
+                data.closedManuDate = date.toISOString();
+            }
         }
         let incident = await incidentClient.update({
             where:{id},

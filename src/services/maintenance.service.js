@@ -231,41 +231,103 @@ export const deleteMaintenanceService = async (id) =>{
  * @param {*} query 
  * @returns 
  */
-export const closeMaintenanceService = async (id, body)=>{
-    let {supplierId, incidentCauseId, incidentId, validationBy} = body;
-    let date =  new Date().toISOString();
+// export const closeMaintenanceService = async (id, body)=>{
+//     let {supplierId, incidentCauseId, incidentId, validationBy} = body;
+//     let date =  new Date().toISOString();
     
-    let incidentCauseExist = await prisma.incidentcause.findFirst({where:{id: incidentCauseId}});
-    if(!incidentCauseExist) return Errors("La cause d'incident sélectionné n'exist pas");
+//     let incidentCauseExist = await prisma.incidentcause.findFirst({where:{id: incidentCauseId}});
+//     if(!incidentCauseExist) return Errors("La cause d'incident sélectionné n'exist pas");
     
+//     try {
+//         let data = await prisma.$transaction([
+//             prisma.incident.update({
+//                 where:{id: incidentId}, 
+//                 data:{
+//                     incidentCauseId,
+//                     status: 'CLOSED',
+//                     closedBy:validationBy,
+//                     closedDate:date,
+//                 }
+//             }),
+//             prisma.maintenance.update({
+//                 where:{id},
+//                 data:{
+//                     status: "CLOSED",
+//                     supplierId,
+//                     closedDate:date,
+//                     closedBy:validationBy
+//                 }
+//             })
+//         ]);
+        
+//         if(!data) throw new Error();
+//     } catch (error) {
+//         console.log(error);
+//         return {"error":true, errors:[{msg:"N'a pas pu être validé, essayez plus tard"}]};
+//     }
+// }
+export const closeMaintenanceService = async (id, body) => {
+    let { supplierId, incidentCauseId, incidentId, validationBy, closedManuDate } = body;
+    let date = new Date().toISOString();
+
+    // CORRECTION: Préparer l'objet de données pour la mise à jour
+    let updateData = {
+        incidentCauseId,
+        status: 'CLOSED',
+        closedBy: validationBy,
+        closedDate: date
+    };
+
+    // CORRECTION: Gestion de la date manuelle
+    if (closedManuDate) {
+        try {
+            // Convertir la date en objet Date
+            const manualDate = new Date(closedManuDate);
+            
+            // Vérifier que la date est valide
+            if (!isNaN(manualDate.getTime())) {
+                updateData.closedManuDate = manualDate.toISOString();
+                console.log('Date manuelle formatée:', updateData.closedManuDate);
+            } else {
+                console.log('Date manuelle invalide:', closedManuDate);
+            }
+        } catch (error) {
+            console.log('Erreur de conversion de date:', error);
+        }
+    }
+
+    // Vérification que la cause d'incident existe
+    let incidentCauseExist = await prisma.incidentcause.findFirst({
+        where: { id: incidentCauseId }
+    });
+    if (!incidentCauseExist) return Errors("La cause d'incident sélectionnée n'existe pas");
+
     try {
-        let data = await prisma.$transaction([
+        let result = await prisma.$transaction([
             prisma.incident.update({
-                where:{id: incidentId}, 
-                data:{
-                    incidentCauseId,
-                    status: 'CLOSED',
-                    closedBy:validationBy,
-                    closedDate:date,
-                }
+                where: { id: incidentId },
+                data: updateData // Utiliser l'objet préparé
             }),
             prisma.maintenance.update({
-                where:{id},
-                data:{
+                where: { id },
+                data: {
                     status: "CLOSED",
                     supplierId,
-                    closedDate:date,
-                    closedBy:validationBy
+                    closedBy: validationBy,
+                    closedDate: date,
+                    ...(closedManuDate ? { closedManuDate: updateData.closedManuDate } : {})
                 }
             })
         ]);
-        
-        if(!data) throw new Error();
+
+        if (!result) throw new Error();
+        return result;
     } catch (error) {
         console.log(error);
-        return {"error":true, errors:[{msg:"N'a pas pu être validé, essayez plus tard"}]};
+        return { error: true, errors: [{ msg: "N'a pas pu être validé, essayez plus tard" }] };
     }
-}
+};
+
 
 
 /**
