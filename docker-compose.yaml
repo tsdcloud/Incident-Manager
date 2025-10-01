@@ -1,52 +1,53 @@
+version: "3.8"
+
 networks:
   web:
     external: true
-  internal:
+  traefik_internal:
     external: true
 
+volumes:
+  web-root:
+  node_modules:
+  certbot-etc:
+  certbot-var:
 
 services:
   incident:
     build:
       context: .
       dockerfile: Dockerfile
-    image: nodejs
+    image: incident_images:latest
     container_name: incident
     restart: unless-stopped
     env_file: .env
     environment:
       - USER_GATEWAY_API_URL=$USER_GATEWAY_API_URL
       - INCIDENT_API_URL=$INCIDENT_API_URL
-      - INCIDENT_API_URL=$INCIDENT_API_URL
 
     labels:
-      - traefik.http.routers.blog.rule=Host(`incident.bfcgroupsa.com`)
-      - traefik.http.routers.blog.tls=true
-      - traefik.http.routers.blog.tls.certresolver=lets-encrypt
-      - traefik.port=80
+      - traefik.http.routers.incident.rule=Host(`incident.bfcgroupsa.com`)
+      - traefik.http.routers.incident.tls=true
+      - traefik.http.routers.incident.tls.certresolver=lets-encrypt
+      - traefik.http.services.incident.loadbalancer.server.port=4000
 
     networks:
-      - internal
+      - traefik_internal
       - web
 
   webserver:
     image: nginx:mainline-alpine
     container_name: webserver
     restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
     volumes:
       - web-root:/var/www/html
       - .:/home/node/app
       - node_modules:/home/node/app/node_modules
-      - ./nginx-conf:/etc/nginx/conf.d
-      - certbot-etc:/etc/letsencrypt
-      - certbot-var:/var/lib/letsencrypt
     depends_on:
       - incident
     networks:
-      - app-network
+      - traefik_internal
+      - web
 
   certbot:
     image: certbot/certbot
@@ -57,4 +58,4 @@ services:
       - web-root:/var/www/html
     depends_on:
       - webserver
-    command: certonly --webroot --webroot-path=/var/www/html --email ysiaka@bfclimited.com --agree-tos --no-eff-email --staging -d incident.bfcgroupsa.com  -d www.incident.bfcgroupsa.com
+    command: certonly --webroot --webroot-path=/var/www/html --email ysiaka@bfclimited.com --agree-tos --no-eff-email --staging -d incident.bfcgroupsa.com -d www.incident.bfcgroupsa.com
