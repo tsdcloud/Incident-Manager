@@ -132,31 +132,62 @@ export const toExcel = async (req, res) => {
 //         return ResponseHandler.error(res, 'Fichier non trouvé', 'NOT_FOUND');
 //     }
 // };
+// export const download = async (req, res) => {
+//     try {
+//         const filename = req.params.filename;   
+//         const filePath = path.join(__dirname, '..', 'uploads', filename);
+
+//         if (!fs.existsSync(filePath)) {
+//             return ResponseHandler.error(res, 'Fichier non trouvé', 'NOT_FOUND');
+//         }
+
+//         // Utiliser res.sendFile pour éviter les conflits de headers
+//         res.sendFile(filePath, err => {
+//             if (err) {
+//                 console.error('Erreur lors du téléchargement du fichier:', err);
+//                 if (!res.headersSent) {
+//                     return ResponseHandler.error(res, 'Erreur lors du téléchargement du fichier');
+//                 }
+//             }
+//         });
+//     } catch (error) {
+//         console.error('Erreur dans la route download:', error);
+//         if (!res.headersSent) {
+//             return ResponseHandler.error(res, 'Erreur lors du téléchargement du fichier');
+//         }
+//     }
+// };
 export const download = async (req, res) => {
     try {
-        const filename = req.params.filename;   
+        const filename = req.params.filename;
         const filePath = path.join(__dirname, '..', 'uploads', filename);
-
+    
         if (!fs.existsSync(filePath)) {
             return ResponseHandler.error(res, 'Fichier non trouvé', 'NOT_FOUND');
         }
-
-        // Utiliser res.sendFile pour éviter les conflits de headers
-        res.sendFile(filePath, err => {
+    
+        // 🔒 Désactiver le cache pour les fichiers protégés
+        res.set({
+            'Cache-Control': 'no-store, no-cache, must-revalidate, private',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+        });
+    
+        res.sendFile(filePath, (err) => {
             if (err) {
-                console.error('Erreur lors du téléchargement du fichier:', err);
-                if (!res.headersSent) {
-                    return ResponseHandler.error(res, 'Erreur lors du téléchargement du fichier');
-                }
+            console.error('Erreur lors du téléchargement du fichier:', err);
+            if (!res.headersSent) {
+                return ResponseHandler.error(res, 'Erreur lors du téléchargement du fichier');
+            }
             }
         });
-    } catch (error) {
+        } catch (error) {
         console.error('Erreur dans la route download:', error);
         if (!res.headersSent) {
-            return ResponseHandler.error(res, 'Erreur lors du téléchargement du fichier');
+            return ResponseHandler.error(res, 'Erreur serveur lors du téléchargement');
         }
     }
-};
+  };
 
 
 export const uploadFiless = async (req, res) => {

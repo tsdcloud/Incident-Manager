@@ -21,12 +21,12 @@ import movementRoutes from './routes/movement.route.js'
 import equipmentGroupRoutes from './routes/equipmentGroup.route.js';
 import equipmentGroupFamilyRoutes from './routes/equipementGroupFamily.route.js';
 import equipmentRoutes from './routes/equipement.route.js';
-import { verifyUserExist } from './middlewares/verifyToken.middleware.js';
 import {rateLimitAndTimeout} from './middlewares/ratelimiter.middleware.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
 import { errorLogger } from './middlewares/errorHandlers.js';
 import { logger } from './middlewares/logEvents.middleware.js';
 import { fileRoutes } from './routes/fileRoutes.js';
+import { verifyUserExist } from './middlewares/verifyToken.middleware.js';
 
 import * as Sentry from "@sentry/node"
 
