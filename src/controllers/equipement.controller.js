@@ -105,9 +105,9 @@ export const getAllEquipementController = async(req, res) => {
             .status(HTTP_STATUS.OK.statusCode);
             return;
         } catch (error) {
-          console.log(error);
-          res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);
-          return;
+            console.log(error);
+            res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);
+            return;
         }
     }
     try {

@@ -58,11 +58,11 @@ export const getAllEquipmentGroupsController = async (req, res) => {
             .send(groups)
             return;
         } catch (error) {
-          console.log(error);
-          res
+            console.log(error);
+            res
         .status(HTTP_STATUS.BAD_REQUEST.statusCode)
         .send(apiResponse(true, [{msg: `${error}`, field:"server"}]));
-          return;
+            return;
         }
     }
     try {

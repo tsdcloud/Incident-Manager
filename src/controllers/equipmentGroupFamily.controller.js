@@ -63,24 +63,56 @@ export const getEquipmentGroupFamilyByIdController = async (req, res) => {
  * @param res 
  * @returns 
  */
+// export const getAllEquipmentGroupFamiliesController = async(req, res) => {
+//     if(Object.keys(req.query).length !== 0 && req.query.constructor === Object){
+//         try {
+//             let  families = await getEquipmentGroupFamiliesByParamsService(req.query);
+//             res
+//             .status(families.error ? HTTP_STATUS.BAD_REQUEST.statusCode : HTTP_STATUS.OK.statusCode)
+//             .send(families)
+//             return;
+//         } catch (error) {
+//           console.log(error);
+//           res
+//         .status(HTTP_STATUS.BAD_REQUEST.statusCode)
+//         .send(apiResponse(true, [{msg: `${error}`, field:"server"}]));
+//           return;
+//         }
+//     }
+//     try {
+//         let families = await getAllEquipmentGroupFamiliesService(req.body);
+//         res
+//         .status(families.error ? HTTP_STATUS.BAD_REQUEST.statusCode : HTTP_STATUS.OK.statusCode)
+//         .send(families);
+//         return;
+//     } catch (error) {
+//         console.log(error);
+//         res
+//         .status(HTTP_STATUS.BAD_REQUEST.statusCode)
+//         .send(apiResponse(true, [{msg: `${error}`, field:"server"}]));
+//         return;
+//     }
+// }
 export const getAllEquipmentGroupFamiliesController = async(req, res) => {
     if(Object.keys(req.query).length !== 0 && req.query.constructor === Object){
         try {
-            let  families = await getEquipmentGroupFamiliesByParamsService(req.query);
+            let families = await getEquipmentGroupFamiliesByParamsService(req.query);
             res
             .status(families.error ? HTTP_STATUS.BAD_REQUEST.statusCode : HTTP_STATUS.OK.statusCode)
             .send(families)
             return;
         } catch (error) {
-          console.log(error);
-          res
-        .status(HTTP_STATUS.BAD_REQUEST.statusCode)
-        .send(apiResponse(true, [{msg: `${error}`, field:"server"}]));
-          return;
+            console.log(error);
+            res
+            .status(HTTP_STATUS.BAD_REQUEST.statusCode)
+            .send(apiResponse(true, [{msg: `${error}`, field:"server"}]));
+            return;
         }
     }
+    
     try {
-        let families = await getAllEquipmentGroupFamiliesService(req.body);
+        // CORRECTION : Ne pas passer req.body ici
+        let families = await getAllEquipmentGroupFamiliesService(); // ← Enlever req.body
         res
         .status(families.error ? HTTP_STATUS.BAD_REQUEST.statusCode : HTTP_STATUS.OK.statusCode)
         .send(families);
@@ -93,7 +125,6 @@ export const getAllEquipmentGroupFamiliesController = async(req, res) => {
         return;
     }
 }
-
 
 /**
  * 

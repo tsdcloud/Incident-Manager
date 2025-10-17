@@ -161,37 +161,94 @@ export const getEquipementByIdService = async(id) =>{
     }
 }
 
+// /**
+//  * Get equipments by params
+//  * @param request 
+//  * @returns 
+//  */
+// export const getEquipementByParams = async (request) =>{
+//     const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, ...queries } = request; 
+//     const skip = (page - 1) * limit;
+//     try {
+//         let equipement = await equipementClient.findMany({
+//             where:!search ? {isActive:true, ...queries} : {
+//                 OR:[
+//                     {title:{contains:search}},
+//                     {numRef:{contains:search}}
+//                 ],
+//                 isActive:true
+//             },
+//             include:{
+//                 equipmentGroup:true,
+//                 movement:true,
+//                 maintenance:true,
+//                 operations:true
+//             },
+//             skip: parseInt(skip),
+//             take: parseInt(limit),
+//             orderBy:{
+//                 title:'asc'
+//             }
+//         });
+//         const total = await equipementClient.count();
+//         return search ? {data: equipement} :{
+//             page: parseInt(page),
+//             totalPages: Math.ceil(total / limit),
+//             total,
+//             data: equipement,
+//         };
+//     } catch (error) {
+//         console.log(error);
+//         return Errors(`${error}`, 'server');
+//     }
+// }
 /**
  * Get equipments by params
  * @param request 
  * @returns 
  */
 export const getEquipementByParams = async (request) =>{
-    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, ...queries } = request; 
+    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, siteId, ...queries } = request; 
     const skip = (page - 1) * limit;
+    
     try {
+        // Construire la condition where
+        let whereCondition = { isActive: true };
+        
+        // Ajouter le filtre par site si fourni
+        if (siteId) {
+            whereCondition.siteId = siteId;
+        }
+        
+        // Ajouter la recherche si fournie
+        if (search) {
+            whereCondition.OR = [
+                { title: { contains: search } },
+                { numRef: { contains: search } }
+            ];
+        }
+        
+        // Ajouter les autres queries
+        whereCondition = { ...whereCondition, ...queries };
+
         let equipement = await equipementClient.findMany({
-            where:!search ? {isActive:true, ...queries} : {
-                OR:[
-                    {title:{contains:search}},
-                    {numRef:{contains:search}}
-                ],
-                isActive:true
-            },
-            include:{
-                equipmentGroup:true,
-                movement:true,
-                maintenance:true,
-                operations:true
+            where: whereCondition,
+            include: {
+                equipmentGroup: true,
+                movement: true,
+                maintenance: true,
+                operations: true
             },
             skip: parseInt(skip),
             take: parseInt(limit),
-            orderBy:{
-                title:'asc'
+            orderBy: {
+                title: 'asc'
             }
         });
-        const total = await equipementClient.count();
-        return search ? {data: equipement} :{
+        
+        const total = await equipementClient.count({ where: whereCondition });
+        
+        return {
             page: parseInt(page),
             totalPages: Math.ceil(total / limit),
             total,

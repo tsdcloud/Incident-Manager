@@ -122,9 +122,9 @@ export const getAllIncidentController = async(req, res) => {
             .status(HTTP_STATUS.OK.statusCode);
             return;
         } catch (error) {
-          console.log(error);
-          res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);
-          return;
+            console.log(error);
+            res.sendStatus(HTTP_STATUS.NOT_FOUND.statusCode);
+            return;
         }
     }
     try {
@@ -454,16 +454,11 @@ export const generateExcelFileController = async (req, res) => {
         // ==================== 1) Authentification & Paramètres ====================
         let { authorization } = req.headers;
         let token = authorization?.split(" ")[1];
-        let { action } = req.query;
-
-        if (action && action !== "export") {
-            return res.status(400).json({ message: `Action "${action}" non supportée.` });
-        }
 
         // ==================== 2) Préparation du dossier d'exports ====================
         const exportsDir = path.join(__dirname, '../../', 'exports');
         if (!fs.existsSync(exportsDir)) {
-            fs.mkdirSync(exportsDir, { recursive: true });
+            fs.mkdirSync(exportsDir);
         }
 
         // ==================== 3) Récupération des incidents ====================
@@ -480,7 +475,7 @@ export const generateExcelFileController = async (req, res) => {
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Rapport Incidents');
 
-        // Définition des colonnes
+        // Définition des colonnes AVEC VOS NOUVELLES COLONNES
         worksheet.columns = [
             { header: 'NumRef', key: 'numRef', width: 15 },
             { header: 'Date de création', key: 'creationDate', width: 20 },
@@ -503,7 +498,7 @@ export const generateExcelFileController = async (req, res) => {
             { header: 'Statut', key: 'status', width: 20 },
         ];
 
-        // Style du header
+        // Style du header (identique à l'ancienne version)
         const headerRow = worksheet.getRow(1);
         headerRow.eachCell((cell) => {
             cell.font = { bold: true };
@@ -629,26 +624,16 @@ export const generateExcelFileController = async (req, res) => {
             }
         });
 
-        // ==================== 7) Sauvegarde du fichier ====================
-        const fileName = `incidents_report_${Date.now()}.xlsx`;
-        const filePath = path.join(exportsDir, fileName);
-
+        // ==================== 7) SAUVEGARDE ET RÉPONSE (identique à l'ancienne version) ====================
+        const filePath = path.join(exportsDir, `incidents_report.xlsx`);
         await workbook.xlsx.writeFile(filePath);
+        const downloadLink = `${ADDRESS}/api/exports/incidents_report.xlsx`; 
 
-        // ==================== 8) Réponse HTTP ====================
-        res.status(200).json({
-            message: 'Fichier généré avec succès.',
-            downloadLink: `/api/exports/${fileName}`,
-            fileName: fileName,
-            count: incidents.length
-        });
-
+        res.status(HTTP_STATUS.OK.statusCode).json({ message: 'File created successfully', downloadLink });
+        
     } catch (error) {
-        console.error("Erreur lors de la génération du fichier Excel :", error);
-        res.status(500).json({
-            message: "Impossible de générer le fichier Excel.",
-            error: error.message,
-        });
+        console.log(error);
+        res.sendStatus(HTTP_STATUS.BAD_REQUEST.statusCode);
     }
 };
 
