@@ -1,5 +1,10 @@
 import { Router } from "express";
-import { createIncidentController, getAllIncidentController, getIncidentByIdController, updateIncidentController, deleteIncidentController, generateExcelFileController, getStatsController } from "../controllers/incident.controller.js";
+import { createIncidentController, getAllIncidentController,
+    getIncidentByIdController, updateIncidentController,
+    deleteIncidentController, generateExcelFileController,
+    getStatsController, reclassifyIncidentController,
+    putIntoMaintenanceIncidentController
+} from "../controllers/incident.controller.js";
 import {
     createIncidentValidation,
     updateIncidentValidation
@@ -14,6 +19,8 @@ routes.get('/file', generateExcelFileController);
 routes.get('/:id', getIncidentByIdController);
 routes.post('/', rateLimitAndTimeout, createIncidentValidation, checkSiteExist, checkShiftExist,createIncidentController);
 routes.patch('/:id', rateLimitAndTimeout, updateIncidentValidation, checkSiteExist, checkShiftExist, updateIncidentController);
+routes.patch('/put_into_maintenance/:id', rateLimitAndTimeout, updateIncidentValidation, putIntoMaintenanceIncidentController);
+routes.patch('/reclassify/:id', rateLimitAndTimeout, updateIncidentValidation, reclassifyIncidentController);
 routes.delete('/:id', rateLimitAndTimeout, deleteIncidentController);
 
 

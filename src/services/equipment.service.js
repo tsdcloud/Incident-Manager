@@ -135,7 +135,6 @@ export const getSiteEquipmentsService = async(siteId) => {
                 title:"asc"
             }
         });
-        console.log(equipements)
         return apiResponse(false, undefined, equipements);
     } catch (error) {
         console.log(error);

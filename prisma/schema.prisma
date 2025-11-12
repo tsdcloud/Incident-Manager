@@ -156,6 +156,7 @@ model incident {
   createdBy       String
   closedBy        String?
   updatedBy       String?
+  reclassifiedBy  String?
   status          INCIDENT_STATUS @default(PENDING)
   creationDate    DateTime        @default(now())
   closedDate      DateTime?

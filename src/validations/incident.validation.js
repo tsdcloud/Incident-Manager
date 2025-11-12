@@ -27,26 +27,16 @@ export const createIncidentValidation = [
 
 
 export const updateIncidentValidation = [
-    body("incidentId").optional().notEmpty().withMessage("incidentId should not be empty"),
-    body("equipementId").optional().notEmpty().withMessage("equipementId should not be empty"),
-    body("siteId").optional().notEmpty().withMessage("siteId should not be empty"),
-    body("shiftId").optional().notEmpty().withMessage("shiftId should not be empty"),
-    body('hasStoppedOperations').optional().isBoolean().withMessage('hasStoppedOperations must be a boolean'),
-    // body("consomableId").optional().notEmpty().withMessage("consomableId should not be empty"),
-    // body("incidentCauseId").optional().notEmpty().withMessage("incidentCauseId should not be empty"),
-    body("status").optional().notEmpty().withMessage("status should not be empty"),
-    // body("closedManuDate")
-    //     .optional()
-    //     .custom((value) => {
-    //         // Accepte les valeurs null, undefined, string vide, ou date ISO valide
-    //         if (value === null || value === undefined || value === '') {
-    //             return true;
-    //         }
-    //         return validator.isISO8601(value);
-    //     })
-    //     .withMessage("closedManuDate must be a valid ISO 8601 date or empty"),
+    body("incidentId").optional().bail().notEmpty().withMessage("incidentId should not be empty"),
+    body("equipementId").optional().bail().notEmpty().withMessage("equipementId should not be empty"),
+    body("siteId").optional().bail().notEmpty().withMessage("siteId should not be empty"),
+    body("shiftId").optional().bail().notEmpty().withMessage("shiftId should not be empty"),
+    body('hasStoppedOperations').optional().bail().isBoolean().withMessage('hasStoppedOperations must be a boolean'),
+    // body("consomableId").optional().bail().notEmpty().withMessage("consomableId should not be empty"),
+    // body("incidentCauseId").optional().bail().notEmpty().withMessage("incidentCauseId should not be empty"),
+    body("status").optional().bail().notEmpty().withMessage("status should not be empty"),
     body("closedManuDate")
-    .optional()
+    .optional().bail()
     .custom((value) => {
         if (value === null || value === undefined || value === '') {
             return true;
@@ -62,8 +52,8 @@ export const updateIncidentValidation = [
         return validator.isISO8601(value);
     })
     .withMessage("closedManuDate must be a valid ISO 8601 date or datetime-local format"),
-    body("photos.*.url").optional().isURL().withMessage("L'URL de la photo doit être valide"),
-    body("photos.*.filename").optional().notEmpty().withMessage("Le nom du fichier est requis"),
+    body("photos.*.url").optional().bail().isURL().withMessage("L'URL de la photo doit être valide"),
+    body("photos.*.filename").optional().bail().notEmpty().withMessage("Le nom du fichier est requis"),
     (req, res, next) =>{
         const error = validationResult(req);
         if(!error.isEmpty()){

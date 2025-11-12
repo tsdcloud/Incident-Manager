@@ -183,7 +183,6 @@ export const generateExcelFileController = async (req, res) =>{
             
             worksheet.columns = [
                 { header: 'NumRef', key: 'numRef', width: 15 },
-                { header: 'Date de creation', key: 'creationDate', width: 20 },
                 { header: 'Type de maintenance', key: 'maintenance', width: 50 },
                 { header: 'Incident', key: 'incident', width: 50 },
                 { header: 'Equipement', key: 'equipement', width: 15 },
@@ -191,6 +190,7 @@ export const generateExcelFileController = async (req, res) =>{
                 { header: 'description', key: 'description', width: 50 },
                 { header: 'Initiateur', key: 'userId', width: 20 },
                 { header: 'Intervenant', key: 'supplierId', width: 20 },
+                { header: 'Date de creation', key: 'creationDate', width: 20 },
                 { header: 'Date de clôture utilisateur', key: 'closedManuDate', width: 20 },
                 { header: 'Date de clôture Système', key: 'closedDate', width: 20 },
                 { header: 'Durée équipement en minutes', key: 'durationMinEquipment', width: 25 },
@@ -234,23 +234,21 @@ export const generateExcelFileController = async (req, res) =>{
                 let durationMinSystem = "N/C";
                 let durationMinUser = "N/C";
 
-                if (maintenances.status === "CLOSED") {
-                    if (maintenances.closedManuDate) {
-                        durationMinEquipment = calculateDuration(maintenances.createdAt, maintenances.closedManuDate);
-                        durationMinUser = calculateDuration(maintenances.createdAt, maintenances.closedManuDate);
+                if (maintenance.status === "CLOSED") {
+                    if (maintenance.closedManuDate) {
+                        durationMinEquipment = calculateDuration(maintenance.createdAt, maintenance.closedManuDate);
+                        durationMinUser = calculateDuration(maintenance.createdAt, maintenance.closedManuDate);
                     }
-                    if (maintenances.closedDate) {
-                        durationMinSystem = calculateDuration(maintenances.createdAt, maintenances.closedDate);
+                    if (maintenance.closedDate) {
+                        durationMinSystem = calculateDuration(maintenance.createdAt, maintenance.closedDate);
                         // Si pas de closedManuDate, utiliser closedDate pour l'équipement
-                        if (!maintenances.closedManuDate) {
-                            durationMinEquipment = calculateDuration(maintenances.createdAt, maintenances.closedDate);
+                        if (!maintenance.closedManuDate) {
+                            durationMinEquipment = calculateDuration(maintenance.createdAt, maintenance.closedDate);
                         }
                     }
                 }
                 worksheet.addRow({
                     numRef: maintenance.numRef,
-                    // creationDate: maintenance.createdAt,
-                    creationDate: formatDate(maintenance.createdAt),
                     maintenance: maintenance.maintenance || "--",
                     incident: maintenance.incident?.numRef || "--",
                     equipement: maintenance.equipement?.title || "--",
@@ -258,18 +256,18 @@ export const generateExcelFileController = async (req, res) =>{
                     description: maintenance.description,
                     userId: employees?.data.find(employee=>employee?.id === maintenance.createdBy)?.name || maintenance.createdBy,
                     supplierId: employees?.data.find(employee=>employee?.id === maintenance.supplierId)?.name ||suppliers?.data.find(supplier=>supplier?.id === maintenance.supplierId)?.name || maintenance.supplierId,
+                    creationDate: formatDate(maintenance.createdAt),
                     closedManuDate: formatDate(maintenance.closedManuDate),
                     closedDate: formatDate(maintenance.closedDate),
                     durationMinEquipment,
                     durationMinSystem,
                     durationMinUser,
-                    
                     projectedDate:maintenance.projectedDate,
                     nextMaintenance:maintenance.nextMaintenance,
                     createdBy: employees?.data.find(employee=>employee?.id === maintenance.createdBy)?.name || maintenance.createdBy,
-                    // effectifDate:maintenance.effectifDate,
                     closedBy: employees?.data.find(employee=>employee?.id === maintenance.closedBy)?.name || maintenance.closedBy,
                     status: maintenance.status === "PENDING" ? "EN ATTENTE" : "CLOTURE",
+                    // effectifDate:maintenance.effectifDate,
                 });
             });
     

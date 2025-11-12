@@ -585,34 +585,31 @@ export const getIncidentByParams = async (request, token) =>{
  * @param body 
  * @returns 
  */
-// export const updateIncidentService = async (id, body) =>{
-//     try {
-//         const equipementExist = await prisma.equipment.findFirst({where:{id:body.equipementId, isActive:true}});
-//         const typeIncidentExist = await prisma.incidenttype.findFirst({where:{id:body.incidentId, isActive:true}});
-//         const causeIncidentExist = await prisma.incidentcause.findFirst({where:{id:body.incidentCauseId, isActive:true}});
+export const putIntoMaintenanceIncidentService = async (id, body) =>{
+    console.log("ici intoM");
+    console.log("body.incidentId :", body.incidentId);
+    try {
+        const typeIncidentExist = await prisma.incidenttype.findFirst({where:{id:body.incidentId, isActive:true}});
+        console.log("typeIncidentExist :", typeIncidentExist);
 
-//         if(!equipementExist) return (Errors("L'équipement sélectionné n'existe pas"));
-//         if(!typeIncidentExist) return (Errors("Le type d'incident sélectionné n'existe pas"));
-//         if(!causeIncidentExist) return (Errors("La cause d'incident sélectionné n'existe pas"));
+        if(!typeIncidentExist) return (Errors("Le type d'incident sélectionné n'existe pas"));
 
-//         let {updatedBy, createdBy, ...data} = body;
-//         let date =  new Date();
-//         if(body?.status === "CLOSED"){
-//             data.closedDate = date;
-//             data.closedBy = updatedBy;
-
-//         }
-//         let incident = await incidentClient.update({
-//             where:{id},
-//             data:{...data}
-//         });
-//         return incident;
-//     } catch (error) {
-//         console.log(error)
-//         throw new Error(`${error}`);
-//     }
-// }
+        let {updatedBy, createdBy, ...data} = body;
+        console.log("data :", data);
+        
+        let incident = await incidentClient.update({
+            where:{id},
+            data:{...data}
+        });
+        return incident;
+    } catch (error) {
+        console.log(error)
+        throw new Error(`${error}`);
+    }
+}
 export const updateIncidentService = async (id, body) =>{
+    console.log(id);
+    console.log(body);
     try {
         if(body?.equipementId){
             const equipementExist = await prisma.equipment.findFirst({where:{id:body.equipementId, isActive:true}});
@@ -647,6 +644,87 @@ export const updateIncidentService = async (id, body) =>{
             data:{...data}
         });
         return incident;
+    } catch (error) {
+        console.log(error)
+        throw new Error(`${error}`);
+    }
+}
+
+export const reclassifyIncidentService = async (id, body) => {
+    console.log("id :",id);
+    console.log("body :", body);
+    try {
+        console.log("🔍 DEBUG - ID reçu:", id);
+        console.log("🔍 DEBUG - BODY reçu:", body);
+        
+        // Récupérer l'incident existant pour avoir les valeurs actuelles
+        const existingIncident = await incidentClient.findUnique({
+            where: { id }
+        });
+        
+        if (!existingIncident) {
+            return Errors("Incident non trouvé");
+        }
+
+        console.log("🔍 DEBUG - Incident existant:", existingIncident);
+        
+        // Les données devraient arriver directement dans body
+        // const { equipementId, incidentId, incidentCauseId } = body;
+        // Les données devraient arriver directement dans body
+        const { equipementId, incidentId, incidentCauseId, updatedBy } = body;
+
+        // Validations seulement si une nouvelle valeur est fournie
+        if(equipementId && equipementId !== existingIncident.equipementId){
+            const equipementExist = await prisma.equipment.findFirst({where:{id:equipementId, isActive:true}});
+            if(!equipementExist) return (Errors("L'équipement sélectionné n'existe pas"));
+        }
+        
+        if(incidentId && incidentId !== existingIncident.incidentId){
+            const typeIncidentExist = await prisma.incidenttype.findFirst({where:{id:incidentId, isActive:true}});
+            if(!typeIncidentExist) return (Errors("Le type d'incident sélectionné n'existe pas"));
+        }
+        
+        if(incidentCauseId && incidentCauseId !== existingIncident.incidentCauseId){
+            const causeIncidentExist = await prisma.incidentcause.findFirst({where:{id:incidentCauseId, isActive:true}});
+            if(!causeIncidentExist) return (Errors("La cause d'incident sélectionné n'existe pas"));
+        }
+
+        // Construire l'objet de mise à jour avec les nouvelles valeurs ou les anciennes
+        const updateData = {};
+        
+        // Utiliser la nouvelle valeur si fournie, sinon garder l'ancienne
+        if (equipementId !== undefined) {
+            updateData.equipementId = equipementId || null;
+        }
+        
+        if (incidentId !== undefined) {
+            updateData.incidentId = incidentId || null;
+        }
+        
+        if (incidentCauseId !== undefined) {
+            updateData.incidentCauseId = incidentCauseId || null;
+        }
+
+        // Ajouter le champ reclassifiedBy avec la valeur de updatedBy
+        if (updatedBy !== undefined) {
+            updateData.reclassifiedBy = updatedBy;
+        }
+
+        console.log("🔍 DEBUG - Données de mise à jour:", updateData);
+
+        // Mise à jour seulement si au moins un champ a changé
+        if (Object.keys(updateData).length > 0) {
+            let incident = await incidentClient.update({
+                where: { id },
+                data: updateData
+            });
+            
+            console.log("✅ Incident mis à jour:", incident);
+            return incident;
+        } else {
+            console.log("ℹ️ Aucune modification nécessaire");
+            return existingIncident;
+        }
     } catch (error) {
         console.log(error)
         throw new Error(`${error}`);
