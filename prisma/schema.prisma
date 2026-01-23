@@ -11,6 +11,7 @@ model incidenttype {
   id            String          @id @default(uuid())
   numRef        String          @unique
   name          String          @unique
+  domain        EquipmentDomain?
   createdBy     String
   updatedBy     String?
   createdAt     DateTime        @default(now())
@@ -18,13 +19,15 @@ model incidenttype {
   isActive      Boolean         @default(true)
   description   String?
   incident      incident[]
-  incidentcause incidentcause[] @relation("incidentcausetoincidenttype")
+  incidentCauses incidentcause[]
 }
 
 model incidentcause {
   id           String         @id @default(uuid())
   numRef       String         @unique
   name         String
+  incidentTypeId String?
+  incidentType   incidenttype? @relation(fields: [incidentTypeId], references: [id])
   createdBy    String
   updatedBy    String?
   createdAt    DateTime       @default(now())
@@ -33,7 +36,6 @@ model incidentcause {
   description  String?
   incident     incident[]
   offBridge    offbridge[]
-  incidenttype incidenttype[] @relation("incidentcausetoincidenttype")
 }
 
 model equipment {
@@ -270,6 +272,7 @@ model equipmentGroupFamily{
   id        String        @id @default(uuid())
   name        String      @unique
   numRef      String      @unique
+  domain      EquipmentDomain?
   createdBy   String
   updatedBy   String?
   createdAt   DateTime    @default(now())
@@ -327,4 +330,10 @@ enum MAINTENANCE_TYPE {
   PALLIATIVE
   CURATIVE
   PROGRAMMED
+}
+enum EquipmentDomain {
+  IT
+  HSE
+  OPERATIONS
+  MAINTENANCE
 }

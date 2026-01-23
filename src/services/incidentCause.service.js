@@ -1,6 +1,7 @@
 import {prisma} from '../config.js';
 import {Errors} from '../utils/errors.utils.js';
 const incidentCauses = prisma.incidentcause;
+const incidentType = prisma.incidenttype;
 
 const LIMIT = 100;
 const ORDER ="desc";
@@ -20,8 +21,13 @@ export const createIncidentCauseService = async (body)=>{
         }
 
         if(body.name){
-            let exist = await incidentCauses.findFirst({where:{name:body.name}});
-            if(exist) return Errors("Name already exits", "name")
+            let exist = await incidentCauses.findFirst({where:{name:body.name,incidentTypeId:body.incidentTypeId}});
+            if(exist) return Errors("Name already exits for this incident type", "name & incidentTypeId")
+        }
+
+        if(body.incidentTypeId){
+            let existIncidentType = await incidentType.findFirst({where:{id:body.incidentTypeId}});
+            if(!existIncidentType) return Errors("This incident type does not exist", "name")
         }
 
         const lastIncidentCause = await incidentCauses.findFirst({
@@ -36,7 +42,10 @@ export const createIncidentCauseService = async (body)=>{
         const nextNum = lastIncidentCause ? parseInt(lastIncidentCause.numRef.slice(-4)) + 1 : 1;
         const numRef = `${prefix}${String(nextNum).padStart(4, '0')}`;
         let cause = await incidentCauses.create({
-            data:{...body, numRef}
+            data:{...body, numRef},
+            include:{
+                incidentType:true
+            },
         });
         return cause;
     } catch (error) {
@@ -61,7 +70,10 @@ export const getAllIncidentCauseService = async(body) =>{
             take: parseInt(limit),
             orderBy:{
                 name: 'asc'
-            }
+            },
+            include:{
+                incidentType:true
+            },
         });
         const total = await incidentCauses.count({where:{isActive:true}});
         return {
@@ -85,6 +97,9 @@ export const getIncidentCauseByIdService = async(id) =>{
     try {
         let cause = await incidentCauses.findFirst({
             where:{id, isActive: true},
+            include:{
+                incidentType:true
+            },
         });
         return cause;
     } catch (error) {
@@ -98,32 +113,159 @@ export const getIncidentCauseByIdService = async(id) =>{
  * @param request 
  * @returns 
  */
+// export const getIncidentCauseByParams = async (request) =>{
+//     const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, ...queries } = request; 
+//     const skip = (page - 1) * limit;
+//     console.log(search);
+//     try {
+//         // let causes = await incidentCauses.findMany({
+//         //     where:!search ? queries : {
+//         //         OR:[
+//         //             {name:{contains:search}},
+//         //             {numRef:{contains:search}}
+//         //         ],
+//         //         isActive:true
+//         //     },
+//         //     skip: parseInt(skip),
+//         //     take: parseInt(limit),
+//         //     orderBy:{
+//         //         name: 'asc'
+//         //     },
+//         //     include:{
+//         //         incidentType:true
+//         //     },
+//         // });
+//         let causes = await incidentCauses.findMany({
+//             where: !search ? 
+//                 { ...queries, isActive: true } : 
+//                 {
+//                     AND: [
+//                         {
+//                             OR: [
+//                                 { name: { contains: search} },
+//                                 { numRef: { contains: search} }
+//                             ]
+//                         },
+//                         { isActive: true },
+//                         queries
+//                     ]
+//                 },
+//             skip: parseInt(skip),
+//             take: parseInt(limit),
+//             orderBy: {
+//                 // [sortBy]: order
+//                 name: 'asc'
+//             },
+//             include: {
+//                 incidentType: true
+//             },
+//         });
+//         const total = await incidentCauses.count({where:{isActive:true}});
+//         return search ? {data: causes} :{
+//             page: parseInt(page),
+//             totalPages: Math.ceil(total / limit),
+//             total,
+//             data: causes,
+//         };
+//     } catch (error) {
+//         console.log(error);
+//         throw new Error(`${error}`);
+//     }
+// }
 export const getIncidentCauseByParams = async (request) =>{
-    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, ...queries } = request; 
+    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, domain, ...queries } = request; 
     const skip = (page - 1) * limit;
-    console.log(search);
+    console.log("Requête reçue:", { search, domain, ...queries });
+    
     try {
+        // Construire le where clause de base
+        let whereClause = { isActive: true };
+        
+        // Ajouter la recherche si présente
+        if (search) {
+            whereClause.AND = [
+                {
+                    OR: [
+                        { name: { contains: search } },
+                        { numRef: { contains: search } }
+                    ]
+                },
+                { isActive: true }
+            ];
+        }
+        
+        // Ajouter les autres filtres
+        if (Object.keys(queries).length > 0) {
+            whereClause = {
+                ...whereClause,
+                ...queries
+            };
+        }
+        
+        // Ajouter le filtre par domaine du incidentType si présent
+        if (domain) {
+            whereClause = {
+                ...whereClause,
+                incidentType: {
+                    domain: domain
+                }
+            };
+        }
+        
+        console.log("Where clause final:", JSON.stringify(whereClause, null, 2));
+        
         let causes = await incidentCauses.findMany({
-            where:!search ? queries : {
-                OR:[
-                    {name:{contains:search}},
-                    {numRef:{contains:search}}
-                ],
-                isActive:true
-            },
+            where: whereClause,
             skip: parseInt(skip),
             take: parseInt(limit),
-            orderBy:{
+            orderBy: {
                 name: 'asc'
-            }
+            },
+            include: {
+                incidentType: true
+            },
         });
-        const total = await incidentCauses.count({where:{isActive:true}});
-        return search ? {data: causes} :{
+        
+        // Pour compter le total, créer un where similaire sans pagination
+        let countWhereClause = { isActive: true };
+        
+        if (search) {
+            countWhereClause.AND = [
+                {
+                    OR: [
+                        { name: { contains: search } },
+                        { numRef: { contains: search } }
+                    ]
+                },
+                { isActive: true }
+            ];
+        }
+        
+        if (Object.keys(queries).length > 0) {
+            countWhereClause = {
+                ...countWhereClause,
+                ...queries
+            };
+        }
+        
+        if (domain) {
+            countWhereClause = {
+                ...countWhereClause,
+                incidentType: {
+                    domain: domain
+                }
+            };
+        }
+        
+        const total = await incidentCauses.count({ where: countWhereClause });
+        
+        return {
             page: parseInt(page),
             totalPages: Math.ceil(total / limit),
             total,
             data: causes,
         };
+        
     } catch (error) {
         console.log(error);
         throw new Error(`${error}`);
@@ -137,10 +279,17 @@ export const getIncidentCauseByParams = async (request) =>{
  * @returns 
  */
 export const updateIncidentCauseService = async (id, body) =>{
+    if(body.incidentTypeId){
+        let existIncidentType = await incidentType.findFirst({where:{id:body.incidentTypeId}});
+        if(!existIncidentType) return Errors("This incident type does not exist", "name")
+    }
     try {
         let cause = await incidentCauses.update({
             where:{id},
-            data:body
+            data:body,
+            include:{
+                incidentType:true
+            },
         });
         return cause;
     } catch (error) {

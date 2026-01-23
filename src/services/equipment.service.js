@@ -74,12 +74,17 @@ export const getAllEquipmentService = async() =>{
                 title:'asc'
             },
             include:{
-                equipmentGroup:true,
+                equipmentGroup: {
+                    include: {
+                        equipmentGroupFamily: true,
+                    },
+                },
                 movement:true,
                 maintenance:true,
                 operations:true
             }
         });
+        // console.log(equipements);
 
         // Calculate nextMaintenance for each equipment
         equipements = equipements.map(equipment => {
@@ -119,26 +124,70 @@ export const getAllEquipmentService = async() =>{
  * @param {*} siteId 
  * @returns  object
  */
-export const getSiteEquipmentsService = async(siteId) => {
+// export const getSiteEquipmentsService = async(siteId) => {
+//     try {
+//         let equipements = await equipementClient.findMany({
+//             where:{
+//                 siteId, isActive:true
+//             },
+//             include:{
+//                 // equipmentGroup:true,
+//                 equipmentGroup: {
+//                     include: {
+//                         equipmentGroupFamily: true,
+//                     },
+//                 },
+//                 movement:true,
+//                 maintenance:true,
+//                 operations:true
+//             },
+//             orderBy:{
+//                 title:"asc"
+//             }
+//         });
+//         return apiResponse(false, undefined, equipements);
+//     } catch (error) {
+//         console.log(error);
+//         return apiResponse(true, [{message:`${error}`, field:'server'}]);
+//     }
+// }
+export const getSiteEquipmentsService = async(siteId, search) => {
     try {
+        // Initialiser l'objet where
+        let whereCondition = {
+            siteId: siteId,
+            isActive: true
+        };
+        
+        // Ajouter la recherche si fournie et non vide
+        if (search && typeof search === 'string' && search.trim() !== '') {
+            whereCondition.OR = [
+                { title: { contains: search } },
+                { numRef: { contains: search } },
+            ];
+        }
+        
         let equipements = await equipementClient.findMany({
-            where:{
-                siteId, isActive:true
+            where: whereCondition,
+            include: {
+                equipmentGroup: {
+                    include: {
+                        equipmentGroupFamily: true,
+                    },
+                },
+                movement: true,
+                maintenance: true,
+                operations: true
             },
-            include:{
-                equipmentGroup:true,
-                movement:true,
-                maintenance:true,
-                operations:true
-            },
-            orderBy:{
-                title:"asc"
+            orderBy: {
+                title: "asc"
             }
         });
+        
         return apiResponse(false, undefined, equipements);
     } catch (error) {
         console.log(error);
-        return apiResponse(true, [{message:`${error}`, field:'server'}]);
+        return apiResponse(true, [{message: `${error}`, field: 'server'}]);
     }
 }
 
@@ -152,7 +201,19 @@ export const getEquipementByIdService = async(id) =>{
     try {
         let equipement = await equipementClient.findFirst({
             where:{id, isActive: true},
+            include:{
+                equipmentGroup: {
+                    include: {
+                        equipmentGroupFamily: true,
+                    },
+                },
+                movement:true,
+                maintenance:true,
+                operations:true
+            },
         });
+        // console.log(equipement);
+        console.log(equipement.equipmentGroup.equipmentGroupFamily.domain);
         return equipement;
     } catch (error) {
         console.log(error);
@@ -206,8 +267,66 @@ export const getEquipementByIdService = async(id) =>{
  * @param request 
  * @returns 
  */
+// export const getEquipementByParams = async (request) =>{
+//     const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, siteId, ...queries } = request; 
+//     const skip = (page - 1) * limit;
+    
+//     try {
+//         // Construire la condition where
+//         let whereCondition = { isActive: true };
+        
+//         // Ajouter le filtre par site si fourni
+//         if (siteId) {
+//             whereCondition.siteId = siteId;
+//         }
+        
+//         // Ajouter la recherche si fournie
+//         if (search) {
+//             whereCondition.OR = [
+//                 { title: { contains: search } },
+//                 { numRef: { contains: search } }
+//             ];
+//         }
+        
+//         // Ajouter les autres queries
+//         whereCondition = { ...whereCondition, ...queries };
+
+//         let equipement = await equipementClient.findMany({
+//             where: whereCondition,
+//             include:{
+//                 equipmentGroup: {
+//                     include: {
+//                         equipmentGroupFamily: true,
+//                     },
+//                 },
+//                 movement:true,
+//                 maintenance:true,
+//                 operations:true
+//             },
+//             skip: parseInt(skip),
+//             take: parseInt(limit),
+//             orderBy: {
+//                 title: 'asc'
+//             }
+//         });
+//         console.log(equipement);
+        
+//         const total = await equipementClient.count({ where: whereCondition });
+        
+//         return {
+//             page: parseInt(page),
+//             totalPages: Math.ceil(total / limit),
+//             total,
+//             data: equipement,
+//         };
+//     } catch (error) {
+//         console.log(error);
+//         return Errors(`${error}`, 'server');
+//     }
+// }
+
 export const getEquipementByParams = async (request) =>{
-    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, siteId, ...queries } = request; 
+    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, siteId, domain, ...queries } = request; 
     const skip = (page - 1) * limit;
     
     try {
@@ -223,8 +342,18 @@ export const getEquipementByParams = async (request) =>{
         if (search) {
             whereCondition.OR = [
                 { title: { contains: search } },
-                { numRef: { contains: search } }
+                { numRef: { contains: search } },
+                { equipmentGroup: { name: { contains: search } } }
             ];
+        }
+        
+        // Ajouter le filtre par domaine
+        if (domain && domain !== "ALL") {
+            whereCondition.equipmentGroup = {
+                equipmentGroupFamily: {
+                    domain: domain
+                }
+            };
         }
         
         // Ajouter les autres queries
@@ -232,11 +361,15 @@ export const getEquipementByParams = async (request) =>{
 
         let equipement = await equipementClient.findMany({
             where: whereCondition,
-            include: {
-                equipmentGroup: true,
-                movement: true,
-                maintenance: true,
-                operations: true
+            include:{
+                equipmentGroup: {
+                    include: {
+                        equipmentGroupFamily: true,
+                    },
+                },
+                movement:true,
+                maintenance:true,
+                operations:true
             },
             skip: parseInt(skip),
             take: parseInt(limit),
@@ -245,7 +378,28 @@ export const getEquipementByParams = async (request) =>{
             }
         });
         
-        const total = await equipementClient.count({ where: whereCondition });
+        // Calculer nextMaintenance pour chaque équipement
+        equipement = equipement.map(equipment => {
+            const periodicityInDays = equipment.periodicity;
+            let nextMaintenance;
+            
+            if (!equipment.lastMaintenance) {
+                nextMaintenance = new Date(equipment.createdAt);
+                nextMaintenance.setDate(nextMaintenance.getDate() + periodicityInDays);
+            } else {
+                nextMaintenance = new Date(equipment.lastMaintenance);
+                nextMaintenance.setDate(nextMaintenance.getDate() + periodicityInDays);
+            }
+            
+            return {
+                ...equipment,
+                nextMaintenance
+            };
+        });
+        
+        const total = await equipementClient.count({ 
+            where: whereCondition 
+        });
         
         return {
             page: parseInt(page),
@@ -284,32 +438,81 @@ export const getEquipementHistoryService = async (id, siteId) =>{
  * @param body 
  * @returns 
  */
-export const updateEquipementService = async (id, body) =>{
-    let {numRef, title} = body;
+// export const updateEquipementService = async (id, body) => {
+//     const { numRef, title } = body;
 
-    if(numRef){
-        let equipement = await equipementClient.findFirst({
-            where:{numRef}
+//     // Vérification du numRef (en ignorant l'équipement actuel)
+//     if (numRef) {
+//         const existingRef = await equipementClient.findFirst({
+//             where: { 
+//                 numRef,
+//                 id: { not: id } // Exclure l'équipement en cours de modification
+//             }
+//         });
+//         if (existingRef) return Errors("Un équipement avec ce numéro de référence existe déjà", "numRef");
+//     }
+
+//     // Vérification du titre (en ignorant l'équipement actuel)
+//     if (title) {
+//         const existingTitle = await equipementClient.findFirst({
+//             where: { 
+//                 title,
+//                 equipmentGroupId,
+//                 isActive:true,
+//                 id: { not: id } // Exclure l'équipement en cours de modification
+//             }
+//         });
+//         if (existingTitle) return Errors("Un équipement avec ce nom existe déjà", "title");
+//     }
+
+//     try {
+//         const updatedEquipement = await equipementClient.update({
+//             where: { id },
+//             data: body
+//         });
+//         return updatedEquipement;
+//     } catch (error) {
+//         console.error(error);
+//         return Errors("Erreur lors de la mise à jour en base de données", 'server');
+//     }
+// }
+export const updateEquipementService = async (id, body) => {
+    const { numRef, title, equipmentGroupId } = body; // Ajoutez equipmentGroupId
+
+    // Vérification du numRef (en ignorant l'équipement actuel)
+    if (numRef) {
+        const existingRef = await equipementClient.findFirst({
+            where: { 
+                numRef,
+                id: { not: id },
+                isActive: true // Ajoutez cette condition
+            }
         });
-        if (equipement) return Errors("equipement with this ref number already exist", "numRef");
+        if (existingRef) return Errors("Un équipement avec ce numéro de référence existe déjà", "numRef");
     }
 
-    if(title){
-        let equipement = await equipementClient.findFirst({
-            where:{title}
-        })
-        if (equipement) return Errors("equipement with this name already exist", "name");
+    // Vérification du titre (en ignorant l'équipement actuel)
+    if (title && equipmentGroupId) { // Vérifiez que equipmentGroupId est défini
+        const existingTitle = await equipementClient.findFirst({
+            where: { 
+                title,
+                equipmentGroupId,
+                isActive: true,
+                id: { not: id }
+            }
+        });
+        if (existingTitle) return Errors("Un équipement avec ce nom existe déjà", "title");
     }
 
     try {
-        let equipement = await equipementClient.update({
-            where:{id},
-            data:body
+        const updatedEquipement = await equipementClient.update({
+            where: { id },
+            data: body
         });
-        return equipement;
+        return updatedEquipement;
     } catch (error) {
-        console.log(error)
-        return Errors(`${error}`, 'server');
+        console.error(error);
+        return Errors("Erreur lors de la mise à jour en base de données", 'server');
     }
 }
 

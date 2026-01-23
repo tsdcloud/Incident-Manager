@@ -97,23 +97,70 @@ export const getAllEquipmentGroupFamiliesService = async () =>{
  * @param {*} params 
  * @returns list of active equipment group families based on params
  */
+// export const getEquipmentGroupFamiliesByParamsService = async(params)=>{
+//     try {
+//         const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, ...queries } = params; 
+        
+//         let families = await equipmentGroupFamilyClient.findMany({
+//             where:!search ? {...queries, isActive:true} : {
+//                 name:{
+//                     contains:search
+//                 },
+//                 isActive:true
+//             },
+//             orderBy:{
+//                 name:'desc'
+//             }
+//         });
+
+//         const total = await equipmentGroupFamilyClient.count({where:{isActive:true}});
+
+//         return apiResponse(false, undefined, {
+//             page: parseInt(page),
+//             totalPages: Math.ceil(total / LIMIT),
+//             total,
+//             data: families,
+//         });
+        
+//     } catch (error) {
+//         console.log(error);
+//         return apiResponse(true, [{msg:error, field:"server"}]);
+//     }
+// }
 export const getEquipmentGroupFamiliesByParamsService = async(params)=>{
     try {
-        const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, ...queries } = params; 
+        const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, domain, ...queries } = params; 
+        
+        // Construire les conditions WHERE
+        let whereConditions = { isActive: true };
+        
+        // Ajouter la recherche par nom
+        if (search) {
+            whereConditions.name = {
+                contains: search
+            };
+        }
+        
+        // Ajouter le filtre par domaine si spécifié
+        if (domain && domain !== "ALL") {
+            whereConditions.domain = domain;
+        }
+        
+        // Ajouter d'autres filtres s'ils existent
+        if (Object.keys(queries).length > 0) {
+            whereConditions = { ...whereConditions, ...queries };
+        }
         
         let families = await equipmentGroupFamilyClient.findMany({
-            where:!search ? {...queries, isActive:true} : {
-                name:{
-                    contains:search
-                },
-                isActive:true
-            },
-            orderBy:{
-                name:'desc'
+            where: whereConditions,
+            orderBy: {
+                name: 'desc'
             }
         });
 
-        const total = await equipmentGroupFamilyClient.count({where:{isActive:true}});
+        const total = await equipmentGroupFamilyClient.count({
+            where: whereConditions
+        });
 
         return apiResponse(false, undefined, {
             page: parseInt(page),

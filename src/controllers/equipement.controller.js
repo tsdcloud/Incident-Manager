@@ -132,17 +132,32 @@ export const getAllEquipementController = async(req, res) => {
  * @param {*} res 
  * @returns object
  */
-export const getSiteEquipmentsController = async (req, res)=>{
+// export const getSiteEquipmentsController = async (req, res)=>{
+//     try {
+//         let {siteId, search} = req.params;
+//         let equipments = await getSiteEquipmentsService(siteId, search);
+//         res
+//         .status(equipments.error ? HTTP_STATUS.NOT_FOUND.statusCode : HTTP_STATUS.OK.statusCode)
+//         .send(equipments);
+//     } catch (error) {
+//         console.log(error);
+//         res.status(HTTP_STATUS.SERVEUR_ERROR.statusCode).send(apiResponse(true, [{message:`${error}`, field:"server"}]));
+//         return 
+//     }
+// }
+export const getSiteEquipmentsController = async (req, res) => {
     try {
-        let {siteId} = req.params;
-        let equipments = await getSiteEquipmentsService(siteId);
+        let { siteId } = req.params;
+        let { search } = req.query; // Récupérer search depuis query params, pas depuis params
+        
+        let equipments = await getSiteEquipmentsService(siteId, search);
         res
         .status(equipments.error ? HTTP_STATUS.NOT_FOUND.statusCode : HTTP_STATUS.OK.statusCode)
         .send(equipments);
     } catch (error) {
         console.log(error);
         res.status(HTTP_STATUS.SERVEUR_ERROR.statusCode).send(apiResponse(true, [{message:`${error}`, field:"server"}]));
-        return 
+        return;
     }
 }
 
@@ -152,18 +167,34 @@ export const getSiteEquipmentsController = async (req, res)=>{
  * @param req 
  * @param res 
  */
+// export const updateEquipementController = async (req, res) => {
+//     try {
+//         let equipement = await updateEquipementService(req.params.id, req.body);
+//         res
+//         .send(equipement)
+//         .status(HTTP_STATUS.OK.statusCode);
+//         return;
+//     } catch (error) {
+//         console.log(error);
+//         res
+//         .sendStatus(HTTP_STATUS.BAD_REQUEST.statusCode);
+//         return;
+//     }
+// }
 export const updateEquipementController = async (req, res) => {
     try {
-        let equipement = await updateEquipementService(req.params.id, req.body);
-        res
-        .send(equipement)
-        .status(HTTP_STATUS.OK.statusCode);
-        return;
+        const result = await updateEquipementService(req.params.id, req.body);
+
+        // Si votre fonction Errors renvoie un format spécifique (ex: avec une propriété 'error')
+        if (result && result.isError) { // Adaptez selon comment fonctionne votre fonction Errors()
+            return res.status(HTTP_STATUS.BAD_REQUEST.statusCode).send(result);
+        }
+
+        return res.status(HTTP_STATUS.OK.statusCode).send(result);
+        
     } catch (error) {
-        console.log(error);
-        res
-        .sendStatus(HTTP_STATUS.BAD_REQUEST.statusCode);
-        return;
+        console.error(error);
+        return res.sendStatus(HTTP_STATUS.INTERNAL_SERVER_ERROR.statusCode);
     }
 }
 

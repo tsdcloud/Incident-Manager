@@ -1,6 +1,5 @@
 import { prisma } from "../config.js";
 import { apiResponse } from "../utils/apiResponse.js";
-import { fetchData } from "../utils/fetch.utils.js";
 const operationClient = prisma.operation;
 
 const LIMIT = 100;
@@ -179,5 +178,135 @@ export const deleteOperationService = async(id) =>{
     } catch (error) {
         console.log(error);
         return apiResponse(true, [{message:`${error}`, field:'server'}]);
+    }
+}
+
+/**
+ * 
+ * @param params
+ * @returns
+ */
+// service.js - Service spécifique pour les opérations GE
+export const generateExcelService = async (query) => {
+    let { start, end, value, criteria, condition, equipementId } = query;
+
+    console.log('Query parameters received:', { start, end, value, criteria, condition, equipementId });
+    
+    // Conversion des dates
+    if(start && end){
+        start = new Date(start);
+        start.setHours(0, 0, 0, 0);
+        start = start.toISOString();
+    
+        end = new Date(end);
+        end.setHours(23, 59, 59, 999);
+        end = end.toISOString();
+    }
+    
+    try {
+        let operations;
+        
+        // Si critère est "date"
+        if(criteria === "date"){
+            const dateCondition = condition === "NOT" 
+                ? { not: { gte: start, lte: end } }
+                : { gte: start, lte: end };
+
+            operations = await operationClient.findMany({
+                where: {
+                    createdAt: dateCondition,
+                    isActive: true,
+                    // Si equipementId est fourni en plus de la date, on l'inclut
+                    ...(equipementId ? { equipementId } : {})
+                },
+                include: {
+                    equipement: {
+                        include: {
+                            equipmentGroup: { 
+                                include: { 
+                                    equipmentGroupFamily: true 
+                                } 
+                            }
+                        }
+                    }
+                },
+                orderBy: {
+                    createdAt: 'desc'
+                }
+            });
+        } 
+        // Si critère est "equipementId"
+        else if (criteria === "equipementId") {
+            // CORRECTION: Gestion correcte de la valeur
+            const equipValue = value || equipementId;
+            const equipCondition = condition === "NOT" 
+                ? { not: equipValue }
+                : equipValue;
+
+            operations = await operationClient.findMany({
+                where: {
+                    equipementId: equipCondition,
+                    isActive: true,
+                    // Si dates sont fournies en plus de l'équipement, on les inclut
+                    ...((start && end) ? {
+                        createdAt: {
+                            gte: start,
+                            lte: end,
+                        },
+                    } : {})
+                },
+                include: {
+                    equipement: {
+                        include: {
+                            equipmentGroup: { 
+                                include: { 
+                                    equipmentGroupFamily: true 
+                                } 
+                            }
+                        }
+                    }
+                },
+                orderBy: {
+                    createdAt: 'desc'
+                }
+            });
+        }
+        // Si aucun critère spécifié (toutes les opérations)
+        else {
+            operations = await operationClient.findMany({
+                where: {
+                    isActive: true,
+                    // Filtres optionnels
+                    ...((start && end) ? {
+                        createdAt: {
+                            gte: start,
+                            lte: end,
+                        },
+                    } : {}),
+                    ...(equipementId ? { equipementId } : {})
+                },
+                include: {
+                    equipement: {
+                        include: {
+                            equipmentGroup: { 
+                                include: { 
+                                    equipmentGroupFamily: true 
+                                } 
+                            }
+                        }
+                    }
+                },
+                orderBy: {
+                    createdAt: 'desc'
+                }
+            });
+        }
+
+        console.log(`Found ${operations.length} operations`);
+        return operations;
+        
+    } catch (error) {
+        console.log("Error in generateExcelService:", error);
+        throw new Error(`${error.message}`);
     }
 }

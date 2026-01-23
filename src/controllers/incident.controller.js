@@ -277,6 +277,7 @@ export const generateExcelFileController = async (req, res) => {
             { header: 'Cause d\'incident', key: 'incidentCause', width: 30 },
             { header: 'Arrêt opération', key: 'hasStoppedOperations', width: 20 },
             { header: 'Équipement', key: 'equipement', width: 20 },
+            { header: 'Domaine', key: 'domain', width: 20 },
             { header: 'Site', key: 'site', width: 20 },
             { header: 'Shift', key: 'shift', width: 20 },
             { header: 'Initiateur', key: 'userId', width: 20 },
@@ -370,6 +371,9 @@ export const generateExcelFileController = async (req, res) => {
             const closedByName = employees?.data?.find(emp => emp?.id === incident.closedBy)?.name || incident.closedBy || "--";
             // const updatedByName = employees?.data?.find(emp => emp?.id === incident.updatedBy)?.name || incident.updatedBy || "--";
             const reclassifiedByName = employees?.data?.find(emp => emp?.id === incident.reclassifiedBy)?.name || incident.reclassifiedBy || "--";
+            const domain = incident.equipement?.equipmentGroup?.equipmentGroupFamily?.domain 
+                || incident.equipement?.equipmentGroup?.equipmentGroupFamily?.domaine  // au cas où le champ s'appelle "domaine" au lieu de "domain"
+                || "--";
 
             worksheet.addRow({
                 numRef: incident.numRef || "--",
@@ -386,6 +390,7 @@ export const generateExcelFileController = async (req, res) => {
                     incident.hasStoppedOperations === false ? "Non" :
                     "--",
                 equipement: incident.equipement?.title || incident.equipementId || "--",
+                domain: domain,
                 site: siteName,
                 shift: shiftName,
                 userId: createdByName,

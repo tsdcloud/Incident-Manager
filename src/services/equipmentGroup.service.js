@@ -6,6 +6,8 @@ import {prisma} from '../config.js';
 import { apiResponse } from '../utils/apiResponse.js';
 import { generateRefNum } from '../utils/utils.js';
 const equipmentGroupClient = prisma.equipmentgroup;
+const equipmentGroupFamily = prisma.equipmentGroupFamily;
+
 
 const LIMIT = 100;
 const ORDER ="asc";
@@ -68,22 +70,86 @@ export const createEquipmentGroupService = async (body) =>{
  * @param {*} body 
  * @returns updated equipment group
  */
-export const updateEquipmentGroupService = async(id, body)=>{
+export const updateEquipmentGroupService = async (id, body) => {
+    const { name, equipmentGroupFamilyId } = body;
+
     try {
-        let group = await equipmentGroupClient.update({
-            where:{
-                isActive:true, 
-                id
-            },
-            data:body
+        // Vérifier si le groupe existe
+        const existingGroup = await equipmentGroupClient.findUnique({
+            where: { 
+                id,
+                isActive: true 
+            }
         });
 
-        return apiResponse(false, undefined, group);
+        if (!existingGroup) {
+            return apiResponse(true, [{ msg: "Groupe d'équipement non trouvé", field: "id" }]);
+        }
+
+        // Vérifier si le nom existe déjà (pour un autre groupe)
+        if (name && equipmentGroupFamilyId) {
+            const duplicateName = await equipmentGroupClient.findFirst({
+                where: {
+                    name,
+                    equipmentGroupFamilyId,
+                    isActive: true,
+                    id: { not: id } // Exclure le groupe actuel
+                }
+            });
+
+            if (duplicateName) {
+                return apiResponse(true, [{ 
+                    msg: "Un groupe avec ce nom existe déjà dans cette famille", 
+                    field: "name" 
+                }]);
+            }
+        }
+
+        // Vérifier si la famille existe
+        if (equipmentGroupFamilyId) {
+            const familyExists = await equipmentGroupFamily.findUnique({
+                where: { 
+                    id: equipmentGroupFamilyId,
+                    isActive: true 
+                }
+            });
+
+            if (!familyExists) {
+                return apiResponse(true, [{ 
+                    msg: "Famille d'équipement non trouvée", 
+                    field: "equipmentGroupFamilyId" 
+                }]);
+            }
+        }
+
+        // Mettre à jour le groupe
+        let updatedGroup = await equipmentGroupClient.update({
+            where: {
+                id,
+                isActive: true
+            },
+            data: body,
+            include: {
+                equipmentGroupFamily: true
+            }
+        });
+
+        return apiResponse(false, undefined, updatedGroup);
+        
     } catch (error) {
-        console.log(error);
-        return apiResponse(true, [{msg:error, field:"server"}]);
+        console.error("Erreur updateEquipmentGroupService:", error);
+        
+        // Gérer les erreurs Prisma spécifiques
+        if (error.code === 'P2025') {
+            return apiResponse(true, [{ msg: "Groupe d'équipement non trouvé", field: "id" }]);
+        }
+        
+        return apiResponse(true, [{ 
+            msg: error.message || "Erreur lors de la mise à jour", 
+            field: "server" 
+        }]);
     }
-}
+};
 
 /**
  * Returns the list of active equipments
@@ -96,6 +162,9 @@ export const getAllEquipmentGroupsService = async () =>{
             include:{
                 equipmentGroupFamily:true
             },
+            orderBy: {
+                createdAt: 'desc'
+            }
         });
         return apiResponse(false, undefined, groups);
     } catch (error) {
@@ -110,39 +179,88 @@ export const getAllEquipmentGroupsService = async () =>{
  * @param {*} params 
  * @returns list of active equipment groups based on params
  */
-export const getEquipmentGroupByParamsService = async(params)=>{
+// export const getEquipmentGroupByParamsService = async(params)=>{
+//     try {
+//         const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, ...queries } = params; 
+        
+//         let groups = await equipmentGroupClient.findMany({
+//             where:!search ? queries : {
+//                 name:{
+//                     contains:search
+//                 },
+//                 isActive:true
+//             },
+//             include:{
+//                 equipmentGroupFamily:true
+//             },
+//             orderBy:{
+//                 name:'desc'
+//             }
+//         });
+
+//         const total = await equipmentGroupClient.count({where:{isActive:true}});
+
+//         return apiResponse(false, undefined, {
+//             page: parseInt(page),
+//             totalPages: Math.ceil(total / LIMIT),
+//             total,
+//             data: groups,
+//         });
+        
+//     } catch (error) {
+//         console.log(error);
+//         return apiResponse(true, [{msg:error, field:"server"}]);
+//     }
+// }
+export const getEquipmentGroupByParamsService = async (params) => {
     try {
-        const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, ...queries } = params; 
-        
-        let groups = await equipmentGroupClient.findMany({
-            where:!search ? queries : {
-                name:{
-                    contains:search
-                },
-                isActive:true
-            },
-            include:{
-                equipmentGroupFamily:true
-            },
-            orderBy:{
-                name:'desc'
-            }
-        });
-
-        const total = await equipmentGroupClient.count({where:{isActive:true}});
-
-        return apiResponse(false, undefined, {
-            page: parseInt(page),
-            totalPages: Math.ceil(total / LIMIT),
-            total,
-            data: groups,
-        });
-        
+      const { page = 1, limit = LIMIT, sortBy = SORT_BY, order = ORDER, search, domain, ...queries } = params; 
+      
+      // Construire la condition where
+      let whereCondition = { isActive: true };
+      
+      // Ajouter le filtre par domaine
+      if (domain && domain !== "ALL") {
+        whereCondition.equipmentGroupFamily = {
+          domain: domain
+        };
+      }
+      
+      // Ajouter la recherche si présente
+      if (search) {
+        whereCondition.OR = [
+          { name: { contains: search } },
+          { equipmentGroupFamily: { name: { contains: search } } }
+        ];
+      }
+      
+      // Ajouter les autres queries
+      whereCondition = { ...whereCondition, ...queries };
+  
+      let groups = await equipmentGroupClient.findMany({
+        where: whereCondition,
+        include: {
+          equipmentGroupFamily: true
+        },
+        orderBy: {
+            createdAt: 'desc'
+        }
+      });
+  
+      const total = await equipmentGroupClient.count({ where: whereCondition });
+  
+      return apiResponse(false, undefined, {
+        page: parseInt(page),
+        totalPages: Math.ceil(total / LIMIT),
+        total,
+        data: groups,
+      });
+      
     } catch (error) {
-        console.log(error);
-        return apiResponse(true, [{msg:error, field:"server"}]);
+      console.log(error);
+      return apiResponse(true, [{ msg: error, field: "server" }]);
     }
-}
+  }
 
 
 

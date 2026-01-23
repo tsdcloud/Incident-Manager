@@ -82,19 +82,32 @@ export const getAllEquipmentGroupsController = async (req, res) => {
  * @param {*} res 
  * @returns updated equipment group
  */
-export const updateEquipmentGroupController = async (req, res) =>{
+export const updateEquipmentGroupController = async (req, res) => {
     try {
-        let {body} = req;
-        let {id} = req.params;
+        let { body } = req;
+        let { id } = req.params;
 
-        if(!id) return apiResponse(true, [{msg:"Id n'est pas fournie", field:"id"}]);
+        console.log("Requête PATCH reçue:");
+        console.log("ID:", id);
+        console.log("Body:", body);
+
+        if (!id) {
+            return res.status(HTTP_STATUS.BAD_REQUEST.statusCode)
+                .send(apiResponse(true, [{ msg: "Id n'est pas fournie", field: "id" }]));
+        }
+        
         let group = await updateEquipmentGroupService(id, body);
-        return res.status(group.error ? HTTP_STATUS.BAD_REQUEST.statusCode : HTTP_STATUS.OK.statusCode);
+        
+        // CORRECTION : Renvoyer la réponse
+        return res.status(group.error ? HTTP_STATUS.BAD_REQUEST.statusCode : HTTP_STATUS.OK.statusCode)
+                  .send(group);
+                  
     } catch (error) {
         console.log(error);
-        return apiResponse(true, [{msg:error, field:"server"}]);
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.statusCode)
+                  .send(apiResponse(true, [{ msg: error.message || "Erreur serveur", field: "server" }]));
     }
-}
+};
 
 
 /**
@@ -103,7 +116,7 @@ export const updateEquipmentGroupController = async (req, res) =>{
  * @param {*} res 
  * @returns empty object
  */
-export const deleteEquipeGroupController = async(req, res)=>{
+export const deleteEquipmentGroupController = async(req, res)=>{
     try {
         let {id} = req.params;
         let group = await deleteEquipmentGroupService(id);

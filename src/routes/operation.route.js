@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createOperationController, deleteOperationController, getAllOperationController, getOperationByIdController, updateOperationController } from "../controllers/operations.controller.js";
+import { createOperationController, deleteOperationController, getAllOperationController, getOperationByIdController, updateOperationController, generateExcelFileController } from "../controllers/operations.controller.js";
 import {
     createOperationValidation,
     updateOperationValidation
@@ -7,6 +7,7 @@ import {
 const routes = Router();
 
 routes.get('/', getAllOperationController);
+routes.get('/file', generateExcelFileController);
 routes.get('/:id', getOperationByIdController);
 routes.post('/', createOperationValidation, createOperationController);
 routes.patch('/:id', updateOperationValidation, updateOperationController);

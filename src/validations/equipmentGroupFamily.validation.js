@@ -1,11 +1,19 @@
 import { body, validationResult } from 'express-validator';
 import HTTP_STATUS from '../utils/http.utils.js';
 import { apiResponse } from '../utils/apiResponse.js';
+const equipmentDomain = [
+    'IT',
+    'HSE',
+    'OPERATIONS',
+    'MAINTENANCE'
+];
+
 
 // Creation validation
 export const createEquipmentGroupFamilyValidation = [
     body('name').notEmpty().withMessage('Nom est requis'),
     body('description').optional().notEmpty().withMessage('Description ne doit pas être vide'),
+    body('domain').optional().isIn(equipmentDomain).withMessage('Le domaine doit être IT, HSE, OPERATIONS ou MAINTENANCE'),
     (req, res, next) =>{
         const error = validationResult(req);
         if(!error.isEmpty()){
@@ -30,6 +38,7 @@ export const createEquipmentGroupFamilyValidation = [
 export const updateEquipmentGroupFamilyValidation = [
     body('name').optional().notEmpty().withMessage('Nom ne doit pas être vide'),
     body('description').optional().notEmpty().withMessage('Description ne doit pas être vide'),
+    body('domain').optional().isIn(equipmentDomain).withMessage('Le domaine doit être IT, HSE, OPERATIONS ou MAINTENANCE'),
     (req,res, next)=>{
         let errors = validationResult(req.body);
         if(!errors.isEmpty()){
