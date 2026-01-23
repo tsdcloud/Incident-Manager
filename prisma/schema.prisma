@@ -20,6 +20,8 @@ model incidenttype {
   description   String?
   incident      incident[]
   incidentCauses incidentcause[]
+
+  @@map("incidenttype")
 }
 
 model incidentcause {
@@ -36,6 +38,8 @@ model incidentcause {
   description  String?
   incident     incident[]
   offBridge    offbridge[]
+
+  @@map("incidentcause")
 }
 
 model equipment {
@@ -63,6 +67,7 @@ model equipment {
   operations       operation[]
 
   @@index([equipmentGroupId], map: "equipment_equipmentGroupId_fkey")
+  @@map("equipment")
 }
 
 model history {
@@ -82,6 +87,7 @@ model history {
   @@index([maintenanceId], map: "history_maintenanceId_fkey")
   @@index([movementId], map: "history_movementId_fkey")
   @@index([operationId], map: "history_operationId_fkey")
+  @@map("history")
 }
 
 model movement {
@@ -99,6 +105,7 @@ model movement {
   equipement      equipment @relation(fields: [equipementId], references: [id])
 
   @@index([equipementId], map: "movement_equipementId_fkey")
+  @@map("movement")
 }
 
 model operation {
@@ -117,6 +124,7 @@ model operation {
   equipement   equipment  @relation(fields: [equipementId], references: [id])
 
   @@index([equipementId], map: "operation_equipementId_fkey")
+  @@map("operation")
 }
 
 model consommable {
@@ -129,6 +137,8 @@ model consommable {
   updatedAt DateTime   @updatedAt
   isActive  Boolean    @default(true)
   incident  incident[]
+
+  @@map("consommable")
 }
 
 model maintenancetype {
@@ -142,6 +152,8 @@ model maintenancetype {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   isActive          Boolean  @default(true)
+
+  @@map("maintenancetype")
 }
 
 model incident {
@@ -177,6 +189,7 @@ model incident {
   @@index([equipementId], map: "incident_equipementId_fkey")
   @@index([incidentCauseId], map: "incident_incidentCauseId_fkey")
   @@index([incidentId], map: "incident_incidentId_fkey")
+  @@map("incident")
 }
 
 model incidentphoto {
@@ -190,6 +203,8 @@ model incidentphoto {
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
   isActive          Boolean        @default(true)
+
+  @@map("incidentphoto")
 }
 
 model offbridge {
@@ -220,6 +235,7 @@ model offbridge {
   incidentCauses  incidentcause     @relation(fields: [incidentCauseId], references: [id])
 
   @@index([incidentCauseId], map: "offbridge_incidentCauseId_fkey")
+  @@map("offbridge")
 }
 
 model maintenance {
@@ -251,6 +267,7 @@ model maintenance {
   incident        incident?          @relation(fields: [incidentId], references: [id], onDelete: Cascade)
 
   @@index([equipementId], map: "maintenance_equipementId_fkey")
+  @@map("maintenance")
 }
 
 model equipmentgroup {
@@ -266,6 +283,8 @@ model equipmentgroup {
   isActive    Boolean     @default(true)
   description String?
   equipements equipment[]
+
+  @@map("equipmentgroup")
 }
 
 model equipmentGroupFamily{
@@ -280,6 +299,8 @@ model equipmentGroupFamily{
   equipmentGroups         equipmentgroup[]
   isActive    Boolean     @default(true)
   description String?
+
+  @@map("equipmentgroupfamily")
 }
 
 enum EquipmentStatus {
