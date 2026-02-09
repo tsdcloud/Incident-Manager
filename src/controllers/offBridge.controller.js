@@ -179,7 +179,7 @@ export const generateExcelFileController = async (req, res) =>{
                 { header: 'Produit', key: 'product', width: 20 },
                 { header: 'Transporteur', key: 'transporter', width: 20 },
                 { header: 'Vehicule', key: 'vehicle', width: 20 },
-                { header: 'Numero BL', key: 'blNumber', width: 20 },
+                { header: 'Description', key: 'description', width: 20 },
                 { header: 'Chauffeur', key: 'driver', width: 20 },
                 { header: 'Remorque', key: 'trailer', width: 20 },
                 { header: 'Initier par', key: 'createdBy', width: 20 }
@@ -193,7 +193,7 @@ export const generateExcelFileController = async (req, res) =>{
             offBridges.forEach(offBridge => {
                 worksheet.addRow({
                     numRef: offBridge.numRef,
-                    createdAt: offBridge.creationDate,
+                    createdAt: offBridge.createdAt,
                     incidentCause: offBridge.incidentCauses.name,
                     siteId: sites?.data.find(site=>site?.id === offBridge.siteId)?.name || offBridge.siteId,
                     tier: suppliers?.data.find(supplier=> supplier?.id === offBridge.tier)?.name || offBridge.tier,
@@ -206,10 +206,10 @@ export const generateExcelFileController = async (req, res) =>{
                     product: products?.data.find(product=> product?.id === offBridge.product)?.name || offBridge.product,
                     transporter: suppliers?.data.find(supplier=> supplier?.id === offBridge.transporter)?.name || offBridge.transporter,
                     vehicle: offBridge.vehicle,
-                    blNumber: offBridge.blNumber,
+                    description: offBridge.blNumber,
                     driver: offBridge.driver,
                     trailer: offBridge.trailer,
-                    description: offBridge.description,
+                    // description: offBridge.description,
                     createdBy: employees?.data.find(employee=>employee?.id === offBridge.createdBy)?.name || offBridge.createdBy,
                 });
             });

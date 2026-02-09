@@ -102,25 +102,67 @@ export const getIncidentTypeByIdService = async(id) =>{
  * @param request 
  * @returns 
  */
-export const getIncidentTypeByParams = async (request) =>{
-    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, ...queries } = request; 
+// export const getIncidentTypeByParams = async (request) =>{
+//     const { page = 1, limit = LIMIT, sortBy = SORT_BY, order=ORDER, search, ...queries } = request; 
+//     const skip = (page - 1) * limit;
+//     try {
+//         let types = await incidentType.findMany({
+//             where:!search ? queries : {
+//                 OR:[
+//                     {name:{contains:search}},
+//                     {numRef:{contains:search}}
+//                 ],
+//                 isActive:true
+//             },
+//             skip: parseInt(skip),
+//             take: parseInt(limit),
+//             orderBy:{
+//                 name: 'asc'
+//             }
+//         });
+//         const total = await incidentType.count({where:{isActive:true}});
+//         return {
+//             page: parseInt(page),
+//             totalPages: Math.ceil(total / limit),
+//             total,
+//             data: types,
+//         };
+//     } catch (error) {
+//         console.log(error);
+//         throw new Error(`${error}`);
+//     }
+// }
+export const getIncidentTypeByParams = async (request) => {
+    const { page = 1, limit = LIMIT, sortBy = SORT_BY, order = ORDER, search, ...queries } = request; 
     const skip = (page - 1) * limit;
+    
     try {
+        // Construire la clause WHERE dynamiquement
+        let whereClause = {
+            isActive: true,
+            ...queries // Inclure tous les autres filtres (domain, etc.)
+        };
+
+        // Ajouter la recherche si elle existe
+        if (search) {
+            whereClause.OR = [
+                { name: { contains: search } },
+                { numRef: { contains: search } }
+            ];
+        }
+
         let types = await incidentType.findMany({
-            where:!search ? queries : {
-                OR:[
-                    {name:{contains:search}},
-                    {numRef:{contains:search}}
-                ],
-                isActive:true
-            },
+            where: whereClause,
             skip: parseInt(skip),
             take: parseInt(limit),
-            orderBy:{
+            orderBy: {
                 name: 'asc'
             }
         });
-        const total = await incidentType.count({where:{isActive:true}});
+
+        // Compter avec les mêmes filtres
+        const total = await incidentType.count({ where: whereClause });
+
         return {
             page: parseInt(page),
             totalPages: Math.ceil(total / limit),

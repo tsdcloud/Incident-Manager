@@ -212,12 +212,65 @@ export const getAllEquipmentGroupsService = async () =>{
 //         return apiResponse(true, [{msg:error, field:"server"}]);
 //     }
 // }
+// export const getEquipmentGroupByParamsService = async (params) => {
+//     try {
+//       const { page = 1, limit = LIMIT, sortBy = SORT_BY, order = ORDER, search, domain, ...queries } = params; 
+      
+//       // Construire la condition where
+//       let whereCondition = { isActive: true };
+      
+//       // Ajouter le filtre par domaine
+//       if (domain && domain !== "ALL") {
+//         whereCondition.equipmentGroupFamily = {
+//           domain: domain
+//         };
+//       }
+      
+//       // Ajouter la recherche si présente
+//       if (search) {
+//         whereCondition.OR = [
+//           { name: { contains: search } },
+//           { equipmentGroupFamily: { name: { contains: search } } }
+//         ];
+//       }
+      
+//       // Ajouter les autres queries
+//       whereCondition = { ...whereCondition, ...queries };
+  
+//       let groups = await equipmentGroupClient.findMany({
+//         where: whereCondition,
+//         include: {
+//           equipmentGroupFamily: true
+//         },
+//         orderBy: {
+//             createdAt: 'desc'
+//         }
+//       });
+  
+//       const total = await equipmentGroupClient.count({ where: whereCondition });
+  
+//       return apiResponse(false, undefined, {
+//         page: parseInt(page),
+//         totalPages: Math.ceil(total / LIMIT),
+//         total,
+//         data: groups,
+//       });
+      
+//     } catch (error) {
+//       console.log(error);
+//       return apiResponse(true, [{ msg: error, field: "server" }]);
+//     }
+//   }
 export const getEquipmentGroupByParamsService = async (params) => {
     try {
       const { page = 1, limit = LIMIT, sortBy = SORT_BY, order = ORDER, search, domain, ...queries } = params; 
+      const skip = (page - 1) * limit; // ⚠️ MANQUANT - nécessaire pour la pagination
       
       // Construire la condition where
-      let whereCondition = { isActive: true };
+      let whereCondition = { 
+        isActive: true,
+        ...queries // Déplacer ici pour éviter les conflits
+      };
       
       // Ajouter le filtre par domaine
       if (domain && domain !== "ALL") {
@@ -228,22 +281,41 @@ export const getEquipmentGroupByParamsService = async (params) => {
       
       // Ajouter la recherche si présente
       if (search) {
-        whereCondition.OR = [
-          { name: { contains: search } },
-          { equipmentGroupFamily: { name: { contains: search } } }
-        ];
+        // ⚠️ PROBLÈME: Si domain existe, vous écrasez equipmentGroupFamily
+        // Il faut combiner les conditions
+        if (domain && domain !== "ALL") {
+          whereCondition.OR = [
+            { 
+              name: { contains: search, mode: 'insensitive' },
+              equipmentGroupFamily: { domain: domain }
+            },
+            { 
+              equipmentGroupFamily: { 
+                name: { contains: search },
+                domain: domain 
+              }
+            }
+          ];
+        } else {
+          whereCondition.OR = [
+            { name: { contains: search } },
+            { equipmentGroupFamily: { name: { contains: search } } }
+          ];
+        }
+        
+        // ⚠️ IMPORTANT: Supprimer equipmentGroupFamily du where principal si on utilise OR
+        delete whereCondition.equipmentGroupFamily;
       }
-      
-      // Ajouter les autres queries
-      whereCondition = { ...whereCondition, ...queries };
   
       let groups = await equipmentGroupClient.findMany({
         where: whereCondition,
         include: {
           equipmentGroupFamily: true
         },
+        skip: parseInt(skip), // ⚠️ MANQUANT
+        take: parseInt(limit), // ⚠️ MANQUANT
         orderBy: {
-            createdAt: 'desc'
+          createdAt: 'desc'
         }
       });
   
@@ -251,7 +323,7 @@ export const getEquipmentGroupByParamsService = async (params) => {
   
       return apiResponse(false, undefined, {
         page: parseInt(page),
-        totalPages: Math.ceil(total / LIMIT),
+        totalPages: Math.ceil(total / limit), // ⚠️ Utiliser 'limit' pas 'LIMIT'
         total,
         data: groups,
       });
