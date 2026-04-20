@@ -1021,6 +1021,86 @@ export const updateIncidentService = async (id, body) =>{
     }
 }
 
+// export const reclassifyIncidentService = async (id, body) => {
+//     console.log("id :",id);
+//     console.log("body :", body);
+//     try {
+//         console.log("🔍 DEBUG - ID reçu:", id);
+//         console.log("🔍 DEBUG - BODY reçu:", body);
+        
+//         // Récupérer l'incident existant pour avoir les valeurs actuelles
+//         const existingIncident = await incidentClient.findUnique({
+//             where: { id }
+//         });
+        
+//         if (!existingIncident) {
+//             return Errors("Incident non trouvé");
+//         }
+
+//         console.log("🔍 DEBUG - Incident existant:", existingIncident);
+        
+//         // Les données devraient arriver directement dans body
+//         // const { equipementId, incidentId, incidentCauseId } = body;
+//         // Les données devraient arriver directement dans body
+//         const { equipementId, incidentId, incidentCauseId, updatedBy } = body;
+
+//         // Validations seulement si une nouvelle valeur est fournie
+//         if(equipementId && equipementId !== existingIncident.equipementId){
+//             const equipementExist = await prisma.equipment.findFirst({where:{id:equipementId, isActive:true}});
+//             if(!equipementExist) return (Errors("L'équipement sélectionné n'existe pas"));
+//         }
+        
+//         if(incidentId && incidentId !== existingIncident.incidentId){
+//             const typeIncidentExist = await prisma.incidenttype.findFirst({where:{id:incidentId, isActive:true}});
+//             if(!typeIncidentExist) return (Errors("Le type d'incident sélectionné n'existe pas"));
+//         }
+        
+//         if(incidentCauseId && incidentCauseId !== existingIncident.incidentCauseId){
+//             const causeIncidentExist = await prisma.incidentcause.findFirst({where:{id:incidentCauseId, isActive:true}});
+//             if(!causeIncidentExist) return (Errors("La cause d'incident sélectionné n'existe pas"));
+//         }
+
+//         // Construire l'objet de mise à jour avec les nouvelles valeurs ou les anciennes
+//         const updateData = {};
+        
+//         // Utiliser la nouvelle valeur si fournie, sinon garder l'ancienne
+//         if (equipementId !== undefined) {
+//             updateData.equipementId = equipementId || null;
+//         }
+        
+//         if (incidentId !== undefined) {
+//             updateData.incidentId = incidentId || null;
+//         }
+        
+//         if (incidentCauseId !== undefined) {
+//             updateData.incidentCauseId = incidentCauseId || null;
+//         }
+
+//         // Ajouter le champ reclassifiedBy avec la valeur de updatedBy
+//         if (updatedBy !== undefined) {
+//             updateData.reclassifiedBy = updatedBy;
+//         }
+
+//         console.log("🔍 DEBUG - Données de mise à jour:", updateData);
+
+//         // Mise à jour seulement si au moins un champ a changé
+//         if (Object.keys(updateData).length > 0) {
+//             let incident = await incidentClient.update({
+//                 where: { id },
+//                 data: updateData
+//             });
+            
+//             console.log("✅ Incident mis à jour:", incident);
+//             return incident;
+//         } else {
+//             console.log("ℹ️ Aucune modification nécessaire");
+//             return existingIncident;
+//         }
+//     } catch (error) {
+//         console.log(error)
+//         throw new Error(`${error}`);
+//     }
+// }
 export const reclassifyIncidentService = async (id, body) => {
     console.log("id :",id);
     console.log("body :", body);
@@ -1039,44 +1119,79 @@ export const reclassifyIncidentService = async (id, body) => {
 
         console.log("🔍 DEBUG - Incident existant:", existingIncident);
         
-        // Les données devraient arriver directement dans body
-        // const { equipementId, incidentId, incidentCauseId } = body;
-        // Les données devraient arriver directement dans body
-        const { equipementId, incidentId, incidentCauseId, updatedBy } = body;
+        // Extraire les données du body
+        const { 
+            equipementId,      // Ce qui vient du frontend
+            incidentId,        // Ce qui vient du frontend
+            incidentCauseId,   // Ce qui vient du frontend
+            hasStoppedOperations, 
+            closedManuDate, 
+            updatedBy 
+        } = body;
 
-        // Validations seulement si une nouvelle valeur est fournie
-        if(equipementId && equipementId !== existingIncident.equipementId){
-            const equipementExist = await prisma.equipment.findFirst({where:{id:equipementId, isActive:true}});
-            if(!equipementExist) return (Errors("L'équipement sélectionné n'existe pas"));
-        }
-        
-        if(incidentId && incidentId !== existingIncident.incidentId){
-            const typeIncidentExist = await prisma.incidenttype.findFirst({where:{id:incidentId, isActive:true}});
-            if(!typeIncidentExist) return (Errors("Le type d'incident sélectionné n'existe pas"));
-        }
-        
-        if(incidentCauseId && incidentCauseId !== existingIncident.incidentCauseId){
-            const causeIncidentExist = await prisma.incidentcause.findFirst({where:{id:incidentCauseId, isActive:true}});
-            if(!causeIncidentExist) return (Errors("La cause d'incident sélectionné n'existe pas"));
-        }
-
-        // Construire l'objet de mise à jour avec les nouvelles valeurs ou les anciennes
+        // Construire l'objet de mise à jour avec les BONS noms de champs Prisma
         const updateData = {};
         
-        // Utiliser la nouvelle valeur si fournie, sinon garder l'ancienne
+        // IMPORTANT: Utiliser les noms de champs du modèle Prisma
+        // Dans Prisma, c'est "equipement" (sans "Id"), pas "equipementId"
         if (equipementId !== undefined) {
-            updateData.equipementId = equipementId || null;
+            // Vérifier si l'équipement existe
+            const equipementExist = await prisma.equipment.findFirst({
+                where: { id: equipementId, isActive: true }
+            });
+            if (!equipementExist) {
+                return Errors("L'équipement sélectionné n'existe pas");
+            }
+            updateData.equipement = { connect: { id: equipementId } };
         }
         
         if (incidentId !== undefined) {
-            updateData.incidentId = incidentId || null;
+            // Vérifier si le type d'incident existe
+            const typeIncidentExist = await prisma.incidenttype.findFirst({
+                where: { id: incidentId, isActive: true }
+            });
+            if (!typeIncidentExist) {
+                return Errors("Le type d'incident sélectionné n'existe pas");
+            }
+            updateData.incident = { connect: { id: incidentId } };
         }
         
         if (incidentCauseId !== undefined) {
-            updateData.incidentCauseId = incidentCauseId || null;
+            // Vérifier si la cause existe
+            const causeIncidentExist = await prisma.incidentcause.findFirst({
+                where: { id: incidentCauseId, isActive: true }
+            });
+            if (!causeIncidentExist) {
+                return Errors("La cause d'incident sélectionnée n'existe pas");
+            }
+            updateData.incidentCauses = { connect: { id: incidentCauseId } };
+        }
+        
+        if (hasStoppedOperations !== undefined) {
+            updateData.hasStoppedOperations = hasStoppedOperations;
+        }
+        
+        if (closedManuDate !== undefined) {
+            // Convertir le format datetime-local en format DateTime valide
+            let formattedDate = closedManuDate;
+            if (closedManuDate && typeof closedManuDate === 'string') {
+                // Si c'est au format datetime-local (YYYY-MM-DDTHH:mm)
+                if (closedManuDate.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)) {
+                    formattedDate = new Date(closedManuDate).toISOString();
+                }
+                // Si c'est déjà au format ISO, garder tel quel
+                else if (closedManuDate.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)) {
+                    formattedDate = closedManuDate;
+                }
+                // Sinon essayer de convertir
+                else {
+                    formattedDate = new Date(closedManuDate).toISOString();
+                }
+            }
+            updateData.closedManuDate = formattedDate;
         }
 
-        // Ajouter le champ reclassifiedBy avec la valeur de updatedBy
+        // Ajouter le champ reclassifiedBy
         if (updatedBy !== undefined) {
             updateData.reclassifiedBy = updatedBy;
         }
@@ -1097,10 +1212,10 @@ export const reclassifyIncidentService = async (id, body) => {
             return existingIncident;
         }
     } catch (error) {
-        console.log(error)
+        console.log(error);
         throw new Error(`${error}`);
     }
-}
+};
 
 /**
  * 

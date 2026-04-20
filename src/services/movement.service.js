@@ -6,51 +6,106 @@ const LIMIT = 100;
 const ORDER ="asc";
 const SORT_BY = "name";
 
+// /**
+//  * Create movement
+//  * @param {*} body 
+//  */
+// export const createMovementService = async (body) =>{
+//     try {
+//         let {equipementId, originSite, destinationSite, ...rest} = body;
+
+//         if(destinationSite === originSite){
+//             return apiResponse(true, [{message:"Destination site sholud not be the same as originSite"}])
+//         }
+//         // Check if the equipment exist
+//         let equipementExist = await prisma.equipment.findFirst({
+//             where:{id:equipementId, isActive:true}
+//         });
+
+//         if(!equipementExist) return apiResponse(true, [{message:'Equipement doest exist', field:"equipementId"}]);
+
+//         // check if the origin site exist
+        
+//         // Check if the destination site exist
+
+
+//         let movement = await prisma.$transaction([
+//             prisma.movement.create({
+//                 data:{
+//                     originSite,
+//                     destinationSite,
+//                     equipement: {
+//                         connect: { id: equipementId }
+//                     },
+//                     ...rest
+//                 }
+//             }),
+//             prisma.equipment.update({
+//                 where:{id:equipementId},
+//                 data:{siteId:destinationSite}
+//             })
+//         ])
+        
+
+//         return apiResponse(false, undefined, movement);
+//     } catch (error) {
+//         console.log(error);
+//         return apiResponse(true, [{message:`${error}`, field:"server"}]);
+//     }
+// }
 /**
  * Create movement
  * @param {*} body 
  */
-export const createMovementService = async (body) =>{
+export const createMovementService = async (body) => {
     try {
-        let {equipementId, originSite, destinationSite, ...rest} = body;
+        let { equipementId, originSite, destinationSite, ...rest } = body;
 
-        if(destinationSite === originSite){
-            return apiResponse(true, [{message:"Destination site sholud not be the same as originSite"}])
+        // Validation logique simple
+        if (destinationSite === originSite) {
+            return apiResponse(true, [{ message: "Destination site should not be the same as origin site" }]);
         }
-        // Check if the equipment exist
-        let equipementExist = await prisma.equipment.findFirst({
-            where:{id:equipementId, isActive:true}
+
+        // Vérifier si l'équipement existe
+        const equipementExist = await prisma.equipment.findFirst({
+            where: { id: equipementId, isActive: true }
         });
 
-        if(!equipementExist) return apiResponse(true, [{message:'Equipement doest exist', field:"equipementId"}]);
+        if (!equipementExist) {
+            return apiResponse(true, [{ message: 'Equipment does not exist', field: "equipementId" }]);
+        }
 
-        // check if the origin site exist
-        
-        // Check if the destination site exist
-
-
-        let movement = await prisma.$transaction([
-            prisma.movement.create({
-                data:{
+        // Transaction : Création du mouvement + Mise à jour de l'équipement
+        const result = await prisma.$transaction(async (tx) => {
+            // 1. Créer l'enregistrement de mouvement
+            const newMovement = await tx.movement.create({
+                data: {
                     originSite,
                     destinationSite,
+                    // Utilisation de la relation définie dans ton modèle
                     equipement: {
                         connect: { id: equipementId }
                     },
                     ...rest
                 }
-            }),
-            prisma.equipment.update({
-                where:{id:equipementId},
-                data:{siteId:destinationSite}
-            })
-        ])
-        
+            });
 
-        return apiResponse(false, undefined, movement);
+            // 2. Mettre à jour le siteId de l'équipement
+            const updatedEquipment = await tx.equipment.update({
+                where: { id: equipementId },
+                data: { 
+                    siteId: destinationSite 
+                }
+            });
+
+            return { newMovement, updatedEquipment };
+        });
+
+        return apiResponse(false, undefined, result.newMovement);
+
     } catch (error) {
-        console.log(error);
-        return apiResponse(true, [{message:`${error}`, field:"server"}]);
+        console.error(error);
+        return apiResponse(true, [{ message: `Server error: ${error.message}`, field: "server" }]);
     }
 }
 
