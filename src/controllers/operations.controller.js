@@ -62,6 +62,7 @@ export const getAllOperationController = async(req, res)=>{
         res
         .status(operation.error ? HTTP_STATUS.NOT_FOUND.statusCode : HTTP_STATUS.OK.statusCode)
         .send(operation);
+        console.log(operation);
     } catch (error) {
         console.log(error);
         return apiResponse(true, [{message:`${error}`, field:'server'}]);
@@ -169,9 +170,10 @@ export const generateExcelFileController = async (req, res) => {
             { header: 'Type d\'action', key: 'actionType', width: 20 },
             { header: 'Quantité en litre', key: 'content', width: 40 },
             { header: 'Initiateur', key: 'initiateur', width: 20 }, // Changé de 'userId' à 'initiateur'
-            { header: 'Date de création', key: 'createdAt', width: 20 },
+            { header: 'Date de l\'opération', key: 'operationDate', width: 25 },
+            { header: 'Date de création', key: 'createdAt', width: 25 },
             { header: 'Modifié par', key: 'updatedBy', width: 20 },
-            { header: 'Date de MAJ', key: 'updatedAt', width: 20 },
+            { header: 'Date de MAJ', key: 'updatedAt', width: 25 },
         ];
 
         // Style du header (identique à l'ancienne version)
@@ -204,6 +206,11 @@ export const generateExcelFileController = async (req, res) => {
             const date = new Date(dateString);
             return isNaN(date.getTime()) ? "" : date.toLocaleDateString('fr-FR');
         };
+        const formatDateTime = (dateString) => {
+            if (!dateString) return "";
+            const date = new Date(dateString);
+            return isNaN(date.getTime()) ? "" : date.toLocaleString('fr-FR');
+        };
 
         // ==================== 6) Ajout des lignes operation_ges ====================
         operation_ges.forEach((operation_ge) => {
@@ -228,9 +235,13 @@ export const generateExcelFileController = async (req, res) => {
                     operation_ge.actionType || "--",
                 content: operation_ge.content || "--",
                 initiateur: createdByName, // Changé de 'userId' à 'initiateur'
-                createdAt: formatDate(operation_ge.createdAt),
+                // operationDate: formatDate(operation_ge.operationDate),
+                // createdAt: formatDate(operation_ge.createdAt),
+                operationDate: formatDateTime(operation_ge.operationDate),
+                createdAt: formatDateTime(operation_ge.createdAt),
                 updatedBy: updatedByName,
-                updatedAt: formatDate(operation_ge.updatedAt),
+                // updatedAt: formatDate(operation_ge.updatedAt),
+                updatedAt: formatDateTime(operation_ge.updatedAt),
             });
         });
 

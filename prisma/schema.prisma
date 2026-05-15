@@ -115,6 +115,7 @@ model operation {
   description  String?
   createdBy    String
   updatedBy    String?
+  operationDate  DateTime?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   isActive     Boolean    @default(true)
