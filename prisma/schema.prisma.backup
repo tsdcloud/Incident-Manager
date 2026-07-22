@@ -1,0 +1,339 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model incidenttype {
+  id            String          @id @default(uuid())
+  numRef        String          @unique
+  name          String          @unique
+  domain        EquipmentDomain?
+  createdBy     String
+  updatedBy     String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  isActive      Boolean         @default(true)
+  description   String?
+  incident      incident[]
+  incidentCauses incidentcause[]
+}
+
+model incidentcause {
+  id           String         @id @default(uuid())
+  numRef       String         @unique
+  name         String
+  incidentTypeId String?
+  incidentType   incidenttype? @relation(fields: [incidentTypeId], references: [id])
+  createdBy    String
+  updatedBy    String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  isActive     Boolean        @default(true)
+  description  String?
+  incident     incident[]
+  offBridge    offbridge[]
+}
+
+model equipment {
+  id               String          @id @default(uuid())
+  numRef           String          @unique
+  title            String
+  operatingMode    Float           @default(0)
+  siteId           String?
+  startUpDate      DateTime?
+  lifeSpan         Float           @default(0)
+  scrapDate        DateTime?
+  equipmentGroupId String
+  lastMaintenance  DateTime?
+  periodicity      Float
+  status           EquipmentStatus @default(NEW)
+  createdAt        DateTime        @default(now())
+  createdBy        String
+  isActive         Boolean         @default(true)
+  updatedAt        DateTime        @updatedAt
+  updatedBy        String?
+  equipmentGroup   equipmentgroup  @relation(fields: [equipmentGroupId], references: [id])
+  incidents        incident[]
+  maintenance      maintenance[]
+  movement         movement[]
+  operations       operation[]
+
+  @@index([equipmentGroupId], map: "equipment_equipmentGroupId_fkey")
+}
+
+model history {
+  id            String      @id @default(uuid())
+  movementId    String
+  operationId   String
+  maintenanceId String
+  createdAt     DateTime    @default(now())
+  createdBy     String
+  isActive      Boolean     @default(true)
+  updatedAt     DateTime    @updatedAt
+  updatedBy     String?
+  maintenance   maintenance @relation(fields: [maintenanceId], references: [id])
+  movement      movement    @relation(fields: [movementId], references: [id])
+  operation     operation   @relation(fields: [operationId], references: [id])
+
+  @@index([maintenanceId], map: "history_maintenanceId_fkey")
+  @@index([movementId], map: "history_movementId_fkey")
+  @@index([operationId], map: "history_operationId_fkey")
+}
+
+model movement {
+  id              String    @id @default(uuid())
+  equipementId    String
+  description     String?
+  createdBy       String
+  updatedBy       String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  isActive        Boolean   @default(true)
+  destinationSite String
+  originSite      String
+  histories       history[]
+  equipement      equipment @relation(fields: [equipementId], references: [id])
+
+  @@index([equipementId], map: "movement_equipementId_fkey")
+}
+
+model operation {
+  id           String     @id @default(uuid())
+  siteId       String
+  equipementId String
+  description  String?
+  createdBy    String
+  updatedBy    String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  isActive     Boolean    @default(true)
+  actionType   ActionType
+  content      Float?
+  histories    history[]
+  equipement   equipment  @relation(fields: [equipementId], references: [id])
+
+  @@index([equipementId], map: "operation_equipementId_fkey")
+}
+
+model consommable {
+  id        String     @id @default(uuid())
+  numRef    String     @unique
+  name      String     @unique
+  createdBy String
+  updatedBy String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  isActive  Boolean    @default(true)
+  incident  incident[]
+}
+
+model maintenancetype {
+  id                String   @id @default(uuid())
+  numRef            String   @unique
+  name              String   @unique
+  createdBy         String
+  hasIncident       Boolean  @default(false)
+  hasProjectionDate Boolean  @default(true)
+  updatedBy         String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  isActive          Boolean  @default(true)
+}
+
+model incident {
+  id              String          @id @default(uuid())
+  numRef          String          @unique
+  incidentId      String?
+  equipementId    String?
+  siteId          String?
+  shiftId         String?
+  consomableId    String?
+  incidentCauseId String?
+  userId          String?
+  description     String?         @db.LongText
+  createdBy       String
+  closedBy        String?
+  updatedBy       String?
+  reclassifiedBy  String?
+  status          INCIDENT_STATUS @default(PENDING)
+  creationDate    DateTime        @default(now())
+  closedDate      DateTime?
+  closedManuDate  DateTime?
+  hasStoppedOperations        Boolean         @default(false)
+  isActive        Boolean         @default(true)
+  technician      String?
+  consommable     consommable?    @relation(fields: [consomableId], references: [id])
+  equipement      equipment?      @relation(fields: [equipementId], references: [id])
+  incidentCauses  incidentcause?  @relation(fields: [incidentCauseId], references: [id])
+  incident        incidenttype?    @relation(fields: [incidentId], references: [id])
+  maintenance     maintenance?
+  photos          incidentphoto[]
+
+  @@index([consomableId], map: "incident_consomableId_fkey")
+  @@index([equipementId], map: "incident_equipementId_fkey")
+  @@index([incidentCauseId], map: "incident_incidentCauseId_fkey")
+  @@index([incidentId], map: "incident_incidentId_fkey")
+}
+
+model incidentphoto {
+  id                String          @id @default(uuid())
+  url               String
+  filename          String?
+  incidentId        String
+  incident          incident       @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  createdBy         String
+  updatedBy         String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  isActive          Boolean        @default(true)
+}
+
+model offbridge {
+  id              String            @id @default(uuid())
+  numRef          String            @unique
+  incidentCauseId String
+  operation       OPERATION_TYPE?
+  declarationType DECLARATION_TYPE?
+  siteId          String
+  tier            String
+  container1      String?
+  container2      String?
+  plomb1          String?
+  plomb2          String?
+  loader          String
+  product         String
+  transporter     String
+  vehicle         String
+  blNumber        String?
+  driver          String
+  trailer         String
+  createdBy       String
+  updatedBy       String?
+  createdAt       DateTime          @default(now())
+  updateAt        DateTime          @updatedAt
+  isActive        Boolean           @default(true)
+  paymentMode     PAYMENT_MODE      @default(CASH)
+  incidentCauses  incidentcause     @relation(fields: [incidentCauseId], references: [id])
+
+  @@index([incidentCauseId], map: "offbridge_incidentCauseId_fkey")
+}
+
+model maintenance {
+  id              String             @id @default(uuid())
+  numRef          String             @unique
+  incidentId      String?            @unique
+  equipementId    String
+  siteId          String
+  status          MAINTENANCE_STATUS @default(PENDING)
+  projectedDate   DateTime?
+  nextMaintenance DateTime?
+  effectifDate    DateTime?
+  description     String?
+  supplierId      String?
+  userId          String?
+  closedDate      DateTime?
+  closedManuDate  DateTime?
+  createdBy       String
+  validationBy    String?
+  rejectedBy      String?
+  closedBy        String?
+  updatedBy       String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  isActive        Boolean            @default(true)
+  maintenance     MAINTENANCE_TYPE
+  histories       history[]
+  equipement      equipment          @relation(fields: [equipementId], references: [id], onDelete: Cascade)
+  incident        incident?          @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@index([equipementId], map: "maintenance_equipementId_fkey")
+}
+
+model equipmentgroup {
+  id          String      @id @default(uuid())
+  name        String      @unique(map: "equipmentGroup_name_key")
+  numRef      String      @unique(map: "equipmentGroup_numRef_key")
+  equipmentGroupFamilyId String?
+  equipmentGroupFamily   equipmentGroupFamily?    @relation(references: [id], fields: [equipmentGroupFamilyId])
+  createdBy   String
+  updatedBy   String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt  
+  isActive    Boolean     @default(true)
+  description String?
+  equipements equipment[]
+}
+
+model equipmentGroupFamily{
+  id        String        @id @default(uuid())
+  name        String      @unique
+  numRef      String      @unique
+  domain      EquipmentDomain?
+  createdBy   String
+  updatedBy   String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt   
+  equipmentGroups         equipmentgroup[]
+  isActive    Boolean     @default(true)
+  description String?
+}
+
+enum EquipmentStatus {
+  NEW
+  SECOND_HAND
+}
+
+enum ActionType {
+  START
+  STOP
+  REFUEL
+}
+
+enum INCIDENT_STATUS {
+  PENDING
+  CLOSED
+  UNDER_MAINTENANCE
+}
+
+enum MAINTENANCE_STATUS {
+  PENDING
+  CLOSED
+}
+
+enum OPERATION_TYPE {
+  IMPORT
+  EXPORT
+  TRANSIT
+  OTHERS
+}
+
+enum DECLARATION_TYPE {
+  CONTAINER
+  BULK
+  CONVENTIONAL_WOOD_LOG
+  HEAVY_BULK
+  CONVENTIONAL_LUMBER
+}
+
+enum PAYMENT_MODE {
+  CASH
+  MOBILE
+  BILLABLE
+}
+
+enum MAINTENANCE_TYPE {
+  CORRECTION
+  PALLIATIVE
+  CURATIVE
+  PROGRAMMED
+}
+enum EquipmentDomain {
+  IT
+  HSE
+  OPERATIONS
+  MAINTENANCE
+}
