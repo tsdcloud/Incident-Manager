@@ -26,7 +26,7 @@ import consumableRoutes from './routes/consumable.routes.js';
 import weighingPriceRoutes from './routes/weighingPrice.routes.js';
 import shipRoutes from './routes/shipRoute.js';
 import reportingCgRoutes from './routes/reportingCgRoute.js';
-import reportingSupervisoryRoutes from './routes/reportingSupervisory.Route.js';
+import reportingSupervisoryRoutes from './routes/reportingSupervisory.route.js';
 import {rateLimitAndTimeout} from './middlewares/ratelimiter.middleware.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
 import { errorLogger } from './middlewares/errorHandlers.js';
