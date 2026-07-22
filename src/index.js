@@ -21,6 +21,12 @@ import movementRoutes from './routes/movement.route.js'
 import equipmentGroupRoutes from './routes/equipmentGroup.route.js';
 import equipmentGroupFamilyRoutes from './routes/equipementGroupFamily.route.js';
 import equipmentRoutes from './routes/equipement.route.js';
+import productRoutes from './routes/productRoute.js';
+import consumableRoutes from './routes/consumable.routes.js';
+import weighingPriceRoutes from './routes/weighingPrice.routes.js';
+import shipRoutes from './routes/shipRoute.js';
+import reportingCgRoutes from './routes/reportingCgRoute.js';
+import reportingSupervisoryRoutes from './routes/reportingSupervisory.Route.js';
 import {rateLimitAndTimeout} from './middlewares/ratelimiter.middleware.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
 import { errorLogger } from './middlewares/errorHandlers.js';
@@ -131,6 +137,13 @@ app.use("/api/movements", movementRoutes);
 app.use("/api/equipment-groups", equipmentGroupRoutes);
 app.use("/api/equipment-group-families", equipmentGroupFamilyRoutes);
 app.use("/api/equipments", equipmentRoutes);
+
+app.use("/api/products", productRoutes);
+app.use("/api/ships", shipRoutes);
+app.use("/api/reporting-cgs", reportingCgRoutes);
+app.use("/api/reporting-supervisories", reportingSupervisoryRoutes);
+app.use("/api/consumables", consumableRoutes);
+app.use("/api/weighing-prices", weighingPriceRoutes);
 
 
 // app.get('/', (req, res)=>{

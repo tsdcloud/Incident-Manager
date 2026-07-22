@@ -290,8 +290,8 @@ model equipmentgroup {
 
 model equipmentGroupFamily{
   id        String        @id @default(uuid())
-  name        String      @unique
-  numRef      String      @unique
+  name        String      @unique(map: "equipmentgroupfamily_name_key")
+  numRef      String      @unique(map: "equipmentgroupfamily_numRef_key")
   domain      EquipmentDomain?
   createdBy   String
   updatedBy   String?
@@ -303,6 +303,313 @@ model equipmentGroupFamily{
 
   @@map("equipmentgroupfamily")
 }
+
+
+model reportingCg {
+  id                                          String        @id @default(uuid())
+  numRef                                      String        @unique
+  shiftId                                     String?
+  siteId                                      String?
+  operators                                   operatorReporting[]
+  hses                                        hseReporting[]
+  completeNumberWeighingsToBeBilled           Int           @default(0)
+  completeNumberWeighingsBySpecies            Int           @default(0)
+  incompleteNumberWeighingsToBeBilled         Int           @default(0)
+  incompleteNumberWeighingsBySpecies          Int           @default(0)
+  testNumberWeighingsToBeBilled               Int           @default(0)
+  testNumberWeighingsBySpecies                Int           @default(0)
+  numberPassagesWithoutWeighingToBeBilled     Int           @default(0)
+  numberPassagesWithoutWeighingBySpecies      Int           @default(0)
+  extractionFileUrl                           String?
+  numberIncidents                             Int           @default(0)
+  incidentDescription                         String?         @db.LongText
+  productionDescription                       String?         @db.LongText
+  attachments                                 attachmentReportingCg[]
+  incomingCgId                                String
+  offBridgeNumber                             Int           @default(0)
+  totalWeightAmount                           Float           @default(0)
+  totalWeightAmountToBeBilled                 Float           @default(0)
+  totalTestWeightAmount                       Float           @default(0)
+  totalOffBridgeAmount                        Float           @default(0)
+  outOfStockConsumableReportingCgs            outOfStockConsumableReportingCg[]
+  firstWeighNumber                            String?
+  lastWeighNumber                             String?
+  firstWeighTractorNumber                     String?
+  lastWeighTractorNumber                      String?
+  firstWeighDate                              DateTime?
+  lastWeighDate                               DateTime?
+  createdBy                                   String
+  updatedBy                                   String?
+  createdAt                                   DateTime    @default(now())
+  updatedAt                                   DateTime    @updatedAt   
+  isActive                                    Boolean     @default(true)
+
+  @@map("reportingcg")
+}
+
+model operatorReporting {
+  id                String          @id @default(uuid())
+  operatorId        String
+  reportingCgId     String
+  reportingCg       reportingCg       @relation(fields: [reportingCgId], references: [id], onDelete: Cascade)
+  createdBy         String
+  updatedBy         String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  isActive          Boolean        @default(true)
+
+  @@map("operatorreporting")
+}
+
+model hseReporting {
+  id                String          @id @default(uuid())
+  hseId             String
+  reportingCgId     String
+  reportingCg       reportingCg       @relation(fields: [reportingCgId], references: [id], onDelete: Cascade)
+  createdBy         String
+  updatedBy         String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  isActive          Boolean        @default(true)
+
+  @@map("hsereporting")
+}
+
+model attachmentReportingCg {
+  id                String          @id @default(uuid())
+  url               String
+  filename          String?
+  reportingCgId     String
+  reportingCg       reportingCg       @relation(fields: [reportingCgId], references: [id], onDelete: Cascade)
+  createdBy         String
+  updatedBy         String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  isActive          Boolean        @default(true)
+
+  @@map("attachmentreportingcg")
+}
+
+model consumable {
+  id                                   String        @id @default(uuid())
+  name                                 String        @unique
+  numRef                               String        @unique
+  createdBy                            String
+  updatedBy                            String?
+  createdAt                            DateTime      @default(now())
+  updatedAt                            DateTime      @updatedAt   
+  outOfStockConsumableReportingCgs     outOfStockConsumableReportingCg[]
+  isActive                             Boolean       @default(true)
+
+  @@map("consumable")
+}
+
+model weighingPrice {
+  id                                   String        @id @default(uuid())
+  name                                 String        @unique
+  numRef                               String        @unique
+  price                                Float         @default(0)
+  createdBy                            String
+  updatedBy                            String?
+  createdAt                            DateTime      @default(now())
+  updatedAt                            DateTime      @updatedAt   
+  isActive                             Boolean       @default(true)
+
+  @@map("weighingprice")
+}
+
+model outOfStockConsumableReportingCg {
+  id                String          @id @default(uuid())
+  consumableId      String
+  reportingCgId     String
+  consumable        consumable       @relation(fields: [consumableId], references: [id], onDelete: Cascade)
+  reportingCg       reportingCg       @relation(fields: [reportingCgId], references: [id], onDelete: Cascade)
+  createdBy         String
+  updatedBy         String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  isActive          Boolean        @default(true)
+
+  @@map("outofstockconsumablereportingcg")
+}
+
+model reportingSupervisory {
+  id                                          String        @id @default(uuid())
+  numRef                                      String        @unique
+  shiftId                                     String?
+  chargers                                    chargerReporting[]
+  shippers                                    shipperReporting[]
+  thirdParties                                thirdPartyReporting[]
+  ships                                       shipReporting[]
+  products                                    productReporting[]
+  attachments                                 attachmentReportingSupervisory[]
+  completeNumberWeighingsToBeBilled           Int           @default(0)
+  completeNumberWeighingsBySpecies            Int           @default(0)
+  incompleteNumberWeighingsToBeBilled         Int           @default(0)
+  incompleteNumberWeighingsBySpecies          Int           @default(0)
+  testNumberWeighingsToBeBilled               Int           @default(0)
+  testNumberWeighingsBySpecies                Int           @default(0)
+  numberPassagesWithoutWeighingToBeBilled     Int           @default(0)
+  numberPassagesWithoutWeighingBySpecies      Int           @default(0)
+  grossTonnage                                Float         @default(0)
+  productionNote                              String?       @db.LongText
+  
+  expectedNumberResources                     Int           @default(0)
+  availableNumberResources                    Int           @default(0)
+  overdueNumberResources                      Int           @default(0)
+  missingNumberResources                      Int           @default(0)
+  teamManagementFeedback                      String?       @db.LongText
+  titleWorkProgress                           String?
+  commentWorkProgress                         String?       @db.LongText
+  
+  incidents                                   incidentReporting[]
+  numberIncidents                             Int           @default(0)
+  incidentNote                                String?       @db.LongText
+  incomingSupervisoryId                       String?
+  createdBy                                   String
+  updatedBy                                   String?
+  createdAt                                   DateTime    @default(now())
+  updatedAt                                   DateTime    @updatedAt   
+  isActive                                    Boolean     @default(true)
+
+  @@map("reportingsupervisory")
+}
+
+model incidentReporting {
+  id                         String          @id @default(uuid())
+  equipment                  String
+  breakdown                  String
+  typeFailure                String
+  downtime                   String
+  status                     String
+  managerFailure             String
+  reportingSupervisoryId     String
+  reportingSupervisory       reportingSupervisory       @relation(fields: [reportingSupervisoryId], references: [id], onDelete: Cascade)
+  createdBy                  String
+  updatedBy                  String?
+  createdAt                  DateTime       @default(now())
+  updatedAt                  DateTime       @updatedAt
+  isActive                   Boolean        @default(true)
+
+  @@map("incidentreporting")
+}
+
+model chargerReporting {
+  id                         String          @id @default(uuid())
+  chargerId                  String
+  reportingSupervisoryId     String
+  reportingSupervisory       reportingSupervisory       @relation(fields: [reportingSupervisoryId], references: [id], onDelete: Cascade)
+  createdBy                  String
+  updatedBy                  String?
+  createdAt                  DateTime       @default(now())
+  updatedAt                  DateTime       @updatedAt
+  isActive                   Boolean        @default(true)
+
+  @@map("chargerreporting")
+}
+
+model shipperReporting {
+  id                         String          @id @default(uuid())
+  shipperId                  String
+  reportingSupervisoryId     String
+  reportingSupervisory       reportingSupervisory       @relation(fields: [reportingSupervisoryId], references: [id], onDelete: Cascade)
+  createdBy                  String
+  updatedBy                  String?
+  createdAt                  DateTime       @default(now())
+  updatedAt                  DateTime       @updatedAt
+  isActive                   Boolean        @default(true)
+
+  @@map("shipperreporting")
+}
+
+model thirdPartyReporting {
+  id                         String          @id @default(uuid())
+  thirdPartyId               String
+  reportingSupervisoryId     String
+  reportingSupervisory       reportingSupervisory       @relation(fields: [reportingSupervisoryId], references: [id], onDelete: Cascade)
+  createdBy                  String
+  updatedBy                  String?
+  createdAt                  DateTime       @default(now())
+  updatedAt                  DateTime       @updatedAt
+  isActive                   Boolean        @default(true)
+
+  @@map("thirdpartyreporting")
+}
+
+model shipReporting {
+  id                         String         @id @default(uuid())
+  shipId                     String
+  ship                       ship    @relation(references: [id], fields: [shipId], onDelete: Cascade)
+  reportingSupervisoryId     String
+  reportingSupervisory       reportingSupervisory       @relation(fields: [reportingSupervisoryId], references: [id], onDelete: Cascade)
+  createdBy                  String
+  updatedBy                  String?
+  createdAt                  DateTime       @default(now())
+  updatedAt                  DateTime       @updatedAt
+  isActive                   Boolean        @default(true)
+
+  @@map("shipreporting")
+}
+
+model productReporting {
+  id                         String          @id @default(uuid())
+  productId                  String
+  product                    product   @relation(references: [id], fields: [productId], onDelete: Cascade)
+  reportingSupervisoryId     String
+  reportingSupervisory       reportingSupervisory       @relation(fields: [reportingSupervisoryId], references: [id], onDelete: Cascade)
+  createdBy                  String
+  updatedBy                  String?
+  createdAt                  DateTime       @default(now())
+  updatedAt                  DateTime       @updatedAt
+  isActive                   Boolean        @default(true)
+
+  @@map("productreporting")
+}
+
+model attachmentReportingSupervisory {
+  id                         String          @id @default(uuid())
+  url                        String
+  filename                   String?
+  reportingSupervisoryId     String
+  reportingSupervisory       reportingSupervisory       @relation(fields: [reportingSupervisoryId], references: [id], onDelete: Cascade)
+  createdBy                  String
+  updatedBy                  String?
+  createdAt                  DateTime       @default(now())
+  updatedAt                  DateTime       @updatedAt
+  isActive                   Boolean        @default(true)
+
+  @@map("attachmentreportingsupervisory")
+}
+
+model ship {
+  id                     String        @id @default(uuid())
+  name                   String        @unique
+  numRef                 String        @unique
+  createdBy              String
+  updatedBy              String?
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt   
+  shipReportings         shipReporting[]
+  isActive               Boolean       @default(true)
+
+  @@map("ship")
+}
+
+model product {
+  id                     String        @id @default(uuid())
+  name                   String        @unique
+  numRef                 String        @unique
+  createdBy              String
+  updatedBy              String?
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt   
+  productReportings      productReporting[]
+  isActive               Boolean       @default(true)
+
+  @@map("product")
+}
+
+
 
 enum EquipmentStatus {
   NEW

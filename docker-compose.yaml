@@ -20,6 +20,8 @@ services:
     image: incident_images:latest
     container_name: incident
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:4000:4000"
     env_file: .env
     environment:
       - USER_GATEWAY_API_URL=$USER_GATEWAY_API_URL

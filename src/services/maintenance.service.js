@@ -231,41 +231,6 @@ export const deleteMaintenanceService = async (id) =>{
  * @param {*} query 
  * @returns 
  */
-// export const closeMaintenanceService = async (id, body)=>{
-//     let {supplierId, incidentCauseId, incidentId, validationBy} = body;
-//     let date =  new Date().toISOString();
-    
-//     let incidentCauseExist = await prisma.incidentcause.findFirst({where:{id: incidentCauseId}});
-//     if(!incidentCauseExist) return Errors("La cause d'incident sélectionné n'exist pas");
-    
-//     try {
-//         let data = await prisma.$transaction([
-//             prisma.incident.update({
-//                 where:{id: incidentId}, 
-//                 data:{
-//                     incidentCauseId,
-//                     status: 'CLOSED',
-//                     closedBy:validationBy,
-//                     closedDate:date,
-//                 }
-//             }),
-//             prisma.maintenance.update({
-//                 where:{id},
-//                 data:{
-//                     status: "CLOSED",
-//                     supplierId,
-//                     closedDate:date,
-//                     closedBy:validationBy
-//                 }
-//             })
-//         ]);
-        
-//         if(!data) throw new Error();
-//     } catch (error) {
-//         console.log(error);
-//         return {"error":true, errors:[{msg:"N'a pas pu être validé, essayez plus tard"}]};
-//     }
-// }
 export const closeMaintenanceService = async (id, body) => {
     let { supplierId, incidentCauseId, incidentId, validationBy, closedManuDate } = body;
     let date = new Date().toISOString();
