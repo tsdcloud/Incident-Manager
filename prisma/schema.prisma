@@ -310,6 +310,7 @@ model reportingCg {
   numRef                                      String        @unique
   shiftId                                     String?
   siteId                                      String?
+  recipeCardNumber                            String?
   operators                                   operatorReporting[]
   hses                                        hseReporting[]
   completeNumberWeighingsToBeBilled           Int           @default(0)
