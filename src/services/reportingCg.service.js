@@ -325,6 +325,9 @@ export const getAllReportingCgsService = async (params = {}) => {
                 case 'incomingCgId':
                     where.incomingCgId = value;
                     break;
+                case 'numRef':
+                    where.numRef = { contains: value };
+                    break;
                 case 'createdBy':
                     if (!restrictToUser) {
                         where.createdBy = { contains: value };
@@ -484,6 +487,9 @@ export const generateExcelReportingCgService = async (query) => {
                     where.incomingCgId = value;
                     break;
 
+                case 'numRef':
+                    where.numRef = { contains: value };
+                    break;
                 case 'createdBy':
                     where.createdBy = { contains: value };
                     break;
