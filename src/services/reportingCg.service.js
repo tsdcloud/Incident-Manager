@@ -294,9 +294,9 @@ export const getAllReportingCgsService = async (params = {}) => {
         let where = { isActive: true };
 
         // ✅ Restriction automatique si OP ou HEAD_GUARD
-        if (restrictToUser) {
-            where.createdBy = restrictToUser;
-        }
+        // if (restrictToUser) {
+        //     where.createdBy = restrictToUser;
+        // }
 
         // ── Recherche textuelle ────────────────────────────────────────────────
         if (search) {

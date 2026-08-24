@@ -170,9 +170,9 @@ export const getAllReportingCgsController = async (req, res) => {
         const isRestricted = currentUserRoles.length > 0 && 
             currentUserRoles.every(role => RESTRICTED_ROLES.includes(role));
 
-        if (isRestricted && currentUserId) {
-            params.restrictToUser = currentUserId;
-        }
+        // if (isRestricted && currentUserId) {
+        //     params.restrictToUser = currentUserId;
+        // }
 
         const result = await getAllReportingCgsService(params);
         const status = result.error ? HTTP_STATUS.BAD_REQUEST.statusCode : HTTP_STATUS.OK.statusCode;
@@ -187,6 +187,13 @@ export const getAllReportingCgsController = async (req, res) => {
 
 export const updateReportingCgController = async (req, res) => {
     try {
+        const currentUserRoles = req.employeeRoles ?? [];
+        const canEdit = currentUserRoles.some(r => ['ADMIN','DEX', 'ROP'].includes(r));
+        if (!canEdit) {
+            return res.status(HTTP_STATUS.FORBIDDEN.statusCode).json(
+                apiResponse(true, [{ msg: "Vous n'avez pas les droits pour modifier ce rapport", field: "authorization" }])
+            );
+        }
         const result = await updateReportingCgService(req.params.id, req.body);
         const status = result.error ? HTTP_STATUS.BAD_REQUEST.statusCode : HTTP_STATUS.OK.statusCode;
         return res.status(status).json(result);
@@ -200,6 +207,13 @@ export const updateReportingCgController = async (req, res) => {
 
 export const deleteReportingCgController = async (req, res) => {
     try {
+        const currentUserRoles = req.employeeRoles ?? [];
+        const canEdit = currentUserRoles.some(r => ['ADMIN','DEX', 'ROP'].includes(r));
+        if (!canEdit) {
+            return res.status(HTTP_STATUS.FORBIDDEN.statusCode).json(
+                apiResponse(true, [{ msg: "Vous n'avez pas les droits pour modifier ce rapport", field: "authorization" }])
+            );
+        }
         const result = await deleteReportingCgService(req.params.id);
         const status = result.error ? HTTP_STATUS.BAD_REQUEST.statusCode : HTTP_STATUS.OK.statusCode;
         return res.status(status).json(result);
