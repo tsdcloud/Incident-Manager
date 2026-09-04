@@ -2,26 +2,18 @@
 // import { apiResponse } from '../utils/apiResponse.js';
 // import { generateRefNum } from '../utils/utils.js';
 
-// const reportingCgClient = prisma.reportingCg;
+// const watchReportClient = prisma.watchReport;
 // const LIMIT = 100;
 
-// /**
-//  * Récupère le prix d'une pesée par son nom (insensible à la casse)
-//  */
+// // Récupère le prix d'une pesée par son nom (identique à reportingCg)
 // const getWeighingPrice = async (name) => {
 //     const priceRecord = await prisma.weighingPrice.findFirst({
-//         where: {
-//             // name: { equals: name, mode: 'insensitive' },
-//             name: { equals: name },
-//             isActive: true
-//         }
+//         where: { name, isActive: true }
 //     });
 //     return priceRecord ? priceRecord.price : 0;
 // };
 
-// /**
-//  * Calcule les montants totaux basés sur les quantités et les prix
-//  */
+// // Calcule les montants totaux (identique à reportingCg)
 // const calculateAmounts = async (data) => {
 //     const normalPrice = await getWeighingPrice("PESEE NORMALE");
 //     const testPrice = await getWeighingPrice("PESEE TEST");
@@ -29,68 +21,56 @@
 
 //     const completeBySpecies = data.completeNumberWeighingsBySpecies ?? 0;
 //     const incompleteBySpecies = data.incompleteNumberWeighingsBySpecies ?? 0;
-//     // const completeToBeBilled = data.completeNumberWeighingsToBeBilled ?? 0;
-//     // const incompleteToBeBilled = data.incompleteNumberWeighingsToBeBilled ?? 0;
 //     const testBySpecies = data.testNumberWeighingsBySpecies ?? 0;
 //     const offBridge = data.offBridgeNumber ?? 0;
 
 //     const totalWeightAmount = (completeBySpecies + incompleteBySpecies) * normalPrice;
-//     // const totalWeightAmountToBeBilled = (completeToBeBilled + incompleteToBeBilled) * normalPrice;
 //     const totalTestWeightAmount = testBySpecies * testPrice;
 //     const totalOffBridgeAmount = offBridge * offBridgePrice;
 
 //     return {
 //         totalWeightAmount,
-//         // totalWeightAmountToBeBilled,
 //         totalTestWeightAmount,
 //         totalOffBridgeAmount
 //     };
 // };
 
-
-// // /**
-// //  * Création d'un rapport CG
-// //  */
-// /**
-//  * Convertit une date datetime-local en Date ISO-8601 valide pour Prisma
-//  */
+// // Convertit une date datetime-local en Date ISO-8601 valide pour Prisma
 // const parseDateTimeLocal = (value) => {
 //     if (!value) return null;
 //     if (value instanceof Date) return value;
 //     if (typeof value === 'string') {
-//         // Format datetime-local HTML : "2026-06-24T05:02"
 //         if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) {
 //             return new Date(value + ":00");
 //         }
-//         // Essayer de parser directement
 //         const date = new Date(value);
 //         if (!isNaN(date.getTime())) return date;
 //     }
 //     return null;
 // };
 
-// /**
-//  * Création d'un rapport CG
-//  */
-// export const createReportingCgService = async (body) => {
+// // ------------------------------------------------------------
+// // CREATE
+// // ------------------------------------------------------------
+// export const createWatchReportService = async (body) => {
 //     const { operators, hses, attachments, consumables, createdBy, ...data } = body;
 
 //     if (!createdBy) {
 //         return apiResponse(true, [{ msg: "createdBy est requis", field: "createdBy" }]);
 //     }
 
-//     // Vérification CG entrant
-//     if (data.incomingCgId && prisma.incomingCg) {
-//         const incomingExists = await prisma.incomingCg.findFirst({
-//             where: { id: data.incomingCgId, isActive: true }
+//     // Vérification que le reportingCg parent existe (si fourni)
+//     if (data.reportingCgId) {
+//         const parent = await prisma.reportingCg.findFirst({
+//             where: { id: data.reportingCgId, isActive: true }
 //         });
-//         if (!incomingExists) {
-//             return apiResponse(true, [{ msg: "Le CG entrant spécifié n'existe pas", field: "incomingCgId" }]);
+//         if (!parent) {
+//             return apiResponse(true, [{ msg: "Le reportingCG parent n'existe pas", field: "reportingCgId" }]);
 //         }
 //     }
 
 //     // Génération du numéro de référence
-//     const lastRecord = await reportingCgClient.findFirst({
+//     const lastRecord = await watchReportClient.findFirst({
 //         orderBy: { createdAt: 'desc' },
 //         select: { numRef: true }
 //     });
@@ -100,13 +80,12 @@
 //     const amounts = await calculateAmounts(data);
 
 //     try {
-//         const reportingCg = await reportingCgClient.create({
+//         const watchReport = await watchReportClient.create({
 //             data: {
 //                 ...data,
 //                 numRef,
 //                 createdBy,
 //                 ...amounts,
-//                 // Conversion des dates datetime-local
 //                 firstWeighDate: parseDateTimeLocal(data.firstWeighDate),
 //                 lastWeighDate: parseDateTimeLocal(data.lastWeighDate),
 //                 operators: {
@@ -139,35 +118,30 @@
 //                 operators: true,
 //                 hses: true,
 //                 attachments: true,
-//                 // watchReport: true,
-//                 watchReport: {
-//                     include: { reportingCg: true }
-//                 },
 //                 outOfStockConsumableReportingCgs: {
 //                     include: { consumable: true }
-//                 }
+//                 },
+//                 reportingCg: true
 //             }
 //         });
-//         return apiResponse(false, undefined, reportingCg);
+//         return apiResponse(false, undefined, watchReport);
 //     } catch (error) {
 //         console.error(error);
 //         return apiResponse(true, [{ msg: error.message, field: "server" }]);
 //     }
 // };
 
-
-// /**
-//  * Mise à jour d'un rapport CG
-//  */
-// export const updateReportingCgService = async (id, body) => {
+// // ------------------------------------------------------------
+// // UPDATE
+// // ------------------------------------------------------------
+// export const updateWatchReportService = async (id, body) => {
 //     const { operators, hses, attachments, consumables, updatedBy, ...data } = body;
 
-//     const existing = await reportingCgClient.findUnique({
+//     const existing = await watchReportClient.findUnique({
 //         where: { id, isActive: true }
 //     });
 //     if (!existing) return apiResponse(true, [{ msg: "Ce rapport n'existe pas", field: "id" }]);
 
-//     // Conversion des dates datetime-local avant toute utilisation
 //     const parsedData = {
 //         ...data,
 //         firstWeighDate: parseDateTimeLocal(data.firstWeighDate),
@@ -178,8 +152,6 @@
 //     const hasQuantityChanges = [
 //         'completeNumberWeighingsBySpecies',
 //         'incompleteNumberWeighingsBySpecies',
-//         // 'completeNumberWeighingsToBeBilled',
-//         // 'incompleteNumberWeighingsToBeBilled',
 //         'testNumberWeighingsBySpecies',
 //         'offBridgeNumber'
 //     ].some(key => data[key] !== undefined);
@@ -192,24 +164,23 @@
 
 //     try {
 //         const updated = await prisma.$transaction(async (tx) => {
-//             // Mise à jour des champs simples + montants + dates converties
-//             await tx.reportingCg.update({
+//             await tx.watchReport.update({
 //                 where: { id },
-//                 data: { 
-//                     ...parsedData,  // ✅ Utilise parsedData avec les dates converties
+//                 data: {
+//                     ...parsedData,
 //                     ...amounts,
-//                     updatedBy: updatedBy || existing.createdBy 
+//                     updatedBy: updatedBy || existing.createdBy
 //                 }
 //             });
 
 //             // Opérateurs
 //             if (operators !== undefined) {
-//                 await tx.operatorReporting.deleteMany({ where: { reportingCgId: id } });
+//                 await tx.operatorReporting.deleteMany({ where: { watchReportId: id } });
 //                 if (operators.length) {
 //                     await tx.operatorReporting.createMany({
 //                         data: operators.map(operatorId => ({
 //                             operatorId,
-//                             reportingCgId: id,
+//                             watchReportId: id,
 //                             createdBy: updatedBy || existing.createdBy
 //                         }))
 //                     });
@@ -218,12 +189,12 @@
 
 //             // HSE
 //             if (hses !== undefined) {
-//                 await tx.hseReporting.deleteMany({ where: { reportingCgId: id } });
+//                 await tx.hseReporting.deleteMany({ where: { watchReportId: id } });
 //                 if (hses.length) {
 //                     await tx.hseReporting.createMany({
 //                         data: hses.map(hseId => ({
 //                             hseId,
-//                             reportingCgId: id,
+//                             watchReportId: id,
 //                             createdBy: updatedBy || existing.createdBy
 //                         }))
 //                     });
@@ -232,13 +203,13 @@
 
 //             // Attachments
 //             if (attachments !== undefined) {
-//                 await tx.attachmentReportingCg.deleteMany({ where: { reportingCgId: id } });
+//                 await tx.attachmentReportingCg.deleteMany({ where: { watchReportId: id } });
 //                 if (attachments.length) {
 //                     await tx.attachmentReportingCg.createMany({
 //                         data: attachments.map(att => ({
 //                             url: att.url,
 //                             filename: att.filename,
-//                             reportingCgId: id,
+//                             watchReportId: id,
 //                             createdBy: updatedBy || existing.createdBy
 //                         }))
 //                     });
@@ -247,31 +218,28 @@
 
 //             // Consommables en rupture
 //             if (consumables !== undefined) {
-//                 await tx.outOfStockConsumableReportingCg.deleteMany({ where: { reportingCgId: id } });
+//                 await tx.outOfStockConsumableReportingCg.deleteMany({ where: { watchReportId: id } });
 //                 if (consumables.length) {
 //                     await tx.outOfStockConsumableReportingCg.createMany({
 //                         data: consumables.map(consumableId => ({
 //                             consumableId,
-//                             reportingCgId: id,
+//                             watchReportId: id,
 //                             createdBy: updatedBy || existing.createdBy
 //                         }))
 //                     });
 //                 }
 //             }
 
-//             return await tx.reportingCg.findUnique({
+//             return await tx.watchReport.findUnique({
 //                 where: { id },
-//                 include: { 
-//                     operators: true, 
-//                     hses: true, 
+//                 include: {
+//                     operators: true,
+//                     hses: true,
 //                     attachments: true,
-//                     // watchReport: true,
-//                     watchReport: {
-//                         include: { reportingCg: true }
-//                     },
 //                     outOfStockConsumableReportingCgs: {
 //                         include: { consumable: true }
-//                     }
+//                     },
+//                     reportingCg: true
 //                 }
 //             });
 //         });
@@ -282,24 +250,17 @@
 //     }
 // };
 
-
-// /**
-//  * Récupération paginée avec filtres
-//  */
-// export const getAllReportingCgsService = async (params = {}) => {
+// // ------------------------------------------------------------
+// // GET ALL (avec pagination et filtres)
+// // ------------------------------------------------------------
+// export const getAllWatchReportsService = async (params = {}) => {
 //     try {
-//         const { page = 1, limit = LIMIT, search, filter, value, restrictToUser, ...rest } = params;
+//         const { page = 1, limit = LIMIT, search, filter, value, ...rest } = params;
 //         const skip = (parseInt(page) - 1) * parseInt(limit);
 //         const take = parseInt(limit);
 
 //         let where = { isActive: true };
 
-//         // ✅ Restriction automatique si OP ou HEAD_GUARD
-//         // if (restrictToUser) {
-//         //     where.createdBy = restrictToUser;
-//         // }
-
-//         // ── Recherche textuelle ────────────────────────────────────────────────
 //         if (search) {
 //             where = {
 //                 ...where,
@@ -314,7 +275,6 @@
 //             };
 //         }
 
-//         // ── Filtres structurés filter + value ──────────────────────────────────
 //         if (filter && value !== undefined && value !== '') {
 //             switch (filter) {
 //                 case 'siteId':
@@ -330,9 +290,7 @@
 //                     where.numRef = { contains: value };
 //                     break;
 //                 case 'createdBy':
-//                     if (!restrictToUser) {
-//                         where.createdBy = { contains: value };
-//                     }
+//                     where.createdBy = { contains: value };
 //                     break;
 //                 case 'updatedBy':
 //                     where.updatedBy = { contains: value };
@@ -358,27 +316,25 @@
 //             }
 //         }
 
+//         // Filtres supplémentaires passés en query
 //         if (rest.siteId)       where.siteId       = rest.siteId;
 //         if (rest.shiftId)      where.shiftId      = rest.shiftId;
 //         if (rest.incomingCgId) where.incomingCgId = rest.incomingCgId;
 
-//         const total = await reportingCgClient.count({ where });
-//         const data  = await reportingCgClient.findMany({
+//         const total = await watchReportClient.count({ where });
+//         const data  = await watchReportClient.findMany({
 //             where,
 //             skip,
 //             take,
 //             orderBy: { createdAt: 'desc' },
-//             include: { 
-//                 operators: true, 
-//                 hses: true, 
+//             include: {
+//                 operators: true,
+//                 hses: true,
 //                 attachments: true,
-//                 // watchReport: true,
-//                 watchReport: {
-//                     include: { reportingCg: true }
-//                 },
 //                 outOfStockConsumableReportingCgs: {
 //                     include: { consumable: true }
-//                 }
+//                 },
+//                 reportingCg: true
 //             },
 //         });
 
@@ -394,53 +350,44 @@
 //     }
 // };
 
-// /**
-//  * Alias pour la compatibilité avec les paramètres
-//  */
-
-// export const getReportingCgsByParamsService = async (params) => {
-//     return getAllReportingCgsService(params);
-// };
-
-// /**
-//  * Récupération d'un rapport par son ID
-//  */
-// export const getReportingCgByIdService = async (id) => {
+// // ------------------------------------------------------------
+// // GET BY ID
+// // ------------------------------------------------------------
+// export const getWatchReportByIdService = async (id) => {
 //     try {
-//         const reportingCg = await reportingCgClient.findUnique({
+//         const watchReport = await watchReportClient.findUnique({
 //             where: { id, isActive: true },
-//             include: { 
-//                 operators: true, 
-//                 hses: true, 
+//             include: {
+//                 operators: true,
+//                 hses: true,
 //                 attachments: true,
-//                 // watchReport: true,
-//                 watchReport: {
-//                     include: { reportingCg: true }
-//                 },
 //                 outOfStockConsumableReportingCgs: {
 //                     include: { consumable: true }
-//                 }
+//                 },
+//                 // ✅ Nécessaire pour afficher le numRef du reportingCg parent
+//                 // dans la section "Informations générales" du PDF de quart.
+//                 reportingCg: true
 //             }
 //         });
-//         if (!reportingCg) return apiResponse(true, [{ msg: "Ce rapport n'existe pas", field: "id" }]);
-//         return apiResponse(false, undefined, reportingCg);
+//         if (!watchReport) return apiResponse(true, [{ msg: "Ce rapport n'existe pas", field: "id" }]);
+//         return apiResponse(false, undefined, watchReport);
 //     } catch (error) {
 //         console.error(error);
 //         return apiResponse(true, [{ msg: error.message, field: "server" }]);
 //     }
 // };
 
-// /**
-//  * Suppression logique d'un rapport
-//  */
-// export const deleteReportingCgService = async (id) => {
+// // ------------------------------------------------------------
+// // DELETE (soft delete)
+// // ------------------------------------------------------------
+// export const deleteWatchReportService = async (id) => {
 //     try {
-//         const existing = await reportingCgClient.findUnique({
+//         const existing = await watchReportClient.findUnique({
 //             where: { id, isActive: true }
 //         });
 //         if (!existing) return apiResponse(true, [{ msg: "Ce rapport n'existe pas", field: "id" }]);
 
-//         await reportingCgClient.update({
+//         await watchReportClient.update({
 //             where: { id },
 //             data: {
 //                 isActive: false,
@@ -454,13 +401,12 @@
 //     }
 // };
 
-// /**
-//  * Récupération des reportingCgs pour export Excel
-//  */
-// export const generateExcelReportingCgService = async (query) => {
+// // ------------------------------------------------------------
+// // EXPORT EXCEL
+// // ------------------------------------------------------------
+// export const generateExcelWatchReportService = async (query) => {
 //     let { start, end, filter, value, filter2, value2, condition } = query;
 
-//     // ── Normalisation des dates ────────────────────────────────────────────────
 //     if (start && end) {
 //         start = new Date(start);
 //         start.setHours(0, 0, 0, 0);
@@ -474,66 +420,52 @@
 //     try {
 //         let where = { isActive: true };
 
-//         // ── Filtre par plage de dates (createdAt ou updatedAt) ─────────────────
 //         if (start && end) {
 //             const dateField = filter === 'updatedAt' ? 'updatedAt' : 'createdAt';
 //             where[dateField] = { gte: new Date(start), lte: new Date(end) };
 //         }
 
-//         // ── Filtres structurés filter + value ──────────────────────────────────
 //         if (filter && value !== undefined && value !== '') {
 //             switch (filter) {
-
 //                 case 'siteId':
 //                     where.siteId = value;
 //                     break;
-
 //                 case 'shiftId':
 //                     where.shiftId = value;
 //                     break;
-
 //                 case 'incomingCgId':
 //                     where.incomingCgId = value;
 //                     break;
-
 //                 case 'numRef':
 //                     where.numRef = { contains: value };
 //                     break;
 //                 case 'createdBy':
 //                     where.createdBy = { contains: value };
 //                     break;
-
 //                 case 'updatedBy':
 //                     where.updatedBy = { contains: value };
 //                     break;
-
 //                 case 'isActive':
 //                     where.isActive = value === 'true';
 //                     break;
-
 //                 case 'createdAt':
 //                 case 'updatedAt': {
 //                     const [dateStart, dateEnd] = value.split(',');
 //                     if (dateStart && dateEnd) {
-//                         const s = new Date(dateStart);
-//                         s.setHours(0, 0, 0, 0);
-//                         const e = new Date(dateEnd);
-//                         e.setHours(23, 59, 59, 999);
+//                         const s = new Date(dateStart); s.setHours(0, 0, 0, 0);
+//                         const e = new Date(dateEnd);   e.setHours(23, 59, 59, 999);
 //                         where[filter] = { gte: s, lte: e };
 //                     } else if (dateStart) {
-//                         const s = new Date(dateStart);
-//                         s.setHours(0, 0, 0, 0);
+//                         const s = new Date(dateStart); s.setHours(0, 0, 0, 0);
 //                         where[filter] = { gte: s };
 //                     }
 //                     break;
 //                 }
-
 //                 default:
 //                     break;
 //             }
 //         }
 
-//         // ✅ Filtre secondaire optionnel
 //         if (filter2 && value2) {
 //             switch (filter2) {
 //                 case 'createdBy':
@@ -551,33 +483,21 @@
 //             }
 //         }
 
-//         // Filtre date via start/end directs
-//         if (start && end && (filter === 'createdAt' || filter === 'updatedAt')) {
-//             const field = filter;
-//             where[field] = condition === 'NOT'
-//                 ? { not: { gte: new Date(start), lte: new Date(end) } }
-//                 : { gte: new Date(start), lte: new Date(end) };
-//         }
-
-//         const data = await reportingCgClient.findMany({
+//         const data = await watchReportClient.findMany({
 //             where,
 //             orderBy: { createdAt: 'desc' },
 //             include: {
 //                 operators:   true,
 //                 hses:        true,
 //                 attachments: true,
-//                 // watchReport: true,
-//                 watchReport: {
-//                     include: { reportingCg: true }
-//                 },
 //                 outOfStockConsumableReportingCgs: {
 //                     include: { consumable: true }
-//                 }
+//                 },
+//                 reportingCg: true
 //             },
 //         });
 
 //         return data;
-
 //     } catch (error) {
 //         console.error(error);
 //         throw new Error(`${error}`);
@@ -587,48 +507,18 @@ import { prisma } from '../config.js';
 import { apiResponse } from '../utils/apiResponse.js';
 import { generateRefNum } from '../utils/utils.js';
 
-const reportingCgClient = prisma.reportingCg;
+const watchReportClient = prisma.watchReport;
 const LIMIT = 100;
 
-/**
- * ✅ NOUVEAU : include réutilisable pour la relation watchReport.
- * `watchReport: true` seul ne ramène que les champs scalaires du
- * watchReport (numRef, guardhouseSupervisorId, quantités, etc.) mais PAS
- * ses propres relations imbriquées (operators, hses, attachments,
- * outOfStockConsumableReportingCgs). Sans cet include imbriqué, le
- * formulaire d'édition du Rapport de Quart reçoit un watchReport
- * "incomplet" et ne peut pas préremplir Opérateurs / HSE / Consommables /
- * Pièces jointes.
- */
-const WATCH_REPORT_INCLUDE = {
-    include: {
-        operators: true,
-        hses: true,
-        attachments: true,
-        reportingCg: true,
-        outOfStockConsumableReportingCgs: {
-            include: { consumable: true }
-        }
-    }
-};
-
-/**
- * Récupère le prix d'une pesée par son nom (insensible à la casse)
- */
+// Récupère le prix d'une pesée par son nom (identique à reportingCg)
 const getWeighingPrice = async (name) => {
     const priceRecord = await prisma.weighingPrice.findFirst({
-        where: {
-            // name: { equals: name, mode: 'insensitive' },
-            name: { equals: name },
-            isActive: true
-        }
+        where: { name, isActive: true }
     });
     return priceRecord ? priceRecord.price : 0;
 };
 
-/**
- * Calcule les montants totaux basés sur les quantités et les prix
- */
+// Calcule les montants totaux (identique à reportingCg)
 const calculateAmounts = async (data) => {
     const normalPrice = await getWeighingPrice("PESEE NORMALE");
     const testPrice = await getWeighingPrice("PESEE TEST");
@@ -636,68 +526,70 @@ const calculateAmounts = async (data) => {
 
     const completeBySpecies = data.completeNumberWeighingsBySpecies ?? 0;
     const incompleteBySpecies = data.incompleteNumberWeighingsBySpecies ?? 0;
-    // const completeToBeBilled = data.completeNumberWeighingsToBeBilled ?? 0;
-    // const incompleteToBeBilled = data.incompleteNumberWeighingsToBeBilled ?? 0;
     const testBySpecies = data.testNumberWeighingsBySpecies ?? 0;
     const offBridge = data.offBridgeNumber ?? 0;
 
     const totalWeightAmount = (completeBySpecies + incompleteBySpecies) * normalPrice;
-    // const totalWeightAmountToBeBilled = (completeToBeBilled + incompleteToBeBilled) * normalPrice;
     const totalTestWeightAmount = testBySpecies * testPrice;
     const totalOffBridgeAmount = offBridge * offBridgePrice;
 
     return {
         totalWeightAmount,
-        // totalWeightAmountToBeBilled,
         totalTestWeightAmount,
         totalOffBridgeAmount
     };
 };
 
-
-// /**
-//  * Création d'un rapport CG
-//  */
-/**
- * Convertit une date datetime-local en Date ISO-8601 valide pour Prisma
- */
+// Convertit une date datetime-local en Date ISO-8601 valide pour Prisma
 const parseDateTimeLocal = (value) => {
     if (!value) return null;
     if (value instanceof Date) return value;
     if (typeof value === 'string') {
-        // Format datetime-local HTML : "2026-06-24T05:02"
         if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) {
             return new Date(value + ":00");
         }
-        // Essayer de parser directement
         const date = new Date(value);
         if (!isNaN(date.getTime())) return date;
     }
     return null;
 };
 
-/**
- * Création d'un rapport CG
- */
-export const createReportingCgService = async (body) => {
+// ------------------------------------------------------------
+// CREATE
+// ------------------------------------------------------------
+export const createWatchReportService = async (body) => {
     const { operators, hses, attachments, consumables, createdBy, ...data } = body;
 
     if (!createdBy) {
         return apiResponse(true, [{ msg: "createdBy est requis", field: "createdBy" }]);
     }
 
-    // Vérification CG entrant
-    if (data.incomingCgId && prisma.incomingCg) {
-        const incomingExists = await prisma.incomingCg.findFirst({
-            where: { id: data.incomingCgId, isActive: true }
+    // Vérification que le reportingCg parent existe (si fourni)
+    if (data.reportingCgId) {
+        const parent = await prisma.reportingCg.findFirst({
+            where: { id: data.reportingCgId, isActive: true }
         });
-        if (!incomingExists) {
-            return apiResponse(true, [{ msg: "Le CG entrant spécifié n'existe pas", field: "incomingCgId" }]);
+        if (!parent) {
+            return apiResponse(true, [{ msg: "Le reportingCG parent n'existe pas", field: "reportingCgId" }]);
+        }
+
+        // ✅ NOUVEAU : reportingCgId est unique sur watchReport (relation 1-1).
+        // Sans ce contrôle, une seconde tentative de création sur le même CG
+        // (double-clic, requête rejouée, etc.) provoque une erreur Prisma brute
+        // (contrainte @unique) au lieu d'un message clair pour l'utilisateur.
+        const existingWatchReport = await watchReportClient.findFirst({
+            where: { reportingCgId: data.reportingCgId, isActive: true }
+        });
+        if (existingWatchReport) {
+            return apiResponse(true, [{
+                msg: "Un Rapport de Quart existe déjà pour ce reporting CG",
+                field: "reportingCgId"
+            }]);
         }
     }
 
     // Génération du numéro de référence
-    const lastRecord = await reportingCgClient.findFirst({
+    const lastRecord = await watchReportClient.findFirst({
         orderBy: { createdAt: 'desc' },
         select: { numRef: true }
     });
@@ -707,13 +599,12 @@ export const createReportingCgService = async (body) => {
     const amounts = await calculateAmounts(data);
 
     try {
-        const reportingCg = await reportingCgClient.create({
+        const watchReport = await watchReportClient.create({
             data: {
                 ...data,
                 numRef,
                 createdBy,
                 ...amounts,
-                // Conversion des dates datetime-local
                 firstWeighDate: parseDateTimeLocal(data.firstWeighDate),
                 lastWeighDate: parseDateTimeLocal(data.lastWeighDate),
                 operators: {
@@ -746,33 +637,42 @@ export const createReportingCgService = async (body) => {
                 operators: true,
                 hses: true,
                 attachments: true,
-                // ✅ CORRIGÉ : include imbriqué au lieu de `true`
-                watchReport: WATCH_REPORT_INCLUDE,
                 outOfStockConsumableReportingCgs: {
                     include: { consumable: true }
-                }
+                },
+                reportingCg: true
             }
         });
-        return apiResponse(false, undefined, reportingCg);
+        return apiResponse(false, undefined, watchReport);
     } catch (error) {
         console.error(error);
+
+        // ✅ Filet de sécurité supplémentaire : si la contrainte @unique
+        // est malgré tout atteinte (course entre deux requêtes concurrentes
+        // passées toutes deux le contrôle ci-dessus), on renvoie un message
+        // clair plutôt que le code d'erreur Prisma brut (P2002).
+        if (error.code === 'P2002' && error.meta?.target?.includes('reportingCgId')) {
+            return apiResponse(true, [{
+                msg: "Un Rapport de Quart existe déjà pour ce reporting CG",
+                field: "reportingCgId"
+            }]);
+        }
+
         return apiResponse(true, [{ msg: error.message, field: "server" }]);
     }
 };
 
-
-/**
- * Mise à jour d'un rapport CG
- */
-export const updateReportingCgService = async (id, body) => {
+// ------------------------------------------------------------
+// UPDATE
+// ------------------------------------------------------------
+export const updateWatchReportService = async (id, body) => {
     const { operators, hses, attachments, consumables, updatedBy, ...data } = body;
 
-    const existing = await reportingCgClient.findUnique({
+    const existing = await watchReportClient.findUnique({
         where: { id, isActive: true }
     });
     if (!existing) return apiResponse(true, [{ msg: "Ce rapport n'existe pas", field: "id" }]);
 
-    // Conversion des dates datetime-local avant toute utilisation
     const parsedData = {
         ...data,
         firstWeighDate: parseDateTimeLocal(data.firstWeighDate),
@@ -783,8 +683,6 @@ export const updateReportingCgService = async (id, body) => {
     const hasQuantityChanges = [
         'completeNumberWeighingsBySpecies',
         'incompleteNumberWeighingsBySpecies',
-        // 'completeNumberWeighingsToBeBilled',
-        // 'incompleteNumberWeighingsToBeBilled',
         'testNumberWeighingsBySpecies',
         'offBridgeNumber'
     ].some(key => data[key] !== undefined);
@@ -797,24 +695,23 @@ export const updateReportingCgService = async (id, body) => {
 
     try {
         const updated = await prisma.$transaction(async (tx) => {
-            // Mise à jour des champs simples + montants + dates converties
-            await tx.reportingCg.update({
+            await tx.watchReport.update({
                 where: { id },
-                data: { 
-                    ...parsedData,  // ✅ Utilise parsedData avec les dates converties
+                data: {
+                    ...parsedData,
                     ...amounts,
-                    updatedBy: updatedBy || existing.createdBy 
+                    updatedBy: updatedBy || existing.createdBy
                 }
             });
 
             // Opérateurs
             if (operators !== undefined) {
-                await tx.operatorReporting.deleteMany({ where: { reportingCgId: id } });
+                await tx.operatorReporting.deleteMany({ where: { watchReportId: id } });
                 if (operators.length) {
                     await tx.operatorReporting.createMany({
                         data: operators.map(operatorId => ({
                             operatorId,
-                            reportingCgId: id,
+                            watchReportId: id,
                             createdBy: updatedBy || existing.createdBy
                         }))
                     });
@@ -823,12 +720,12 @@ export const updateReportingCgService = async (id, body) => {
 
             // HSE
             if (hses !== undefined) {
-                await tx.hseReporting.deleteMany({ where: { reportingCgId: id } });
+                await tx.hseReporting.deleteMany({ where: { watchReportId: id } });
                 if (hses.length) {
                     await tx.hseReporting.createMany({
                         data: hses.map(hseId => ({
                             hseId,
-                            reportingCgId: id,
+                            watchReportId: id,
                             createdBy: updatedBy || existing.createdBy
                         }))
                     });
@@ -837,13 +734,13 @@ export const updateReportingCgService = async (id, body) => {
 
             // Attachments
             if (attachments !== undefined) {
-                await tx.attachmentReportingCg.deleteMany({ where: { reportingCgId: id } });
+                await tx.attachmentReportingCg.deleteMany({ where: { watchReportId: id } });
                 if (attachments.length) {
                     await tx.attachmentReportingCg.createMany({
                         data: attachments.map(att => ({
                             url: att.url,
                             filename: att.filename,
-                            reportingCgId: id,
+                            watchReportId: id,
                             createdBy: updatedBy || existing.createdBy
                         }))
                     });
@@ -852,29 +749,28 @@ export const updateReportingCgService = async (id, body) => {
 
             // Consommables en rupture
             if (consumables !== undefined) {
-                await tx.outOfStockConsumableReportingCg.deleteMany({ where: { reportingCgId: id } });
+                await tx.outOfStockConsumableReportingCg.deleteMany({ where: { watchReportId: id } });
                 if (consumables.length) {
                     await tx.outOfStockConsumableReportingCg.createMany({
                         data: consumables.map(consumableId => ({
                             consumableId,
-                            reportingCgId: id,
+                            watchReportId: id,
                             createdBy: updatedBy || existing.createdBy
                         }))
                     });
                 }
             }
 
-            return await tx.reportingCg.findUnique({
+            return await tx.watchReport.findUnique({
                 where: { id },
-                include: { 
-                    operators: true, 
-                    hses: true, 
+                include: {
+                    operators: true,
+                    hses: true,
                     attachments: true,
-                    // ✅ CORRIGÉ : include imbriqué au lieu de `true`
-                    watchReport: WATCH_REPORT_INCLUDE,
                     outOfStockConsumableReportingCgs: {
                         include: { consumable: true }
-                    }
+                    },
+                    reportingCg: true
                 }
             });
         });
@@ -885,24 +781,17 @@ export const updateReportingCgService = async (id, body) => {
     }
 };
 
-
-/**
- * Récupération paginée avec filtres
- */
-export const getAllReportingCgsService = async (params = {}) => {
+// ------------------------------------------------------------
+// GET ALL (avec pagination et filtres)
+// ------------------------------------------------------------
+export const getAllWatchReportsService = async (params = {}) => {
     try {
-        const { page = 1, limit = LIMIT, search, filter, value, restrictToUser, ...rest } = params;
+        const { page = 1, limit = LIMIT, search, filter, value, ...rest } = params;
         const skip = (parseInt(page) - 1) * parseInt(limit);
         const take = parseInt(limit);
 
         let where = { isActive: true };
 
-        // ✅ Restriction automatique si OP ou HEAD_GUARD
-        // if (restrictToUser) {
-        //     where.createdBy = restrictToUser;
-        // }
-
-        // ── Recherche textuelle ────────────────────────────────────────────────
         if (search) {
             where = {
                 ...where,
@@ -917,7 +806,6 @@ export const getAllReportingCgsService = async (params = {}) => {
             };
         }
 
-        // ── Filtres structurés filter + value ──────────────────────────────────
         if (filter && value !== undefined && value !== '') {
             switch (filter) {
                 case 'siteId':
@@ -929,13 +817,14 @@ export const getAllReportingCgsService = async (params = {}) => {
                 case 'incomingCgId':
                     where.incomingCgId = value;
                     break;
+                case 'reportingCgId':
+                    where.reportingCgId = value;
+                    break;
                 case 'numRef':
                     where.numRef = { contains: value };
                     break;
                 case 'createdBy':
-                    if (!restrictToUser) {
-                        where.createdBy = { contains: value };
-                    }
+                    where.createdBy = { contains: value };
                     break;
                 case 'updatedBy':
                     where.updatedBy = { contains: value };
@@ -961,25 +850,27 @@ export const getAllReportingCgsService = async (params = {}) => {
             }
         }
 
+        // Filtres supplémentaires passés en query (ex: ?reportingCgId=... utilisé
+        // par ReportingCgDetails pour retrouver le Watch Report d'un CG donné)
         if (rest.siteId)       where.siteId       = rest.siteId;
         if (rest.shiftId)      where.shiftId      = rest.shiftId;
         if (rest.incomingCgId) where.incomingCgId = rest.incomingCgId;
+        if (rest.reportingCgId) where.reportingCgId = rest.reportingCgId;
 
-        const total = await reportingCgClient.count({ where });
-        const data  = await reportingCgClient.findMany({
+        const total = await watchReportClient.count({ where });
+        const data  = await watchReportClient.findMany({
             where,
             skip,
             take,
             orderBy: { createdAt: 'desc' },
-            include: { 
-                operators: true, 
-                hses: true, 
+            include: {
+                operators: true,
+                hses: true,
                 attachments: true,
-                // ✅ CORRIGÉ : include imbriqué au lieu de `true`
-                watchReport: WATCH_REPORT_INCLUDE,
                 outOfStockConsumableReportingCgs: {
                     include: { consumable: true }
-                }
+                },
+                reportingCg: true
             },
         });
 
@@ -995,51 +886,42 @@ export const getAllReportingCgsService = async (params = {}) => {
     }
 };
 
-/**
- * Alias pour la compatibilité avec les paramètres
- */
-
-export const getReportingCgsByParamsService = async (params) => {
-    return getAllReportingCgsService(params);
-};
-
-/**
- * Récupération d'un rapport par son ID
- */
-export const getReportingCgByIdService = async (id) => {
+// ------------------------------------------------------------
+// GET BY ID
+// ------------------------------------------------------------
+export const getWatchReportByIdService = async (id) => {
     try {
-        const reportingCg = await reportingCgClient.findUnique({
+        const watchReport = await watchReportClient.findUnique({
             where: { id, isActive: true },
-            include: { 
-                operators: true, 
-                hses: true, 
+            include: {
+                operators: true,
+                hses: true,
                 attachments: true,
-                // ✅ CORRIGÉ : include imbriqué au lieu de `true`
-                watchReport: WATCH_REPORT_INCLUDE,
                 outOfStockConsumableReportingCgs: {
                     include: { consumable: true }
-                }
+                },
+                reportingCg: true
             }
         });
-        if (!reportingCg) return apiResponse(true, [{ msg: "Ce rapport n'existe pas", field: "id" }]);
-        return apiResponse(false, undefined, reportingCg);
+        if (!watchReport) return apiResponse(true, [{ msg: "Ce rapport n'existe pas", field: "id" }]);
+        return apiResponse(false, undefined, watchReport);
     } catch (error) {
         console.error(error);
         return apiResponse(true, [{ msg: error.message, field: "server" }]);
     }
 };
 
-/**
- * Suppression logique d'un rapport
- */
-export const deleteReportingCgService = async (id) => {
+// ------------------------------------------------------------
+// DELETE (soft delete)
+// ------------------------------------------------------------
+export const deleteWatchReportService = async (id) => {
     try {
-        const existing = await reportingCgClient.findUnique({
+        const existing = await watchReportClient.findUnique({
             where: { id, isActive: true }
         });
         if (!existing) return apiResponse(true, [{ msg: "Ce rapport n'existe pas", field: "id" }]);
 
-        await reportingCgClient.update({
+        await watchReportClient.update({
             where: { id },
             data: {
                 isActive: false,
@@ -1053,13 +935,12 @@ export const deleteReportingCgService = async (id) => {
     }
 };
 
-/**
- * Récupération des reportingCgs pour export Excel
- */
-export const generateExcelReportingCgService = async (query) => {
+// ------------------------------------------------------------
+// EXPORT EXCEL
+// ------------------------------------------------------------
+export const generateExcelWatchReportService = async (query) => {
     let { start, end, filter, value, filter2, value2, condition } = query;
 
-    // ── Normalisation des dates ────────────────────────────────────────────────
     if (start && end) {
         start = new Date(start);
         start.setHours(0, 0, 0, 0);
@@ -1073,66 +954,52 @@ export const generateExcelReportingCgService = async (query) => {
     try {
         let where = { isActive: true };
 
-        // ── Filtre par plage de dates (createdAt ou updatedAt) ─────────────────
         if (start && end) {
             const dateField = filter === 'updatedAt' ? 'updatedAt' : 'createdAt';
             where[dateField] = { gte: new Date(start), lte: new Date(end) };
         }
 
-        // ── Filtres structurés filter + value ──────────────────────────────────
         if (filter && value !== undefined && value !== '') {
             switch (filter) {
-
                 case 'siteId':
                     where.siteId = value;
                     break;
-
                 case 'shiftId':
                     where.shiftId = value;
                     break;
-
                 case 'incomingCgId':
                     where.incomingCgId = value;
                     break;
-
                 case 'numRef':
                     where.numRef = { contains: value };
                     break;
                 case 'createdBy':
                     where.createdBy = { contains: value };
                     break;
-
                 case 'updatedBy':
                     where.updatedBy = { contains: value };
                     break;
-
                 case 'isActive':
                     where.isActive = value === 'true';
                     break;
-
                 case 'createdAt':
                 case 'updatedAt': {
                     const [dateStart, dateEnd] = value.split(',');
                     if (dateStart && dateEnd) {
-                        const s = new Date(dateStart);
-                        s.setHours(0, 0, 0, 0);
-                        const e = new Date(dateEnd);
-                        e.setHours(23, 59, 59, 999);
+                        const s = new Date(dateStart); s.setHours(0, 0, 0, 0);
+                        const e = new Date(dateEnd);   e.setHours(23, 59, 59, 999);
                         where[filter] = { gte: s, lte: e };
                     } else if (dateStart) {
-                        const s = new Date(dateStart);
-                        s.setHours(0, 0, 0, 0);
+                        const s = new Date(dateStart); s.setHours(0, 0, 0, 0);
                         where[filter] = { gte: s };
                     }
                     break;
                 }
-
                 default:
                     break;
             }
         }
 
-        // ✅ Filtre secondaire optionnel
         if (filter2 && value2) {
             switch (filter2) {
                 case 'createdBy':
@@ -1150,31 +1017,21 @@ export const generateExcelReportingCgService = async (query) => {
             }
         }
 
-        // Filtre date via start/end directs
-        if (start && end && (filter === 'createdAt' || filter === 'updatedAt')) {
-            const field = filter;
-            where[field] = condition === 'NOT'
-                ? { not: { gte: new Date(start), lte: new Date(end) } }
-                : { gte: new Date(start), lte: new Date(end) };
-        }
-
-        const data = await reportingCgClient.findMany({
+        const data = await watchReportClient.findMany({
             where,
             orderBy: { createdAt: 'desc' },
             include: {
                 operators:   true,
                 hses:        true,
                 attachments: true,
-                // ✅ CORRIGÉ : include imbriqué au lieu de `true`
-                watchReport: WATCH_REPORT_INCLUDE,
                 outOfStockConsumableReportingCgs: {
                     include: { consumable: true }
-                }
+                },
+                reportingCg: true
             },
         });
 
         return data;
-
     } catch (error) {
         console.error(error);
         throw new Error(`${error}`);

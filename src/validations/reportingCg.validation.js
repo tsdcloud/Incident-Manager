@@ -20,10 +20,10 @@ const dateValidator = (fieldName) =>
             const date = new Date(value);
             return !isNaN(date.getTime());
         })
-        .withMessage(`${fieldName} must be a valid date in ISO 8601 or datetime-local format`);
+        .withMessage(`${fieldName} doit être une date valide au format ISO 8601 ou datetime-local`);
 
 export const createReportingCgValidation = [
-    body("shiftId").notEmpty().withMessage("Le shift est requis"),
+    body("shiftId").notEmpty().withMessage("Le quart (shift) est requis"),
     body("siteId").notEmpty().withMessage("Le site est requis"),
     body("operators")
         .isArray({ min: 1 }).withMessage("La liste des opérateurs est requise (au moins un élément)")
@@ -45,6 +45,8 @@ export const createReportingCgValidation = [
         .isInt({ min: 0 }).withMessage("Doit être un entier positif ou nul"),
     body("testNumberWeighingsBySpecies")
         .isInt({ min: 0 }).withMessage("Doit être un entier positif ou nul"),
+    body("numberPrepaidWeighDefinitivelyCompleted")
+        .isInt({ min: 0 }).withMessage("Doit être un entier positif ou nul"),
     // ❌ RETIRÉ : testNumberWeighingsToBeBilled
     // ❌ RETIRÉ : numberPassagesWithoutWeighingToBeBilled
     // ❌ RETIRÉ : numberPassagesWithoutWeighingBySpecies
@@ -55,13 +57,13 @@ export const createReportingCgValidation = [
         .isInt({ min: 0 }).withMessage("Doit être un entier positif ou nul"),
     body("incidentDescription")
         .optional({ checkFalsy: true })
-        .isString().withMessage("Doit être une chaîne"),
+        .isString().withMessage("Doit être une chaîne de caractères"),
     body("recipeCardNumber")
-        .notEmpty().withMessage("Le site est requis")
-        .isString().withMessage("Doit être une chaîne"),
+        .notEmpty().withMessage("Le numéro de fiche recette est requis")
+        .isString().withMessage("Doit être une chaîne de caractères"),
     body("productionDescription")
         .optional({ checkFalsy: true })
-        .isString().withMessage("Doit être une chaîne"),
+        .isString().withMessage("Doit être une chaîne de caractères"),
     body("attachments")
         .optional({ checkFalsy: true })
         .isArray().withMessage("Les pièces jointes doivent être un tableau")
@@ -75,16 +77,16 @@ export const createReportingCgValidation = [
         .isInt({ min: 0 }).withMessage("Doit être un entier positif ou nul"),
     body("firstWeighNumber")
         .optional({ checkFalsy: true })
-        .isString().withMessage("Doit être une chaîne"),
+        .isString().withMessage("Doit être une chaîne de caractères"),
     body("lastWeighNumber")
         .optional({ checkFalsy: true })
-        .isString().withMessage("Doit être une chaîne"),
+        .isString().withMessage("Doit être une chaîne de caractères"),
     body("firstWeighTractorNumber")
         .optional({ checkFalsy: true })
-        .isString().withMessage("Doit être une chaîne"),
+        .isString().withMessage("Doit être une chaîne de caractères"),
     body("lastWeighTractorNumber")
         .optional({ checkFalsy: true })
-        .isString().withMessage("Doit être une chaîne"),
+        .isString().withMessage("Doit être une chaîne de caractères"),
     body("consumables")
         .optional({ checkFalsy: true })
         .isArray().withMessage("Les consommables doivent être un tableau")
@@ -108,10 +110,10 @@ export const createReportingCgValidation = [
 export const updateReportingCgValidation = [
     body("siteId")
         .optional({ checkFalsy: true })
-        .isString().withMessage("Doit être une chaîne"),
+        .isString().withMessage("Doit être une chaîne de caractères"),
     body("shiftId")
         .optional({ checkFalsy: true })
-        .isString().withMessage("Doit être une chaîne"),
+        .isString().withMessage("Doit être une chaîne de caractères"),
     body("operators")
         .optional({ checkFalsy: true })
         .isArray().withMessage("La liste des opérateurs doit être un tableau")
@@ -139,6 +141,9 @@ export const updateReportingCgValidation = [
     body("testNumberWeighingsBySpecies")
         .optional({ checkFalsy: true })
         .isInt({ min: 0 }).withMessage("Doit être un entier positif ou nul"),
+    body("numberPrepaidWeighDefinitivelyCompleted")
+        .optional({ checkFalsy: true })
+        .isInt({ min: 0 }).withMessage("Doit être un entier positif ou nul"),
     // ❌ RETIRÉ : testNumberWeighingsToBeBilled
     // ❌ RETIRÉ : numberPassagesWithoutWeighingToBeBilled
     // ❌ RETIRÉ : numberPassagesWithoutWeighingBySpecies
@@ -150,13 +155,13 @@ export const updateReportingCgValidation = [
         .isInt({ min: 0 }).withMessage("Doit être un entier positif ou nul"),
     body("incidentDescription")
         .optional({ checkFalsy: true })
-        .isString().withMessage("Doit être une chaîne"),
+        .isString().withMessage("Doit être une chaîne de caractères"),
     body("recipeCardNumber")
         .optional({ checkFalsy: true })
-        .isString().withMessage("Doit être une chaîne"),
+        .isString().withMessage("Doit être une chaîne de caractères"),
     body("productionDescription")
         .optional({ checkFalsy: true })
-        .isString().withMessage("Doit être une chaîne"),
+        .isString().withMessage("Doit être une chaîne de caractères"),
     body("attachments")
         .optional({ checkFalsy: true })
         .isArray().withMessage("Les pièces jointes doivent être un tableau")
@@ -171,16 +176,16 @@ export const updateReportingCgValidation = [
         .isInt({ min: 0 }).withMessage("Doit être un entier positif ou nul"),
     body("firstWeighNumber")
         .optional({ checkFalsy: true })
-        .isString().withMessage("Doit être une chaîne"),
+        .isString().withMessage("Doit être une chaîne de caractères"),
     body("lastWeighNumber")
         .optional({ checkFalsy: true })
-        .isString().withMessage("Doit être une chaîne"),
+        .isString().withMessage("Doit être une chaîne de caractères"),
     body("firstWeighTractorNumber")
         .optional({ checkFalsy: true })
-        .isString().withMessage("Doit être une chaîne"),
+        .isString().withMessage("Doit être une chaîne de caractères"),
     body("lastWeighTractorNumber")
         .optional({ checkFalsy: true })
-        .isString().withMessage("Doit être une chaîne"),
+        .isString().withMessage("Doit être une chaîne de caractères"),
     body("consumables")
         .optional({ checkFalsy: true })
         .isArray().withMessage("Les consommables doivent être un tableau")

@@ -263,6 +263,7 @@ export const generateExcelReportingCgController = async (req, res) => {
             { header: 'Pesées incomplètes (par espèce)', key: 'incompleteNumberWeighingsBySpecies', width: 30 },
             { header: 'Pesées test (à facturer)', key: 'testNumberWeighingsToBeBilled', width: 25 },
             { header: 'Pesées test (par espèce)', key: 'testNumberWeighingsBySpecies', width: 25 },
+            { header: 'Pesées prépayées (définitivement réalisées)', key: 'numberPrepaidWeighDefinitivelyCompleted', width: 30 },
             { header: 'Passages sans pesée (à facturer)', key: 'numberPassagesWithoutWeighingToBeBilled', width: 30 },
             { header: 'Passages sans pesée (par espèce)', key: 'numberPassagesWithoutWeighingBySpecies', width: 30 },
             { header: 'Nombre d\'incidents', key: 'numberIncidents', width: 20 },
@@ -329,6 +330,7 @@ export const generateExcelReportingCgController = async (req, res) => {
                 incompleteNumberWeighingsBySpecies: rcg.incompleteNumberWeighingsBySpecies ?? 0,
                 testNumberWeighingsToBeBilled: rcg.testNumberWeighingsToBeBilled ?? 0,
                 testNumberWeighingsBySpecies: rcg.testNumberWeighingsBySpecies ?? 0,
+                numberPrepaidWeighDefinitivelyCompleted: rcg.numberPrepaidWeighDefinitivelyCompleted ?? 0,
                 numberPassagesWithoutWeighingToBeBilled: rcg.numberPassagesWithoutWeighingToBeBilled ?? 0,
                 numberPassagesWithoutWeighingBySpecies: rcg.numberPassagesWithoutWeighingBySpecies ?? 0,
                 numberIncidents: rcg.numberIncidents ?? 0,
@@ -454,6 +456,7 @@ export const exportPdfReportingCgController = async (req, res) => {
 
         const testToBill = Number(rcg.testNumberWeighingsToBeBilled) || 0;
         const testBySpecies = Number(rcg.testNumberWeighingsBySpecies) || 0;
+        const numberPrepaidWeighDefinitivelyCompleted = Number(rcg.numberPrepaidWeighDefinitivelyCompleted) || 0;
 
         const offBridgeNumber = Number(rcg.offBridgeNumber) || 0;
 
@@ -476,7 +479,7 @@ export const exportPdfReportingCgController = async (req, res) => {
             passagesWithoutWeighingBySpecies +
             offBridgeNumber;
 
-        const totalWeighings = totalToBill + totalBySpecies;
+        const totalWeighings = totalToBill + totalBySpecies + numberPrepaidWeighDefinitivelyCompleted;
 
         const totalRevenue =
             (Number(rcg.totalWeightAmount) || 0) +
@@ -740,6 +743,24 @@ export const exportPdfReportingCgController = async (req, res) => {
                             //         bold: true
                             //     }
                             // ],
+                            [
+                                'Pesée prépayée effectuée définitivement',
+                                {
+                                    text: formatNumber(numberPrepaidWeighDefinitivelyCompleted),
+                                    alignment: 'center'
+                                },
+                                {
+                                    text: '-',
+                                    alignment: 'center',
+                                    color: '#9CA3AF'
+                                },
+                                
+                                {
+                                    text: formatNumber(numberPrepaidWeighDefinitivelyCompleted),
+                                    alignment: 'right',
+                                    bold: true
+                                }
+                            ],
                             [
                                 'Hors-pont',
                                 {
