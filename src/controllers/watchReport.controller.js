@@ -1042,7 +1042,7 @@ export const exportPdfWatchReportController = async (req, res) => {
                     ? { image: `data:image/png;base64,${headerImageBase64}`, width: 125, alignment: 'center', margin: [0,0,0,5] }
                     : {},
                 {
-                    text: `RAPPORT DE QUART DE : ${emptyOrDash(createdByName) || '-'}`,
+                    text: `RAPPORT DE QUART DE : ${emptyOrDash(guardhouseSupervisorName) || '-'}`,
                     style: 'title'
                 },
                 {
